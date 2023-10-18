@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 
 # create two functions due to difference in column headers
-def clean_carpark_data(path:str, exit_id = None):
+def clean_carpark_data(path:str):
     ''' 
     function takes in path and exit_id (optional) and returns a cleaned dataframe
 
@@ -47,10 +47,13 @@ def clean_carpark_data(path:str, exit_id = None):
     df["enter_dt"] = df["enter_dt"].apply(lambda x: x.replace(year = 2023) if x.year == 2037 else x)
     df["enter_dt"] = df["enter_dt"].apply(lambda x: x.replace(year = 2022) if x.year == 2026 else x)
 
-    # add exit_id values if needed
-    if exit_id and 'exit_id' not in df.columns:
-        df['exit_id'] = exit_id
+    # add exit_id values if needed, mainly for Cp10
+    if 'exit_id' not in df.columns:
+        df['exit_id'] = None
     
+    # reorder columns
+    df = df[['IU', 'exit_id', 'enter_dt', 'exit_dt', 'type']]
+
     return df
 
 def generate_duration(df):
@@ -66,7 +69,7 @@ def generate_duration(df):
 
 def generate_dow(df):
     '''
-    function adds parked_dow column specifying day of the week
+    function adds parked_dow column specifying day of the week for enter_timing
     '''
     df['parked_dow'] = list(map(lambda dt: dt.strftime('%A'), df['enter_dt']))
     
