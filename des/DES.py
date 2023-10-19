@@ -1,14 +1,13 @@
 import numpy as np
 import pandas as pd
 from simpy import Environment
-import preprocess
 from carpark import CarPark
+import time
 
 # cp.process()
 # cp.timeout()
 # cp.run()
 # cp.now
-
 ## Resources (such as cp and parking lots)
 ## Resource() : limit num of processes, need request --> parking lot
 ## Container() :  discrete/continuous quantities
@@ -19,25 +18,22 @@ from carpark import CarPark
 # 1D = 86400s
 # 1 week = 604800
 SIM_TIME = 86400 # in seconds
-CAPACITY = 150
-
-
-## TODO: Function to get mean parking duration for each type for each cp
-def get_mean_duration(data):
-    return data.groupby('type')['duration'].mean()
+CAPACITY = 150 
+ARRIVAL_RATE = 60
 
 if __name__ == "__main__":
+    start_time = time.time()
 
-    cp5_df = preprocess.parse_xlsx('./data/raw_Cp5_a.xlsx')
-    mean_duration = get_mean_duration(cp5_df)
-
-    esp_mean_du = mean_duration['esp_du']
-    hourly_mean_du = mean_duration['hourly_du']
-    staff_mean_du = mean_duration['staff_du']
-    student_mean_du = mean_duration['student_du']
-    
-    # Example usage:
     env = Environment()
-    park = CarPark("Parking Lot 1", capacity=CAPACITY, env=env)
-    env.process(park.car_gen(arrivalRate=60))  # Adjust arrivalRate as needed
+    cp = CarPark("5", capacity=CAPACITY, env=env)
+    env.process(cp.car_gen(arrivalRate=ARRIVAL_RATE))  # Adjust arrivalRate as needed
     env.run(until=SIM_TIME)  # Adjust the simulation duration as needed
+
+    end_time = time.time()
+    duration = (end_time - start_time) / 60
+    print(f"--- Simulation completed in {duration:.2f} minutes ---")
+
+    ## TODO: Summary statistics
+    # total cars entered campus
+    # total cars left campus
+    # average parking duration
