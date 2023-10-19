@@ -1,7 +1,7 @@
 import numpy as np
-import pandas as pd
 from simpy import Environment
 from carpark import CarPark
+from car import Car
 import time
 
 # cp.process()
@@ -13,22 +13,57 @@ import time
 ## Container() :  discrete/continuous quantities
 ## Store() : unlimited --> carpark
 
-## TODO: take input from user
+## TODO: take input from user / database
 # 1h = 3600s
 # 1D = 86400s
 # 1 week = 604800
 SIM_TIME = 86400 # in seconds
-CAPACITY = 150 
-ARRIVAL_RATE = 60
+ARRIVAL_RATE = 1
+cp_info = {'cp3' : 236, 
+           'cp3a' : 41, 
+           'cp4' : 95, 
+           'cp5' : 70, 
+           'cp5b' : 24, 
+           'cp6b' : 163, 
+           'cp10' : 232}
+cp_prob = [0.2, 0.2, 0.05, 0.05, 0.1, 0.15, 0.25]
+car_types = ['hourly', 'student', 'staff', 'esp']
+car_prob = [0.35, 0.1, 0.5, 0.05]
+
+def custom_choice(list, prob):
+    rng = np.random.default_rng()
+    return rng.choice(list, p=prob)
+
+def car_generator(env, carparks):
+    car_id = 1
+    while True:
+        # Generate parking duration using a Poisson distribution
+        park_duration = np.random.poisson(ARRIVAL_RATE)  # Adjust the arrival rate as needed
+        yield env.timeout(park_duration)
+
+        # Create a car
+        car = Car(id=car_id, type=custom_choice(car_types, car_prob))
+        car_id += 1
+
+        # Choose a car park based on predefined probabilities
+        cp = custom_choice(carparks, cp_prob)
+        env.process(cp.park_car(car))
 
 if __name__ == "__main__":
     start_time = time.time()
 
-    env = Environment()
-    cp = CarPark("5", capacity=CAPACITY, env=env)
-    env.process(cp.car_gen(arrivalRate=ARRIVAL_RATE))  # Adjust arrivalRate as needed
-    env.run(until=SIM_TIME)  # Adjust the simulation duration as needed
+    ## init environment 
+    campus = Environment()
 
+    ## init carparks
+    carparks = []
+    for cp_id, capacity in cp_info.items():
+        carparks.append(CarPark(id=cp_id, capacity=capacity, env=campus))
+    
+    ## Start process
+    campus.process(car_generator(campus, carparks))
+    campus.run(until=SIM_TIME)
+    
     end_time = time.time()
     duration = (end_time - start_time) / 60
     print(f"--- Simulation completed in {duration:.2f} minutes ---")

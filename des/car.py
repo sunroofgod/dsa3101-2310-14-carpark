@@ -4,14 +4,11 @@ class Car:
         self.id = id
         self.type = type.lower()
 
-    def arrive(self, time : float):
-        print(f"Car {self.id} arrives at {time:.2f}s")
-
-    def park(self):
+    def park(self, cp : str):
         colour = "white"
         if self.type == "staff":
             colour = "red"
-        print(f"Car parks at {colour} lot")
+        print(f"Car {self.id} parks at {cp} {colour} lot")
 
-    def leave(self, time : float):
-        print(f"Car {self.id} left at {time:.2f}s")
+    def leave(self):
+        print(f"Car {self.id} leaves")

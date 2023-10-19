@@ -1,7 +1,7 @@
 import numpy as np
 from car import Car
 import simpy
-from simpy import Environment, Resource
+from simpy import Resource
 
 class CarPark:
 
@@ -15,36 +15,37 @@ class CarPark:
         self.env = env
         self.spots = Resource(env, capacity=capacity)
 
-    # def get_hour(self):
-    #     return self.env.now % 3600
-    
-    # def get_minute(self):
-    #     return self.env.now % 60
-    
-    def car_gen(self, arrivalRate):
-        car_id = 1
-        while True:
-            # Generate random arrival time intervals following a Poisson distribution
-            arrival_time = np.random.poisson(arrivalRate)
+    def park_car(self, car):
+        with self.spots.request() as request:
+            yield request
+            car.park(self.id)
+            yield self.env.timeout(np.random.uniform(3600, 18000))  # Simulate car's stay time
+            car.leave()
 
-            yield self.env.timeout(arrival_time)  # Wait for the next car to arrive
+    # def car_gen(self, arrivalRate):
+    #     car_id = 1
+    #     while True:
+    #         # Generate random arrival time intervals following a Poisson distribution
+    #         arrival_time = np.random.poisson(arrivalRate)
 
-            car_type = "hourly" if np.random.random() < 0.8 else "staff"  # 80% hourly, 20% staff
+    #         yield self.env.timeout(arrival_time)  # Wait for the next car to arrive
 
-            with self.spots.request() as request:
-                yield request  # Request a parking spot
+    #         car_type = "hourly" if np.random.random() < 0.8 else "staff"  # 80% hourly, 20% staff
 
-                car = Car(car_id, car_type)
-                car.arrive(self.env.now)
-                car.park()
+    #         with self.spots.request() as request:
+    #             yield request  # Request a parking spot
 
-                # Simulate car's stay time
-                # TODO: get distribution of parking duration from data
-                park_du = np.random.normal(3600, 60)  
-                yield self.env.timeout(park_du)
+    #             car = Car(car_id, car_type)
+    #             print(f"{int(self.env.now)} : {car.arrive()}")
+    #             print(f"{car.park()} at {self.id}")
 
-                car.leave(self.env.now)
-                car_id += 1
+    #             # Simulate car's stay time
+    #             # TODO: get distribution of parking duration from data
+    #             park_du = np.random.normal(3600, 60)  
+    #             yield self.env.timeout(park_du)
+
+    #             print(f"{int(self.env.now)} : {car.leave()} {self.id}")
+    #             car_id += 1
 
 
 
