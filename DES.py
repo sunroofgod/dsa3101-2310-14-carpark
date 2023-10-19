@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
-import simpy
+from simpy import Environment
 import preprocess
+from carpark import CarPark
 
 # cp.process()
 # cp.timeout()
@@ -13,22 +14,17 @@ import preprocess
 ## Container() :  discrete/continuous quantities
 ## Store() : unlimited --> carpark
 
+## TODO: take input from user
+# 1h = 3600s
+# 1D = 86400s
+# 1 week = 604800
+SIM_TIME = 86400 # in seconds
+CAPACITY = 150
+
 
 ## TODO: Function to get mean parking duration for each type for each cp
 def get_mean_duration(data):
     return data.groupby('type')['duration'].mean()
-
-## generator function
-def car_gen(env):
-    car_num = 0
-    while True:
-        car_num += 1
-
-        yield env.timeout(15)
-        print(f"Car {car_num}: arrives")
-
-        yield env.timeout(30)
-        print(f"Car {car_num}: leaves")
 
 if __name__ == "__main__":
 
@@ -40,10 +36,8 @@ if __name__ == "__main__":
     staff_mean_du = mean_duration['staff_du']
     student_mean_du = mean_duration['student_du']
     
-    
-
-    env = simpy.Environment()
-    
-    env.process(car_gen(env))
-
-    env.run(until=100)
+    # Example usage:
+    env = Environment()
+    park = CarPark("Parking Lot 1", capacity=CAPACITY, env=env)
+    env.process(park.car_gen(arrivalRate=60))  # Adjust arrivalRate as needed
+    env.run(until=SIM_TIME)  # Adjust the simulation duration as needed
