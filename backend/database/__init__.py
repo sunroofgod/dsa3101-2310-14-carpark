@@ -35,7 +35,7 @@ def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
             parked_min INT NOT NULL,
             parked_hrs INT NOT NULL,
             parked_days INT NOT NULL,
-            CONSTRAINT pk_visitors PRIMARY KEY (exit_id, IU)
+            CONSTRAINT pk_visitors PRIMARY KEY (IU, enter_dt)
             );'''
     ))
     db.commit()
