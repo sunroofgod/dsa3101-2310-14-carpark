@@ -161,6 +161,8 @@ cython_debug/
 
 # Data
 data/
+*.csv
+*.json
 
 # MacOS
 **/.DS_Store
