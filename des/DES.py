@@ -49,10 +49,10 @@ def car_generator(env, carparks):
         cp = custom_choice(carparks, cp_prob)
         env.process(cp.park_car(car))
 
-if __name__ == "__main__":
+def sim():
     start_time = time.time()
 
-    ## init environment 
+    ## init environment
     campus = Environment()
 
     ## init carparks
@@ -67,6 +67,11 @@ if __name__ == "__main__":
     end_time = time.time()
     duration = (end_time - start_time) / 60
     print(f"--- Simulation completed in {duration:.2f} minutes ---")
+
+if __name__ == "__main__":
+    
+    ## Run simulation
+    sim()
 
     ## TODO: Summary statistics
     # total cars entered campus
