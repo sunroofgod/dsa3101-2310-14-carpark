@@ -164,5 +164,8 @@ data/
 *.csv
 *.json
 
+# Keys
+keys/
+
 # MacOS
 **/.DS_Store
