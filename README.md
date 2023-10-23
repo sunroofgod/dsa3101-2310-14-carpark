@@ -21,9 +21,20 @@ _Ensure that you have done/are doing all these installations based on your curre
 2. Install pip [here](https://pip.pypa.io/en/stable/installation/).
 3. Intall MySQLWorkbench [here](https://dev.mysql.com/downloads/workbench/).
 
+### Setting up MySQLWorkbench
+
+1. Setup a new MySQL Connection by clicking on the + icon.
+<img src=".github/public/sql_workbench_setup_step1.png" width="500">
+
+2. Fill in all the compulsory fileds. In the case of our webapp, it is important to remember the fields `Username`, `Password` and `Default Schema` that we set. 
+<img src=".github/public/sql_workbench_setup_step2.png" width="700">
+
+3. Press ok. 
+
 ### Installation
 
 1. Clone the repo.
+
    ```sh
    git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
    ```
@@ -31,8 +42,7 @@ _Ensure that you have done/are doing all these installations based on your curre
    ```sh
    pip install -r requirements.txt
    ```
-3. Set up the MySQLWorkbench database.
-4. Set up environment variables. You may do so with your favourite text editor. In this case, we are using vim.
+3. Set up environment variables. You may do so with your favourite text editor. In this case, we are using vim.
    ```sh
    vim .env # ensure you are in the root directory of the cloned repo
    ```
@@ -41,8 +51,13 @@ _Ensure that you have done/are doing all these installations based on your curre
    DATABASE_NAME=<your schema name>
    MYSQL_USERNAME=<your mysqsl username>
    MYSQL_PASSWORD=<your mysqsl password>
-   # replace the details within the angle brackets with your details. don't forget to delete the angle brackets as well.
+   
+   # replace the details within the angle brackets with your details.
+   # don't forget to delete the angle brackets as well.
    ```
+4. Make sure you have started running a MySQL Connection instance. You may do so by clicking on the MySQL Connection you have previously set up as seen here.
+<img src=".github/public/sql_workbench_setup_step3.png" width="500">
+
 5. Startup the flask backend.
    ```sh
    cd backend # if you were originally in the root directory of the cloned repo
