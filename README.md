@@ -26,7 +26,7 @@ _Ensure that you have done/are doing all these installations based on your curre
 1. Setup a new MySQL Connection by clicking on the + icon.
 <img src=".github/public/sql_workbench_setup_step1.png" width="500">
 
-2. Fill in all the compulsory fileds. In the case of our webapp, it is important to remember the fields `Username`, `Password` and `Default Schema` that we set. 
+2. Fill in all the compulsory fileds. In the case of our webapp, it is important to remember the fields `Username`, `Password` and `Default Schema` that we set. **ENSURE** that you have set the port to 3306, else it will not run.
 <img src=".github/public/sql_workbench_setup_step2.png" width="700">
 
 3. Press ok. 
