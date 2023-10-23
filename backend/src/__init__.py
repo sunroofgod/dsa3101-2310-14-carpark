@@ -17,7 +17,7 @@ app.logger.info("Database created and populated")
 def home():
     return '/ GET'
 
-@app.route('/app>', methods=['GET', 'POST'])
+@app.route('/app', methods=['GET', 'POST'])
 def get_app():
     if request.method == 'POST':
         date = request.form.get('date') or '2024/12/25 09:00'
@@ -26,7 +26,7 @@ def get_app():
     else:
         return '/app GET'
 
-@app.route('/app/<int:carpark_id', methods=['GET', 'POST'])
+@app.route('/app/<int:carpark_id>', methods=['GET', 'POST'])
 def get_carparks(carpark_id):
     # TO ADD: either an sql query from a carparks table for info or query from a class
     # e.g. 
@@ -37,10 +37,11 @@ def get_carparks(carpark_id):
         red_lots = request.form.get('red_lots') or 0
         white_lots = request.form.get('white_lots') or 0
         # TO ADD: passing these three values into des/model functions
-        return '/app/<int:carpark_id> POST'
+        return f'/app/<int:carpark_id> POST'
     else:
-        return '/app/<int:carpark_id> GET'
+        return f'/app/carpark_id={carpark_id} GET'
 
 # init app
 if __name__ == "__main__":
     app.run()
+
