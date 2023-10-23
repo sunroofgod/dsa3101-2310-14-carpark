@@ -4,85 +4,117 @@ from carpark import CarPark
 from car import Car
 import time
 
-# cp.process()
-# cp.timeout()
-# cp.run()
-# cp.now
-## Resources (such as cp and parking lots)
-## Resource() : limit num of processes, need request --> parking lot
-## Container() :  discrete/continuous quantities
-## Store() : unlimited --> carpark
+## time unit : minutes
 
 ## TODO: take input from user / database
-# 1h = 3600s
-# 1D = 86400s
-# 1 week = 604800
-SIM_TIME = 86400 # in seconds
-ARRIVAL_RATE = 6
-cp_info = {'cp3' : 236, 
-           'cp3a' : 41, 
-           'cp4' : 95, 
-           'cp5' : 70, 
-           'cp5b' : 24, 
-           'cp6b' : 163, 
-           'cp10' : 232}
-cp_prob = [0.2, 0.2, 0.05, 0.05, 0.1, 0.15, 0.25]
-car_types = ['hourly', 'student', 'staff', 'esp']
-car_prob = [0.35, 0.1, 0.5, 0.05]
+SIM_TIME = 24 * 60 # in minutes
+ARRIVAL_RATE = 60 # n : 1 car every n minute
 
-def custom_choice(list, prob):
+CP_CAPACITY = {
+    'cp3' : (3, 1), 
+    # 'cp3a' : (41, 0), 
+    # 'cp4' : (95, 0), 
+    # 'cp5' : (70, 0), 
+    # 'cp5b' : (24, 0), 
+    # 'cp6b' : (163, 0), 
+    # 'cp10' : (232, 0)
+}
+
+CP_PROB = {
+    'cp3' : 1 # 0.2, 
+    # 'cp3a' : 0.2, 
+    # 'cp4' : 0.05, 
+    # 'cp5' : 0.05, 
+    # 'cp5b' : 0.1, 
+    # 'cp6b' : 0.15, 
+    # 'cp10' : 0.25
+}
+
+CAR_PROB = {
+    'hourly' : 0.35, 
+    'student' : 0.1, 
+    'staff' : 0.5, 
+    'esp' : 0.05
+}
+
+def custom_choice(items, prob):
     rng = np.random.default_rng()
-    return rng.choice(list, p=prob)
+    return rng.choice(items, p=prob)
 
-def car_generator(env, carparks):
-    car_id = 1
-    while True:
-        # Generate parking duration using a Poisson distribution
-        park_duration = np.random.poisson(ARRIVAL_RATE)  # Adjust the arrival rate as needed
-        yield env.timeout(park_duration)
-
-        # Create a car
-        car = Car(id=car_id, type=custom_choice(car_types, car_prob))
-        car_id += 1
-
-        # Choose a car park based on predefined probabilities
-        cp = custom_choice(carparks, cp_prob)
-        env.process(cp.park_car(car))
-
-def sim():
-    start_time = time.time()
-
-    ## init environment
-    campus = Environment()
-
-    ## init carparks
+def create_cp(env, cp_dict):
     carparks = []
-    for cp_id, capacity in cp_info.items():
-        carparks.append(CarPark(id=cp_id, capacity=capacity, env=campus))
-    
-    ## Start process
-    campus.process(car_generator(campus, carparks))
-    campus.run(until=SIM_TIME)
-    
-    end_time = time.time()
-    duration = (end_time - start_time) / 60
-    print(f"--- Simulation completed in {duration:.2f} minutes ---")
-
+    for name, lots in cp_dict.items():
+        carparks.append(CarPark(name=name, whiteLots=lots[0], redLots=lots[1], env=env))
     return carparks
+
+# def car_arrival(env, id, type):
+#     time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+#     yield env.timeout(time)
+#     car = Car(id, type)
+#     return car
+
+## Generate entire process of 1 car
+def car_generator(env, cp_cap_dict, cp_prob_dict, car_dict):
+    car_id = 1
+    cp_list = create_cp(env, cp_cap_dict)
+    cp_prob = [cp_prob_dict[cp.get_name()] for cp in cp_list]
+    assert sum(cp_prob) == 1
+    car_types = list(car_dict.keys())
+    car_prob = list(car_dict.values())
+    
+    while True:
+
+        ## Choose parking type
+        tpe = custom_choice(car_types, car_prob)
+        
+        ## Car arrive at campus
+        car = Car(car_id, tpe)
+        time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+        yield env.timeout(time)
+
+        # car = car_arrival(env, car_id, tpe)
+
+        ## Choose carpark
+        cp = custom_choice(cp_list, cp_prob)
+        print(f"Car {car_id} arrived at {cp.get_name()}")
+
+        ## Sim Process: park and leave when done
+        env.process(cp.park_car(car))
+        
+        ## Next car
+        car_id += 1
+    
+    return
 
 def get_output(carparks):
     d = {}
     for cp in carparks:
-        d[cp.id] = cp.stats()
-
+        d[cp.get_name()] = cp.stats()
     return d
+
+def sim(t=SIM_TIME, cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB):
+    start = time.time()
+
+    ## init Environment
+    campus = Environment()
+
+    ## Start process
+    campus.process(car_generator(campus, cap, cp_prob, car_prob))
+
+    ## End
+    campus.run(until=t)
+    end = time.time()
+    duration = end - start
+
+    ## Output
+    print(f"--- Simulation completed in {duration:.2f} minutes ---")
 
 if __name__ == "__main__":
     
     ## Run simulation
     carparks = sim()
-    stats = get_output(carparks)
-    print(stats)
+    # stats = get_output(carparks)
+    # print(stats)
 
     ## TODO: Summary statistics
     # total cars entered campus
