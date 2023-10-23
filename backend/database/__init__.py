@@ -5,8 +5,10 @@ import sqlalchemy
 
 load_dotenv('.env')
 
+DATABASE_NAME = os.environ['DATABASE_NAME']
+MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
 MYSQL_PASSWORD = os.environ['MYSQL_PASSWORD']
-CONNECTION_STRING = f'mysql://username:password@localhost:port/database'
+CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@localhost:3306/{DATABASE_NAME}'
 NUM_OF_TABLES = 1
 
 engine = sqlalchemy.create_engine(
@@ -24,14 +26,17 @@ def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
 def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
     db.execute(text(
         '''CREATE TABLE IF NOT EXISTS visitors(
-            exit_id VARCHAR(3) NOT NULL,
             IU VARCHAR(8) NOT NULL,
-            enter_dt DATE NOT NULL,
-            exit_dt DATE NOT NULL,
-            hourly_du INTEGER NOT NULL,
-            staff_du INTEGER NOT NULL,
-            student_du INTEGER NOT NULL,
-            esp_du INTEGER NOT NULL'''
+            carpark VARCHAR(10) NOT NULL,
+            exit_id VARCHAR(3) NOT NULL,
+            enter_dt DATETIME NOT NULL,
+            exit_dt DATETIME NOT NULL,
+            type VARCHAR(10) NOT NULL,
+            parked_min INT NOT NULL,
+            parked_hrs INT NOT NULL,
+            parked_days INT NOT NULL,
+            CONSTRAINT pk_visitors PRIMARY KEY (exit_id, IU)
+            );'''
     ))
     db.commit()
     print("ALL TABLES CREATED SUCCESSFULLY")
