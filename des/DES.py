@@ -18,7 +18,7 @@ import time
 # 1D = 86400s
 # 1 week = 604800
 SIM_TIME = 86400 # in seconds
-ARRIVAL_RATE = 1
+ARRIVAL_RATE = 6
 cp_info = {'cp3' : 236, 
            'cp3a' : 41, 
            'cp4' : 95, 
@@ -68,10 +68,21 @@ def sim():
     duration = (end_time - start_time) / 60
     print(f"--- Simulation completed in {duration:.2f} minutes ---")
 
+    return carparks
+
+def get_output(carparks):
+    d = {}
+    for cp in carparks:
+        d[cp.id] = cp.stats()
+
+    return d
+
 if __name__ == "__main__":
     
     ## Run simulation
-    sim()
+    carparks = sim()
+    stats = get_output(carparks)
+    print(stats)
 
     ## TODO: Summary statistics
     # total cars entered campus

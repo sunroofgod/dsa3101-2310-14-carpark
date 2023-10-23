@@ -4,6 +4,9 @@ class Car:
         self.id = id
         self.type = type.lower()
 
+    def get_type(self):
+        return self.type
+
     def park(self, cp : str):
         colour = "white"
         if self.type == "staff":
