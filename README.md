@@ -23,16 +23,27 @@ _Ensure that you have done/are doing all these installations based on your curre
 
 ### Installation
 
-1. Clone the repo
+1. Clone the repo.
    ```sh
    git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
    ```
-2. Download all the required dependencies
+2. Download all the required dependencies.
    ```sh
    pip install -r requirements.txt
    ```
-3. Set up the MySQLWorkbench database
-4. Startup the flask backend
+3. Set up the MySQLWorkbench database.
+4. Set up environment variables. You may do so with your favourite text editor. In this case, we are using vim.
+   ```sh
+   vim .env # ensure you are in the root directory of the cloned repo
+   ```
+   Make sure you have these three variables declared in .env in accordance to the way you have setup your MySQLWorkbench database.
+   ```txt
+   DATABASE_NAME=<your schema name>
+   MYSQL_USERNAME=<your mysqsl username>
+   MYSQL_PASSWORD=<your mysqsl password>
+   # replace the details within the angle brackets with your details. don't forget to delete the angle brackets as well.
+   ```
+5. Startup the flask backend.
    ```sh
    cd backend # if you were originally in the root directory of the cloned repo
    flask --app src run
