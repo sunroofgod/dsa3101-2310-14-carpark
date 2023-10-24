@@ -54,10 +54,9 @@ def create_cp(env, cp_dict):
 #     return car
 
 ## Generate entire process of 1 car
-def car_generator(env, cp_cap_dict, cp_prob_dict, car_dict):
+def car_generator(env, carparks, cp_prob_dict, car_dict):
     car_id = 1
-    cp_list = create_cp(env, cp_cap_dict)
-    cp_prob = [cp_prob_dict[cp.get_name()] for cp in cp_list]
+    cp_prob = [cp_prob_dict[cp.get_name()] for cp in carparks]
     assert sum(cp_prob) == 1
     car_types = list(car_dict.keys())
     car_prob = list(car_dict.values())
@@ -75,31 +74,31 @@ def car_generator(env, cp_cap_dict, cp_prob_dict, car_dict):
         # car = car_arrival(env, car_id, tpe)
 
         ## Choose carpark
-        cp = custom_choice(cp_list, cp_prob)
-        print(f"Car {car_id} arrived at {cp.get_name()}")
+        cp = custom_choice(carparks, cp_prob)
+        # print(f"Car {car_id} arrived at {cp.get_name()}")
 
         ## Sim Process: park and leave when done
         env.process(cp.park_car(car))
         
         ## Next car
         car_id += 1
-    
-    return
 
-def get_output(carparks):
+## TODO: implement output 
+def stats_summary(carparks):
     d = {}
     for cp in carparks:
         d[cp.get_name()] = cp.stats()
     return d
 
-def sim(t=SIM_TIME, cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB):
+def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
     start = time.time()
 
     ## init Environment
     campus = Environment()
 
     ## Start process
-    campus.process(car_generator(campus, cap, cp_prob, car_prob))
+    carparks = create_cp(campus, cap)
+    campus.process(car_generator(campus, carparks, cp_prob, car_prob))
 
     ## End
     campus.run(until=t)
@@ -107,16 +106,12 @@ def sim(t=SIM_TIME, cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB):
     duration = end - start
 
     ## Output
-    print(f"--- Simulation completed in {duration:.2f} minutes ---")
+    print(f"--- Simulation completed in {duration:.2f} seconds ---")
+    stats = stats_summary(carparks)
+    return stats
 
 if __name__ == "__main__":
     
     ## Run simulation
-    carparks = sim()
-    # stats = get_output(carparks)
-    # print(stats)
-
-    ## TODO: Summary statistics
-    # total cars entered campus
-    # total cars left campus
-    # average parking duration
+    stats = sim()
+    print(stats)
