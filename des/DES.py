@@ -108,7 +108,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
 
         ## Choose carpark
         cp = custom_choice(carparks, cp_prob)
-        # print(f"Car {car_id} arrived at {cp.get_name()}")
+        print(f"{env.now:<7.2f}: Car {car_id} arrived at {cp.get_name()}")
 
         ## Sim Process: park and leave when done
         env.process(cp.park_car(car))

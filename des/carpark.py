@@ -197,7 +197,7 @@ class CarPark:
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
                 duration = car.park_duration()
                 yield self.env.timeout(duration)  # Parking duration
-                print(f"{self.env.now:<7.2f}: Car {car.get_id()} parked at {self.get_name()} for {duration:4.2f} minutes")
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes")
             
             self.exit(car)
 
