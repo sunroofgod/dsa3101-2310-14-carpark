@@ -83,10 +83,10 @@ class CarPark:
             res = yield request | self.env.timeout(self.grace_period())
 
             if request in res: # park
-                print(f"{self.env.now:7.2f}: {car.name()} parking on {lot} lot at {self.get_name()}")
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
                 duration = car.park_duration()
                 yield self.env.timeout(duration)  # Parking duration
-                print(f"{self.env.now:7.2f}: {car.name()} parked at {self.get_name()} for {duration:4.2f} minutes")
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} parked at {self.get_name()} for {duration:4.2f} minutes")
             
             self.exit(car)
 

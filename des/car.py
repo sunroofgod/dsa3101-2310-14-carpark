@@ -5,8 +5,8 @@ class Car:
         self.id = id
         self.type = type.lower()
 
-    def name(self):
-        return f"Car {self.id}"
+    def get_id(self):
+        return self.id
 
     def get_type(self):
         return self.type
