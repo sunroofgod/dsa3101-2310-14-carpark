@@ -1,4 +1,5 @@
 import numpy as np
+import simpy
 from simpy import Environment
 from carpark import CarPark
 from car import Car
@@ -37,11 +38,31 @@ CAR_PROB = {
     'esp' : 0.05
 }
 
-def custom_choice(items, prob):
+def custom_choice(items : list, prob : list):
+    """
+    Choose an item from a list based on specified probabilities.
+
+    Args:
+        items (list): List of items to choose from.
+        prob (list): List of probabilities corresponding to each item.
+
+    Returns:
+        Any: The selected item based on the specified probabilities.
+    """
     rng = np.random.default_rng()
     return rng.choice(items, p=prob)
 
-def create_cp(env, cp_dict):
+def create_cp(env : simpy.Environment, cp_dict : dict):
+    """
+    Create a list of car parks based on provided parameters.
+
+    Args:
+        env (simpy.Environment): The SimPy environment in which the simulation runs.
+        cp_dict (dict): A dictionary containing car park names and white/red lots.
+
+    Returns:
+        list: A list of CarPark instances created with the specified parameters.
+    """
     carparks = []
     for name, lots in cp_dict.items():
         carparks.append(CarPark(name=name, whiteLots=lots[0], redLots=lots[1], env=env))
@@ -54,7 +75,19 @@ def create_cp(env, cp_dict):
 #     return car
 
 ## Generate entire process of 1 car
-def car_generator(env, carparks, cp_prob_dict, car_dict):
+def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict):
+    """
+    Generate the entire process of car arrivals and parking.
+
+    Args:
+        env (simpy.Environment): The SimPy environment in which the simulation runs.
+        carparks (list): A list of car parks available for parking.
+        cp_prob_dict (dict): A dictionary specifying the probability of choosing each car park.
+        car_dict (dict): A dictionary specifying the probability of parking types.
+
+    Yields:
+        SimPy events: Yields events representing car arrivals, parking, and departures.
+    """
     car_id = 1
     cp_prob = [cp_prob_dict[cp.get_name()] for cp in carparks]
     assert sum(cp_prob) == 1
@@ -83,14 +116,34 @@ def car_generator(env, carparks, cp_prob_dict, car_dict):
         ## Next car
         car_id += 1
 
-## TODO: implement output 
-def stats_summary(carparks):
+def stats_summary(carparks : list):
+    """
+    Generate summary statistics for a list of car parks.
+
+    Args:
+        carparks (list): A list of CarPark instances to collect statistics from.
+
+    Returns:
+        dict: A dictionary containing summary statistics for each car park.
+    """
     d = {}
     for cp in carparks:
         d[cp.get_name()] = cp.stats()
     return d
 
 def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
+    """
+    Run a car park simulation.
+
+    Args:
+        cap (dict): A dictionary specifying car park capacities.
+        cp_prob (dict): A dictionary specifying car park choice probabilities.
+        car_prob (dict): A dictionary specifying car type probabilities.
+        t (int): The simulation time in minutes.
+
+    Returns:
+        dict: A dictionary containing summary statistics for each car park.
+    """
     start = time.time()
 
     ## init Environment
