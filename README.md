@@ -61,7 +61,7 @@ _Ensure that you have done/are doing all these installations based on your curre
 5. Startup the flask backend.
    ```sh
    cd backend # if you were originally in the root directory of the cloned repo
-   flask --app src run
+   flask --app app run
    ```
    
 <!-- BOTTOM BANNER -->
