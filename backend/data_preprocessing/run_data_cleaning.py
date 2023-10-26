@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 
 def load_and_clean_data(carpark_data: dict):
-    import pandas as pd
     '''
     function takes in a dictionary of file paths and returns an aggregated dataframe 
     if __name__ == "__main__": individual carpark datasets and final dataframe will also be saved to a csv file
@@ -21,19 +20,19 @@ def load_and_clean_data(carpark_data: dict):
 
         # Drop invalid rows with non-positive durations as they do not make sense
         df_clean_final = df_clean_duration.loc[df_clean_duration['parked_min']>0]
-        print(f"Number of rows dropped for {carpark}: {df_clean_duration.shape[0] - df_clean_final.shape[0]}")
+        print(f"Number of non-positive durations dropped for {carpark}: {df_clean_duration.shape[0] - df_clean_final.shape[0]}")
         
         aggregate_df = pd.concat([aggregate_df, df_clean_final], ignore_index=True)
         # Save the cleaned data to a csv file if main
         if __name__ == '__main__':
-            df_clean_final.to_csv(os.path.join(data_folder, carpark + '_cleaned' + '.csv'), index=False)
+            df_clean_final.to_csv(os.path.join('../../data/cleaned', carpark + '_cleaned' + '.csv'), index=False)
     
     aggregate_df.drop_duplicates(inplace=True, ignore_index=True)
     # Select max parked duration for any duplicated IU, carpark and enter_dt
     find_max_series = aggregate_df.groupby(['IU', 'carpark', 'enter_dt']).parked_min.transform('max')
     filterd_df = aggregate_df[aggregate_df['parked_min'] == find_max_series]
     if __name__ == '__main__':
-        filterd_df.to_csv(os.path.join(data_folder, 'all_carparks_cleaned' + '.csv'), index=False)
+        filterd_df.to_csv(os.path.join('../../data/cleaned', 'all_carparks_cleaned' + '.csv'), index=False)
     return filterd_df
 
 def clean_carpark_data(path:str):
@@ -84,7 +83,11 @@ def clean_carpark_data(path:str):
     
     # map exit_id to carpark name using json file stored locally in data folder
     import json
-    with open('../data/exit_id_mapping.json') as f:
+    if __name__ == '__main__':
+        relative_path = '../../data' 
+    else: 
+        relative_path = '../data'
+    with open(relative_path + '/exit_id_mapping.json') as f:
         EXIT_ID_MAPPING = json.load(f)
 
     df['carpark'] = df['exit_id'].apply(lambda key: EXIT_ID_MAPPING[key] if key in EXIT_ID_MAPPING else np.nan)
@@ -92,7 +95,7 @@ def clean_carpark_data(path:str):
     # reorder columns
     df = df[['IU', 'carpark', 'exit_id', 'enter_dt', 'exit_dt', 'type']]
 
-    return df
+    return df 
 
 def generate_duration(df):
     '''
@@ -117,7 +120,6 @@ def generate_dow(df):
 
 
 if __name__ == '__main__':
-    print(__name__)
     # Check if the 'Data' folder exists, and create it if not.
     # Note that Data folder is untracked by git, hence data files can be added here
     data_folder = '../../data'
@@ -126,9 +128,9 @@ if __name__ == '__main__':
 
     ## Add raw csv files and EXIT_ID_MAPPING.json into the Data folder for the below steps to work
 
-    data_folder = '../../data/cleaned'
-    if not os.path.exists(data_folder):
-        os.mkdir(data_folder)
+    data_folder_cleaned = '../../data/cleaned'
+    if not os.path.exists(data_folder_cleaned):
+        os.mkdir(data_folder_cleaned)
 
     ## Clean three raw data files that were provided to us
     carpark_data = {'Cp5': '../../data/raw_Cp5_a.csv',
