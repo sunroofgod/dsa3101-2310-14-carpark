@@ -15,6 +15,7 @@ def load_and_clean_data(file_paths: dict):
         # Hard code additional column for Cp10 raw data
         if carpark == 'Cp10':
             df_clean_duration['carpark'] = 'CP10'
+            df_clean_duration['exit_id'] = 'CP10' # for consistency with other datasets
 
         # Drop invalid rows with non-positive durations as they do not make sense
         df_clean_final = df_clean_duration.loc[df_clean_duration['parked_min']>0]

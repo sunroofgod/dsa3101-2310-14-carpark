@@ -29,7 +29,7 @@ def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
         '''CREATE TABLE IF NOT EXISTS visitors(
             IU VARCHAR(8) NOT NULL,
             carpark VARCHAR(10) NOT NULL,
-            exit_id VARCHAR(3) NOT NULL,
+            exit_id VARCHAR(4) NOT NULL,
             enter_dt DATETIME NOT NULL,
             exit_dt DATETIME NOT NULL,
             type VARCHAR(10) NOT NULL,
