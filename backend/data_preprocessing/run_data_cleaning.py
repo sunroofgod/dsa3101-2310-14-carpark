@@ -26,8 +26,12 @@ def load_and_clean_data(file_paths: dict):
             df_clean_final.to_csv(os.path.join(data_folder, carpark + '_cleaned' + '.csv'), index=False)
     
     aggregate_df.drop_duplicates(inplace=True, ignore_index=True)
-    aggregate_df.to_csv(os.path.join(data_folder, 'all_carparks_cleaned' + '.csv'), index=False)
-    return aggregate_df
+    # Select max parked duration for any duplicated IU, carpark and enter_dt
+    find_max_series = aggregate_df.groupby(['IU', 'carpark', 'enter_dt']).parked_min.transform(max)
+    filterd_df = aggregate_df[aggregate_df['parked_min'] == find_max_series]
+    if __name__ == '__main__':
+        filterd_df.to_csv(os.path.join(data_folder, 'all_carparks_cleaned' + '.csv'), index=False)
+    return filterd_df
 
 if __name__ == '__main__':
     # Check if the 'Data' folder exists, and create it if not.
