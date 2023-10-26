@@ -16,6 +16,7 @@ def clean_carpark_data(path:str):
     cleaned dataframe with columns 'IU', 'carpark', 'exit_id', 'enter_dt', 'exit_dt', 'type'
     '''
     df = pd.read_csv(path)
+    print(f"loaded {path} with shape {df.shape}")
 
     # For cp5 and Cp33a45b6b_a and other carpark data in similar format:
     if all(df.columns == ['ExitId', 'IU', 'enter', 'Exit', 'hourly_du', 'staff_du', 'student_du','esp_du']):
