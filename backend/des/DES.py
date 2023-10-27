@@ -4,6 +4,7 @@ from simpy import Environment
 from carpark import CarPark
 from car import Car
 import time
+import params
 
 ## time unit : minutes
 
@@ -12,16 +13,7 @@ SIM_TIME = 24 * 60 # in minutes
 ARRIVAL_RATE = 1 # n : 1 car every n minute
 NSIM = 10
 
-CP_CAPACITY = {
-    # carpark name : (white, red)
-    'cp3' : (214, 26), 
-    'cp3a' : (40, 21), 
-    'cp4' : (100, 17), 
-    'cp5b' : (0, 31), 
-    'cp6b' : (179, 7), 
-    'cp10' : (164, 211)
-}
-
+CP_CAPACITY = params.get_carpark_capacity()
 CP_PROB = {
     # carpark name : probablity 
     'cp3' : 0.2, 
