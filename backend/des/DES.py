@@ -14,19 +14,11 @@ ARRIVAL_RATE = 1 # n : 1 car every n minute
 NSIM = 10
 
 CP_CAPACITY = params.get_carpark_capacity()
-CP_PROB = {
-    # carpark name : probablity 
-    'cp3' : 0.2, 
-    'cp3a' : 0.2, 
-    'cp4' : 0.05, 
-    'cp5b' : 0.1, 
-    'cp6b' : 0.15, 
-    'cp10' : 0.3
-}
+CP_PROB = params.get_carpark_prob()
 
 CAR_PROB = {
     # parking type : probablity 
-    'hourly' : 0.35, 
+    'visitor' : 0.35, 
     'student' : 0.1, 
     'staff' : 0.5, 
     'esp' : 0.05
@@ -83,9 +75,8 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         SimPy events: Yields events representing car arrivals, parking, and departures.
     """
     car_id = 1
-    cp_prob = [cp_prob_dict[cp.get_name()] for cp in carparks]
-    assert sum(cp_prob) == 1
 
+    ## Make corresponding list pair for choosing type
     car_types = list(car_dict.keys())
     car_prob = list(car_dict.values())
     
@@ -102,6 +93,9 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         # car = car_arrival(env, car_id, tpe)
 
         ## Choose carpark
+        cp_dict = cp_prob_dict[tpe]
+        cp_prob = [cp_dict[cp.get_name()] for cp in carparks]
+        assert sum(cp_prob) == 1.0
         cp = custom_choice(carparks, cp_prob)
         print(f"{env.now:<7.2f}: Car {car_id} arrived at {cp.get_name()}")
 

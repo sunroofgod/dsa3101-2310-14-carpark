@@ -5,16 +5,16 @@ class Car:
 
     Attributes:
         id (int): A unique identifier for the car.
-        type (str): The type of parking (e.g., "hourly," "staff").
+        type (str): The type of parking (e.g., "visitor," "staff").
     """
 
-    def __init__(self, id : int, type="hourly"):
+    def __init__(self, id : int, type="visitor"):
         """
         Initializes a new car.
 
         Args:
             id (int): A unique identifier for the car.
-            type (str, optional): The type of parking (default is "hourly").
+            type (str, optional): The type of parking (default is "visitor").
         """
         self.id = id
         self.type = type.lower()
@@ -33,7 +33,7 @@ class Car:
         Get the type of parking for the car.
 
         Returns:
-            str: The type of parking for the car (e.g., "hourly," "staff").
+            str: The type of parking for the car (e.g., "visitor," "staff").
         """
         return self.type
 
