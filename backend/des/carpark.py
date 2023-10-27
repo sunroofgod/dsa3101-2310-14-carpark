@@ -172,10 +172,10 @@ class CarPark:
         Get statistics about the car park.
 
         Returns:
-            tuple: A tuple containing the total number of white cars, total number of red cars,
+            list: A list containing the total number of white cars, total number of red cars,
             and the overall parking lot occupancy as a ratio.
         """
-        return (self.totalWhite, self.totalRed, self.occupied(ratio=True))
+        return [self.totalWhite, self.totalRed, self.occupied(ratio=True)]
 
     def park_car(self, car : Car):
         """

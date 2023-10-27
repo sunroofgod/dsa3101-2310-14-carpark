@@ -10,6 +10,7 @@ import time
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
 ARRIVAL_RATE = 1 # n : 1 car every n minute
+NSIM = 10
 
 CP_CAPACITY = {
     # carpark name : (white, red)
@@ -69,11 +70,11 @@ def create_cp(env : simpy.Environment, cp_dict : dict):
         carparks.append(CarPark(name=name, whiteLots=lots[0], redLots=lots[1], env=env))
     return carparks
 
-# def car_arrival(env, id, type):
-#     time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
-#     yield env.timeout(time)
-#     car = Car(id, type)
-#     return car
+def car_arrival(env, id, type):
+    time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+    yield env.timeout(time)
+    car = Car(id, type)
+    return car
 
 ## Generate entire process of 1 car
 def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict):
@@ -106,7 +107,6 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
         assert time >= 0
         yield env.timeout(time)
-
         # car = car_arrival(env, car_id, tpe)
 
         ## Choose carpark
@@ -133,9 +133,32 @@ def stats_summary(carparks : list):
     for cp in carparks:
         d[cp.get_name()] = cp.stats()
 
+    # for cp, stat in d.items():
+    #     print(f"{cp:<5}: {stat}")
+    return d
+
+def stats_mean(dict1 : dict, dict2 : dict):
+    if dict1 == {}:
+        return dict2
+    if dict2 == {}:
+        return dict1
+    
+    ## merge dict2 into dict1
+    for key, val in dict2.items():
+        
+        if key not in dict1.keys():
+            ## no need to average, just take the value from dict2
+            dict1[key] = val
+        else:
+            for i in range(len(val)):
+                dict1[key][i] = (dict1[key][i] + dict2[key][i]) / 2
+    
+    return dict1
+
+def print_stats(d : dict):
     for cp, stat in d.items():
         print(f"{cp:<5}: {stat}")
-    return d
+    return
 
 def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
     """
@@ -150,7 +173,6 @@ def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
     Returns:
         dict: A dictionary containing summary statistics for each car park.
     """
-    start = time.time()
 
     ## init Environment
     campus = Environment()
@@ -161,16 +183,29 @@ def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
 
     ## End
     campus.run(until=t)
-    end = time.time()
-    duration = end - start
 
     ## Output
-    print(f"--- Simulation completed in {duration:.2f} seconds ---")
     stats = stats_summary(carparks)
     return stats
 
 if __name__ == "__main__":
     
-    ## Run simulation
-    stats = sim()
-    # print(stats)
+    init_time = time.time()
+    overall_stats = {}
+    
+    ## Run simulation for n times
+    for i in range(NSIM):
+        ## Track simulation time
+        start = time.time() 
+
+        ## Run simulation
+        stats = sim()
+
+        ## Simulation output
+        overall_stats = stats_mean(overall_stats, stats)
+        print_stats(stats)
+        print(f"--- Simulation {i + 1} completed in {time.time() - start:.2f} seconds ---\n")
+
+    duration = (time.time() - init_time) / 60 # convert to minutes
+    print_stats(overall_stats)
+    print(f"--- Total running time {duration:.2f} minutes ---")
