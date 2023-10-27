@@ -163,6 +163,7 @@ cython_debug/
 data/
 *.csv
 *.json
+*.xlsx
 
 # Keys
 keys/
