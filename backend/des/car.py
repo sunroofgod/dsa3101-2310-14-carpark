@@ -70,4 +70,4 @@ class Car:
         Returns:
             float: The parking duration in minutes, following a normal distribution.
         """
-        return np.random.normal(180, 60)
+        return max(0, np.random.normal(180, 60))

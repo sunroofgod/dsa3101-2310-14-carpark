@@ -9,29 +9,30 @@ import time
 
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
-ARRIVAL_RATE = 60 # n : 1 car every n minute
+ARRIVAL_RATE = 1 # n : 1 car every n minute
 
 CP_CAPACITY = {
-    'cp3' : (3, 1), 
-    # 'cp3a' : (41, 0), 
-    # 'cp4' : (95, 0), 
-    # 'cp5' : (70, 0), 
-    # 'cp5b' : (24, 0), 
-    # 'cp6b' : (163, 0), 
-    # 'cp10' : (232, 0)
+    # carpark name : (white, red)
+    'cp3' : (214, 26), 
+    'cp3a' : (40, 21), 
+    'cp4' : (100, 17), 
+    'cp5b' : (0, 31), 
+    'cp6b' : (179, 7), 
+    'cp10' : (164, 211)
 }
 
 CP_PROB = {
-    'cp3' : 1 # 0.2, 
-    # 'cp3a' : 0.2, 
-    # 'cp4' : 0.05, 
-    # 'cp5' : 0.05, 
-    # 'cp5b' : 0.1, 
-    # 'cp6b' : 0.15, 
-    # 'cp10' : 0.25
+    # carpark name : probablity 
+    'cp3' : 0.2, 
+    'cp3a' : 0.2, 
+    'cp4' : 0.05, 
+    'cp5b' : 0.1, 
+    'cp6b' : 0.15, 
+    'cp10' : 0.3
 }
 
 CAR_PROB = {
+    # parking type : probablity 
     'hourly' : 0.35, 
     'student' : 0.1, 
     'staff' : 0.5, 
@@ -91,6 +92,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
     car_id = 1
     cp_prob = [cp_prob_dict[cp.get_name()] for cp in carparks]
     assert sum(cp_prob) == 1
+
     car_types = list(car_dict.keys())
     car_prob = list(car_dict.values())
     
@@ -102,6 +104,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         ## Car arrive at campus
         car = Car(car_id, tpe)
         time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+        assert time >= 0
         yield env.timeout(time)
 
         # car = car_arrival(env, car_id, tpe)
@@ -129,6 +132,9 @@ def stats_summary(carparks : list):
     d = {}
     for cp in carparks:
         d[cp.get_name()] = cp.stats()
+
+    for cp, stat in d.items():
+        print(f"{cp:<5}: {stat}")
     return d
 
 def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
@@ -167,4 +173,4 @@ if __name__ == "__main__":
     
     ## Run simulation
     stats = sim()
-    print(stats)
+    # print(stats)

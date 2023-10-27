@@ -196,6 +196,7 @@ class CarPark:
             if request in res: # park
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
                 duration = car.park_duration()
+                assert duration >= 0
                 yield self.env.timeout(duration)  # Parking duration
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes")
             
