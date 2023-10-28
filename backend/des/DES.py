@@ -27,7 +27,7 @@ def minutes_to_hours(minutes : int):
 def arrivals_to_rate(arrivals : int):
     return 1 / (arrivals / 60)
 
-def get_parking_duration(month : int, minutes : int):
+def get_arrival_interval(month : int, minutes : int):
     return arrivals_to_rate(np.random.poisson(get_lambda(month, minutes_to_hours(minutes))))
 
 def custom_choice(items : list, prob : list):
@@ -93,7 +93,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         
         ## Car arrive at campus
         car = Car(car_id, tpe)
-        time = get_parking_duration(month, env.now) # time before next car arrive
+        time = get_arrival_interval(month, env.now) # time before next car arrive
         assert time >= 0
         yield env.timeout(time)
         # car = car_arrival(env, car_id, tpe)
