@@ -15,14 +15,8 @@ NSIM = 10
 
 CP_CAPACITY = params.get_carpark_capacity()
 CP_PROB = params.get_carpark_prob()
-
-CAR_PROB = {
-    # parking type : probablity 
-    'visitor' : 0.35, 
-    'student' : 0.1, 
-    'staff' : 0.5, 
-    'esp' : 0.05
-}
+## biased data if more carpark data from a carpark is given
+CAR_PROB = params.get_parking_type_prop()
 
 def custom_choice(items : list, prob : list):
     """

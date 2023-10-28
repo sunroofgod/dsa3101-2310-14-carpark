@@ -6,7 +6,7 @@ DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
-# TODO: filter based on carparks
+# TODO: filter based on carparks with non-0 capacity
 
 def get_carpark_capacity(data=capacity_data):
     d = {}
@@ -44,21 +44,18 @@ def get_carpark_prob(data=cp_data):
         
     return d
 
-def boo(d):
-    l = []
-    for t, dd in d.items():
-        r = 0
-        for cp, val in dd.items():
-            r += val
-        l.append(r)
-    return l
+def get_parking_type_prop(data=cp_data):
+    ## Calculate proportion of parking types
+    data = cp_data
+    users = data.groupby("type").agg({"IU" : 'count'})
+    users["total"] = users["IU"].sum()
+    users["prop"] = users["IU"] / users["total"]
+    users = users.drop(["IU", "total"], axis=1).to_dict()
+    users = users["prop"]
 
-# data['enter_dt'] = pd.to_datetime(data['enter_dt'])
-# data['exit_dt'] = pd.to_datetime(data['exit_dt'])
-# data['enter_hour'] = data['enter_dt'].dt.hour
-# data['exit_hour'] = data['exit_dt'].dt.hour
-# data['month'] = data['enter_dt'].dt.month
+    return users
 
-# summary = data.groupby(['carpark', "type"]).agg({'parked_min' : ['sum', 'mean', 'std']})
+
+# summary = data.groupby(['carpark', "type"]).agg({'parked_min' : ['sum', 'mean', 'std'], 'IU' : 'count'})
 # users = data.groupby(['month', 'enter_hour'])['IU'].count()
 # du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['sum', 'mean', 'median', 'std']})
