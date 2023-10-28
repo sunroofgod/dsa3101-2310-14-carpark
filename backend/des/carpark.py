@@ -63,6 +63,10 @@ class CarPark:
         self.totalWhite = 0 
         self.totalRed = 0
 
+        ## Track total cars turned away
+        self.whiteRejected = 0
+        self.redRejected = 0 
+
         self.spots = Resource(env, capacity=self.capacity)
 
     def get_name(self):
@@ -166,6 +170,14 @@ class CarPark:
         else:
             self.whiteCars -= 1
             return "white"
+        
+    def turn_away(self, car : Car):
+        if car.get_type() == "staff":
+            self.redRejected += 1
+            return "red"
+        else: 
+            self.whiteRejected += 1
+            return "white"
 
     def stats(self):
         """
@@ -175,7 +187,11 @@ class CarPark:
             list: A list containing the total number of white cars, total number of red cars,
             and the overall parking lot occupancy as a ratio.
         """
-        return [self.totalWhite, self.totalRed, self.occupied(ratio=True)]
+        return [self.totalWhite, 
+                self.totalRed, 
+                self.whiteRejected, 
+                self.redRejected, 
+                self.occupied(ratio=True)]
 
     def park_car(self, car : Car):
         """
@@ -188,18 +204,27 @@ class CarPark:
             int: A status code (e.g., 200) indicating the result of the parking operation.
         """
         with self.spots.request() as request:
+            ## Car enter, increment respective count
             lot = self.enter(car)
             
             ## Wait for carpark lot up to grace period, if still no lot, leave
             res = yield request | self.env.timeout(self.grace_period())
 
-            if request in res: # park
+            if request in res:
+                ## Car successfully found a lot
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
+
+                ## Get parking duration
                 duration = car.park_duration()
                 assert duration >= 0
-                yield self.env.timeout(duration)  # Parking duration
-                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes")
+                yield self.env.timeout(duration)
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes.")
+            else:
+                ## Car exit without parking
+                self.turn_away(car)
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()} without parking.")
             
+            ## Car exit, decrement respective count
             self.exit(car)
 
         return 200

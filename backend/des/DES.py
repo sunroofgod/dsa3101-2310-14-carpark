@@ -10,7 +10,7 @@ import params
 
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
-ARRIVAL_RATE = 1 # n : 1 car every n minute
+ARRIVAL_RATE = 0.5 # n : 1 car every n minute
 NSIM = 10
 
 CP_CAPACITY = params.get_carpark_capacity()
@@ -90,6 +90,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         cp_dict = cp_prob_dict[tpe]
         cp_prob = [cp_dict[cp.get_name()] for cp in carparks]
         assert sum(cp_prob) == 1.0
+        ## TODO: car should only be able to choose from cp with given parking type
         cp = custom_choice(carparks, cp_prob)
         print(f"{env.now:<7.2f}: Car {car_id} arrived at {cp.get_name()}")
 
