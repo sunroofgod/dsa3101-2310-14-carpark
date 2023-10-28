@@ -46,16 +46,16 @@ def get_carpark_prob(data=cp_data):
 
 def get_parking_type_prop(data=cp_data):
     ## Calculate proportion of parking types
-    data = cp_data
     users = data.groupby("type").agg({"IU" : 'count'})
     users["total"] = users["IU"].sum()
     users["prop"] = users["IU"] / users["total"]
+
     users = users.drop(["IU", "total"], axis=1).to_dict()
     users = users["prop"]
 
     return users
 
-
+data = cp_data
 # summary = data.groupby(['carpark', "type"]).agg({'parked_min' : ['sum', 'mean', 'std'], 'IU' : 'count'})
 # users = data.groupby(['month', 'enter_hour'])['IU'].count()
 # du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['sum', 'mean', 'median', 'std']})
