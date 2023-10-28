@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 CAP_FPATH = "../../data/CP Lots NUS.xlsx"
 DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
@@ -55,7 +56,9 @@ def get_parking_type_prop(data=cp_data):
 
     return users
 
-data = cp_data
-# summary = data.groupby(['carpark', "type"]).agg({'parked_min' : ['sum', 'mean', 'std'], 'IU' : 'count'})
-# users = data.groupby(['month', 'enter_hour'])['IU'].count()
-# du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['sum', 'mean', 'median', 'std']})
+def get_lambda(data=cp_data):
+    data['enter_dt'] = pd.to_datetime(data['enter_dt'])
+    data['enter_hour'] = data['enter_dt'].dt.hour
+    data['month'] = data['enter_dt'].dt.month
+    users = data.groupby(['month', 'enter_hour'])["IU"].count()
+    return users.to_dict()

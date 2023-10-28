@@ -5,18 +5,30 @@ from carpark import CarPark
 from car import Car
 import time
 import params
+import datetime
 
 ## time unit : minutes
 
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
-ARRIVAL_RATE = 0.5 # n : 1 car every n minute
-NSIM = 10
-
+NSIM = 1
 CP_CAPACITY = params.get_carpark_capacity()
 CP_PROB = params.get_carpark_prob()
-## biased data if more carpark data from a carpark is given
 CAR_PROB = params.get_parking_type_prop()
+LAMBDAS = params.get_lambda()
+MONTH = datetime.date.today().month
+
+def get_lambda(month : int, hour : int):
+    return LAMBDAS[(month, hour)]
+
+def minutes_to_hours(minutes : int):
+    return int(minutes / 60)
+
+def arrivals_to_rate(arrivals : int):
+    return 1 / (arrivals / 60)
+
+def get_parking_duration(month : int, minutes : int):
+    return arrivals_to_rate(np.random.poisson(get_lambda(month, minutes_to_hours(minutes))))
 
 def custom_choice(items : list, prob : list):
     """
@@ -48,14 +60,14 @@ def create_cp(env : simpy.Environment, cp_dict : dict):
         carparks.append(CarPark(name=name, whiteLots=lots[0], redLots=lots[1], env=env))
     return carparks
 
-def car_arrival(env, id, type):
-    time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
-    yield env.timeout(time)
-    car = Car(id, type)
-    return car
+# def car_arrival(env, id, type):
+#     time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+#     yield env.timeout(time)
+#     car = Car(id, type)
+#     return car
 
 ## Generate entire process of 1 car
-def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict):
+def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=MONTH):
     """
     Generate the entire process of car arrivals and parking.
 
@@ -81,7 +93,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         
         ## Car arrive at campus
         car = Car(car_id, tpe)
-        time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
+        time = get_parking_duration(month, env.now) # time before next car arrive
         assert time >= 0
         yield env.timeout(time)
         # car = car_arrival(env, car_id, tpe)
@@ -90,7 +102,9 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         cp_dict = cp_prob_dict[tpe]
         cp_prob = [cp_dict[cp.get_name()] for cp in carparks]
         assert sum(cp_prob) == 1.0
+
         ## TODO: car should only be able to choose from cp with given parking type
+        
         cp = custom_choice(carparks, cp_prob)
         print(f"{env.now:<7.2f}: Car {car_id} arrived at {cp.get_name()}")
 
