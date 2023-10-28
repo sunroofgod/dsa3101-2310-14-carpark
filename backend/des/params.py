@@ -7,7 +7,7 @@ DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
-# TODO: filter based on carparks with non-0 capacity
+## TODO: filter based on carparks with non-0 capacity
 
 def get_carpark_capacity(data=capacity_data):
     d = {}
@@ -60,5 +60,9 @@ def get_lambda(data=cp_data):
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     data['enter_hour'] = data['enter_dt'].dt.hour
     data['month'] = data['enter_dt'].dt.month
-    users = data.groupby(['month', 'enter_hour'])["IU"].count()
-    return users.to_dict()
+    data['year'] = data['enter_dt'].dt.year
+
+    users = data[["month", "year", "enter_hour"]]
+    users = users.groupby(["month", "year", "enter_hour"]).size().reset_index()
+    users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
+    return users.to_dict()[0]
