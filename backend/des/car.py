@@ -8,7 +8,7 @@ class Car:
 
     Attributes:
         id (int): A unique identifier for the car.
-        type (str): The type of parking (e.g., "visitor," "staff").
+        type (str): The type of parking (e.g., "visitor", "staff").
     """
 
     def __init__(self, id : int, type="visitor"):

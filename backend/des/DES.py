@@ -20,7 +20,7 @@ MONTH = datetime.date.today().month
 
 def get_lambda(month : int, hour : int):
     """
-    Get the number of arrivala lambda for a given month and hour from LAMBDAS.
+    Get the number of arrivals lambda for a given month and hour from LAMBDAS.
 
     Args:
         month (int): The month (1-12).
