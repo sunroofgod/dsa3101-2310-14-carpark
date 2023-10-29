@@ -14,7 +14,7 @@ navbar = dbc.Navbar(
                     # Create Logo and Brand flushed to the left
                     dbc.Row(
                         dbc.Col([
-                            html.Img(src=dash.get_asset_url('nus_logo.svg'), height="72px", style={"padding":"10px"}),
+                            html.Img(src=dash.get_asset_url('nus_logo.svg'), height="72px", style={"padding":"10px", 'vertical-align':'middle'}),
                             dbc.NavbarBrand("Parkitect", style = {'font-weight':'bold','font-size':'36px', 'color':'#3A3B3C','padding':'30px','vertical-align':'middle'})
                                 ])
 
