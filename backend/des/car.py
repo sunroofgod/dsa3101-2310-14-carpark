@@ -1,4 +1,7 @@
 import numpy as np
+from params import get_parking_duration_stats
+
+park_du = get_parking_duration_stats()
 class Car:
     """
     Represents a car in a parking simulation.
@@ -63,11 +66,12 @@ class Car:
         print(f"Car {self.id} leaves")
         return
     
-    def park_duration(self):
+    def park_duration(self, cp : str):
         """
         Generates a random parking duration for the car.
 
         Returns:
             float: The parking duration in minutes, following a normal distribution.
         """
-        return max(0, np.random.normal(180, 60))
+        tup = park_du[(cp, self.type)]
+        return max(0, np.random.normal(tup[0], tup[1]))

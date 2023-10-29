@@ -66,3 +66,13 @@ def get_lambda(data=cp_data):
     users = users.groupby(["month", "year", "enter_hour"]).size().reset_index()
     users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
     return users.to_dict()[0]
+
+def get_parking_duration_stats(data=cp_data):
+    du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['median', 'std']})
+    du = du.fillna(0)
+    du.index = du.index.set_levels([level.str.lower() for level in du.index.levels])
+    du = du.to_dict()
+    du_median = du[('parked_min', 'median')]
+    du_std = du[('parked_min', 'std')] 
+    du = {key : (du_median[key], du_std[key]) for key in du_median.keys()}
+    return du
