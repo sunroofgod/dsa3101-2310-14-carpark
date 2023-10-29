@@ -10,6 +10,15 @@ cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 ## TODO: filter based on carparks with non-0 capacity
 
 def get_carpark_capacity(data=capacity_data):
+    """
+    Get the car park capacity (number of white and red lots) for each car park.
+
+    Args:
+        data: Pandas DataFrame with columns 'CP' (car park identifier), 'White' (number of white lots), and 'Red' (number of red lots).
+
+    Returns:
+        dict: A dictionary where keys are car park names (in lowercase), and values are tuples containing the number of white and red lots.
+    """
     d = {}
     data = data[["CP", "White", "Red"]].to_dict(orient="list")
 
@@ -20,6 +29,16 @@ def get_carpark_capacity(data=capacity_data):
     return d
 
 def get_carpark_prob(data=cp_data):
+    """
+    Get the probability of car park utilization by user type for each car park.
+
+    Args:
+        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'IU' (count of users).
+
+    Returns:
+        dict: A nested dictionary with user types as the first level keys and car park names (in lowercase) as the second level keys.
+             The values are the probabilities of car park utilization by that user type for the corresponding car park.
+    """
     d = {}
 
     ## Calculate proportion of user type for each carpark
@@ -46,6 +65,15 @@ def get_carpark_prob(data=cp_data):
     return d
 
 def get_parking_type_prop(data=cp_data):
+    """
+    Get the proportion of each parking type in the dataset.
+
+    Args:
+        data: Pandas DataFrame with a 'type' column representing the parking type.
+
+    Returns:
+        dict: A dictionary where keys are parking types, and values are the proportions of each type in the dataset.
+    """
     ## Calculate proportion of parking types
     users = data.groupby("type").agg({"IU" : 'count'})
     users["total"] = users["IU"].sum()
@@ -57,6 +85,15 @@ def get_parking_type_prop(data=cp_data):
     return users
 
 def get_lambda(data=cp_data):
+    """
+    Calculate the mean arrival (lambda) of users for each month and hour.
+
+    Args:
+        data: Pandas DataFrame with 'enter_dt' column for entry date-time.
+
+    Returns:
+        dict: A dictionary where keys are tuples of (month, hour) and values are the mean arrivals for each corresponding time interval.
+    """
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     data['enter_hour'] = data['enter_dt'].dt.hour
     data['month'] = data['enter_dt'].dt.month
@@ -68,6 +105,15 @@ def get_lambda(data=cp_data):
     return users.to_dict()[0]
 
 def get_parking_duration_stats(data=cp_data):
+    """
+    Get parking duration statistics (median and standard deviation) for each car park and user type.
+
+    Args:
+        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'parked_min' (parking duration in minutes).
+
+    Returns:
+        dict: A dictionary where keys are tuples of (car park name, user type), and values are tuples containing the median and standard deviation of parking durations.
+    """
     du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['median', 'std']})
     du = du.fillna(0)
     du.index = du.index.set_levels([level.str.lower() for level in du.index.levels])

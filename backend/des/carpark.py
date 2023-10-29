@@ -172,6 +172,15 @@ class CarPark:
             return "white"
         
     def turn_away(self, car : Car):
+        """
+        Simulate a car being turned away from the car park if there are no available parking lots.
+
+        Args:
+            car: A Car object representing the arriving car.
+
+        Returns:
+            str: The parking type ("red" for staff, "white" for others) of the turned-away car.
+        """
         if car.get_type() == "staff":
             self.redRejected += 1
             return "red"
@@ -181,11 +190,15 @@ class CarPark:
 
     def stats(self):
         """
-        Get statistics about the car park.
+        Get statistics related to the car park.
 
         Returns:
-            list: A list containing the total number of white cars, total number of red cars,
-            and the overall parking lot occupancy as a ratio.
+            list: A list of statistics containing the following values:
+                - Total number of white cars parked.
+                - Total number of red cars parked.
+                - Total number of white cars turned away (rejected).
+                - Total number of red cars turned away (rejected).
+                - The current occupancy ratio of the car park.
         """
         return [self.totalWhite, 
                 self.totalRed, 

@@ -19,15 +19,53 @@ LAMBDAS = params.get_lambda()
 MONTH = datetime.date.today().month
 
 def get_lambda(month : int, hour : int):
+    """
+    Get the number of arrivala lambda for a given month and hour from LAMBDAS.
+
+    Args:
+        month (int): The month (1-12).
+        hour (int): The hour of the day (0-23).
+
+    Returns:
+        float: The number of arrivala (lambda).
+    """
     return LAMBDAS[(month, hour)]
 
 def minutes_to_hours(minutes : int):
+    """
+    Convert minutes to hours and return the result.
+
+    Args:
+        minutes (int): The number of minutes to convert to hours.
+
+    Returns:
+        int: The equivalent number of hours.
+    """
     return int(minutes / 60)
 
 def arrivals_to_rate(arrivals : int):
+    """
+    Convert the number of arrivals to an arrival rate and return the result.
+
+    Args:
+        arrivals (int): The number of arrivals in a given time period.
+
+    Returns:
+        float: The calculated arrival rate per hour.
+    """
     return 1 / (arrivals / 60)
 
 def get_arrival_interval(month : int, minutes : int):
+    """
+    Calculate and return the time interval between arrivals based on a Poisson process.
+
+    Args:
+        month (int): The month (1-12).
+        minutes (int): The time in minutes.
+
+    Returns:
+        float: The calculated time interval between arrivals (in minutes).
+    """
     return arrivals_to_rate(np.random.poisson(get_lambda(month, minutes_to_hours(minutes))))
 
 def custom_choice(items : list, prob : list):
@@ -76,9 +114,24 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         carparks (list): A list of car parks available for parking.
         cp_prob_dict (dict): A dictionary specifying the probability of choosing each car park.
         car_dict (dict): A dictionary specifying the probability of parking types.
-
+        month (int, optional): The current month for the simulation. Default is MONTH.
     Yields:
         SimPy events: Yields events representing car arrivals, parking, and departures.
+
+    Note:
+    - This function is intended for use with the SimPy library to create a car parking simulation.
+    - The function continuously generates car arrivals and assigns them to car parks.
+    - The simulation stops when the environment's time exceeds the specified simulation time.
+
+    Example Usage:
+    ```
+    sim_env = simpy.Environment()
+    car_parks = create_carparks()
+    car_probabilities = get_car_probabilities()
+    month = 5  # Example month
+    car_generator(sim_env, car_parks, car_probabilities, car_probabilities, month=month)
+    sim_env.run(until=SIMULATION_TIME)
+    ```
     """
     car_id = 1
 
@@ -133,6 +186,19 @@ def stats_summary(carparks : list):
     return d
 
 def stats_mean(dict1 : dict, dict2 : dict):
+    """
+    Merge two dictionaries of statistical values and calculate the average if keys are common.
+
+    This function takes two dictionaries of statistical values and merges them into a single dictionary.
+    If a key is common in both dictionaries, it calculates the average of the corresponding values.
+
+    Parameters:
+    - dict1 (dict): The first dictionary of statistical values.
+    - dict2 (dict): The second dictionary of statistical values.
+
+    Returns:
+    - dict: A merged dictionary with the keys from both input dictionaries, and the average values for common keys.
+    """
     if dict1 == {}:
         return dict2
     if dict2 == {}:
@@ -151,6 +217,18 @@ def stats_mean(dict1 : dict, dict2 : dict):
     return dict1
 
 def print_stats(d : dict):
+    """
+    Print statistics stored in a dictionary.
+
+    This function prints statistics stored in a dictionary, where each key represents a category,
+    and the corresponding value is a list of statistical values. It prints each category and its values.
+
+    Args:
+        d (dict): A dictionary of statistics, where keys represent categories and values are lists of statistical values.
+
+    Returns:
+        None
+    """
     for cp, stat in d.items():
         print(f"{cp:<5}: {stat}")
     return
