@@ -101,7 +101,7 @@ class CarPark:
         if self.whiteLots == 0:
             return 0
         if ratio:
-            return round(self.whiteCars / self.whiteLots, 2)
+            return 1 - round(self.whiteCars / self.whiteLots, 2)
         return self.whiteLots - self.whiteCars
     
     def red_available(self, ratio=False):
@@ -117,7 +117,7 @@ class CarPark:
         if self.redLots == 0:
             return 0
         if ratio:
-            return round(self.redCars / self.redLots, 2)
+            return 1 - round(self.redCars / self.redLots, 2)
         return self.redLots - self.redCars
     
     def occupied(self, ratio=False):
