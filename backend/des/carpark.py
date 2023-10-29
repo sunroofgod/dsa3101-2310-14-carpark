@@ -1,6 +1,7 @@
 import simpy
 from simpy import Resource
 from car import Car
+import numpy as np
 
 class CarPark:
     """
@@ -219,9 +220,10 @@ class CarPark:
         with self.spots.request() as request:
             ## Car enter, increment respective count
             lot = self.enter(car)
-            
+
             ## Wait for carpark lot up to grace period, if still no lot, leave
-            res = yield request | self.env.timeout(self.grace_period())
+            wait = np.random.uniform(0, self.grace_period())
+            res = yield request | self.env.timeout(wait)
 
             if request in res:
                 ## Car successfully found a lot
