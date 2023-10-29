@@ -7,13 +7,30 @@ import pandas as pd
 
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-custom_css = """
-    body, html, #content {
-        margin: 0;
-        padding: 0;
-    }
-"""
+# CSS styles for navbar
+nav_text_default = {'color':'#3A3B3C', 'text-align':'center'}
+nav_text_selected = {'color':'#FFFFFF','text-align':'center'}
+nav_button_default = {'border-style': 'solid', 'margin-right':'15px','width':'150px','border-radius': '25px','border-width':'medium'}
+nav_button_selected = {'border-style': 'solid','margin-right':'15px','width':'150px','border-radius': '25px','background-color':'#333333', 'border-width':'medium'}
 
+# Create a callback to highlight the active navigation button
+@app.callback(
+    [Output("home_text", "style"),
+     Output("app_text", "style"),
+     Output("tutorial_text", "style"),
+     Output("home_button", "style"),
+     Output("app_button", "style"),
+     Output("tutorial_button", "style")
+     ],
+    [Input("url", "pathname")]
+)
+def highlight_active_button(pathname):
+    if pathname == "/":
+        return nav_text_selected,nav_text_default,nav_text_default,nav_button_selected,nav_button_default,nav_button_default
+    elif pathname == "/parkapp":
+        return nav_text_default,nav_text_selected,nav_text_default,nav_button_default,nav_button_selected,nav_button_default
+    elif pathname == "/tutorial":
+        return nav_text_default,nav_text_default,nav_text_selected,nav_button_default,nav_button_default,nav_button_selected
 
 #Create Navigation Bar
 navbar = dbc.Navbar(
@@ -32,9 +49,9 @@ navbar = dbc.Navbar(
                     dbc.Row(      
                         dbc.Col(
                             dbc.Nav([
-                                dbc.NavItem(dbc.NavLink("Home", href = "/",style ={'color':'#3A3B3C', 'text-align':'center'}),style={'border-style': 'solid','margin-right':'15px','width':'150px','border-radius': '25px'}),
-                                dbc.NavItem(dbc.NavLink("App", href = "/parkapp",style={'color':'#3A3B3C', 'text-align':'center'}),style={'border-style': 'solid', 'margin-right':'15px','width':'150px','border-radius': '25px'}),
-                                dbc.NavItem(dbc.NavLink("Tutorial", href = "/tutorial",style ={'color':'#3A3B3C', 'text-align':'center'}),style={'border-style': 'solid', 'margin-right':'15px','width':'150px','border-radius': '25px'})
+                                dbc.NavItem(dbc.NavLink("Home", href = "/", id = "home_text"), id = "home_button"),
+                                dbc.NavItem(dbc.NavLink("App", href = "/parkapp", id = "app_text"),id = "app_button"),
+                                dbc.NavItem(dbc.NavLink("Tutorial", href = "/tutorial", id="tutorial_text"), id = "tutorial_button")
                             ])
                         )
                     )
@@ -48,6 +65,7 @@ navbar = dbc.Navbar(
 
 
 app.layout = html.Div(children=[
+    dcc.Location(id = "url"),
     navbar,
     dash.page_container
 ])
