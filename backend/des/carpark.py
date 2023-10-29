@@ -195,8 +195,8 @@ class CarPark:
 
         Returns:
             list: A list of statistics containing the following values:
-                - Total number of white cars parked.
-                - Total number of red cars parked.
+                - Total number of white cars entered.
+                - Total number of red cars entered.
                 - Total number of white cars turned away (rejected).
                 - Total number of red cars turned away (rejected).
                 - The current occupancy ratio of the car park.
@@ -226,7 +226,18 @@ class CarPark:
             res = yield request | self.env.timeout(wait)
 
             if request in res:
-                ## Car successfully found a lot
+
+                ## Lot available but not correct lot type
+                if (
+                    (car.get_type() == "staff" and self.red_available() == 0) or 
+                    (car.get_type() != "staff" and self.white_available() == 0)
+                ):
+                    ## Car exit, decrement respective count
+                    self.turn_away(car)
+                    self.exit(car)
+                    return 200
+                
+                ## Car successfully found a lot and parked
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
 
                 ## Get parking duration
@@ -235,7 +246,7 @@ class CarPark:
                 yield self.env.timeout(duration)
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes.")
             else:
-                ## Car exit without parking
+                ## No lots found, car exit without parking
                 self.turn_away(car)
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()} without parking.")
             
