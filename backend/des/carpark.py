@@ -1,6 +1,7 @@
 import simpy
 from simpy import Resource
 from car import Car
+import numpy as np
 
 class CarPark:
     """
@@ -63,6 +64,10 @@ class CarPark:
         self.totalWhite = 0 
         self.totalRed = 0
 
+        ## Track total cars turned away
+        self.whiteRejected = 0
+        self.redRejected = 0 
+
         self.spots = Resource(env, capacity=self.capacity)
 
     def get_name(self):
@@ -96,8 +101,8 @@ class CarPark:
         if self.whiteLots == 0:
             return 0
         if ratio:
-            return round(self.whiteCars / self.whiteLots, 2)
-        return self.whiteCars / self.whiteLots
+            return 1 - round(self.whiteCars / self.whiteLots, 2)
+        return self.whiteLots - self.whiteCars
     
     def red_available(self, ratio=False):
         """
@@ -112,8 +117,8 @@ class CarPark:
         if self.redLots == 0:
             return 0
         if ratio:
-            return round(self.redCars / self.redLots, 2)
-        return self.redCars / self.redLots
+            return 1 - round(self.redCars / self.redLots, 2)
+        return self.redLots - self.redCars
     
     def occupied(self, ratio=False):
         """
@@ -166,16 +171,41 @@ class CarPark:
         else:
             self.whiteCars -= 1
             return "white"
+        
+    def turn_away(self, car : Car):
+        """
+        Simulate a car being turned away from the car park if there are no available parking lots.
+
+        Args:
+            car: A Car object representing the arriving car.
+
+        Returns:
+            str: The parking type ("red" for staff, "white" for others) of the turned-away car.
+        """
+        if car.get_type() == "staff":
+            self.redRejected += 1
+            return "red"
+        else: 
+            self.whiteRejected += 1
+            return "white"
 
     def stats(self):
         """
-        Get statistics about the car park.
+        Get statistics related to the car park.
 
         Returns:
-            tuple: A tuple containing the total number of white cars, total number of red cars,
-            and the overall parking lot occupancy as a ratio.
+            list: A list of statistics containing the following values:
+                - Total number of white cars entered.
+                - Total number of red cars entered.
+                - Total number of white cars turned away (rejected).
+                - Total number of red cars turned away (rejected).
+                - The current occupancy ratio of the car park.
         """
-        return (self.totalWhite, self.totalRed, self.occupied(ratio=True))
+        return [self.totalWhite, 
+                self.totalRed, 
+                self.whiteRejected, 
+                self.redRejected, 
+                self.occupied(ratio=True)]
 
     def park_car(self, car : Car):
         """
@@ -188,17 +218,39 @@ class CarPark:
             int: A status code (e.g., 200) indicating the result of the parking operation.
         """
         with self.spots.request() as request:
+            ## Car enter, increment respective count
             lot = self.enter(car)
-            
-            ## Wait for carpark lot up to grace period, if still no lot, leave
-            res = yield request | self.env.timeout(self.grace_period())
 
-            if request in res: # park
+            ## Wait for carpark lot up to grace period, if still no lot, leave
+            wait = np.random.uniform(0, self.grace_period())
+            res = yield request | self.env.timeout(wait)
+
+            if request in res:
+
+                ## Lot available but not correct lot type
+                if (
+                    (car.get_type() == "staff" and self.red_available() == 0) or 
+                    (car.get_type() != "staff" and self.white_available() == 0)
+                ):
+                    ## Car exit, decrement respective count
+                    self.turn_away(car)
+                    self.exit(car)
+                    return 200
+                
+                ## Car successfully found a lot and parked
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
-                duration = car.park_duration()
-                yield self.env.timeout(duration)  # Parking duration
-                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes")
+
+                ## Get parking duration
+                duration = car.park_duration(self.name)
+                assert duration >= 0
+                yield self.env.timeout(duration)
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes.")
+            else:
+                ## No lots found, car exit without parking
+                self.turn_away(car)
+                print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()} without parking.")
             
+            ## Car exit, decrement respective count
             self.exit(car)
 
         return 200
