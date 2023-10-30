@@ -2,6 +2,7 @@ import simpy
 from simpy import Resource
 from car import Car
 import numpy as np
+import params
 
 class CarPark:
     """
@@ -241,7 +242,7 @@ class CarPark:
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} parking on {lot} lot at {self.get_name()}")
 
                 ## Get parking duration
-                duration = car.park_duration(self.name)
+                duration = car.park_duration(self.name, params.minutes_to_hours(self.env.now))
                 assert duration >= 0
                 yield self.env.timeout(duration)
                 print(f"{self.env.now:<7.2f}: Car {car.get_id()} exited {self.get_name()}. Parked for {duration:4.2f} minutes.")
