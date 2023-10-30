@@ -6,3 +6,6 @@ python-dotenv==1.0.0
 simpy==4.0.2
 SQLAlchemy==2.0.22
 pymysql==1.1.0
+dash
+dash_bootstrap_components
+plotly.express
