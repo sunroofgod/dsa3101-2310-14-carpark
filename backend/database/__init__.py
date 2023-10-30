@@ -25,7 +25,6 @@ def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
     ))
 
 def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
-    db.execute(text('''DROP TABLE IF EXISTS visitors'''))
     db.execute(text(
         '''CREATE TABLE IF NOT EXISTS visitors(
             IU VARCHAR(8) NOT NULL,
