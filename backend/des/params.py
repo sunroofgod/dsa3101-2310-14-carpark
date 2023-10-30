@@ -130,7 +130,7 @@ def get_parking_duration_stats(data=cp_data):
     du = data.groupby(['carpark', 'type', 'hour']).agg({'parked_min' : ['median', 'std']})
 
     du = du.ffill()
-    du = du.ffill()
+    du = du.bfill()
 
     du.index = du.index.set_levels([level.str.lower() for level in du.index.levels])
     du = du.to_dict()
