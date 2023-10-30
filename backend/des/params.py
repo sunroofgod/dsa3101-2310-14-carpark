@@ -8,6 +8,18 @@ cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
 ## TODO: filter based on carparks with non-0 capacity
 
+def minutes_to_hours(minutes : int):
+    """
+    Convert minutes to hours and return the result.
+
+    Args:
+        minutes (int): The number of minutes to convert to hours.
+
+    Returns:
+        int: The equivalent number of hours.
+    """
+    return int(minutes / 60)
+
 def get_carpark_capacity(data=capacity_data):
     """
     Get the car park capacity (number of white and red lots) for each car park.
