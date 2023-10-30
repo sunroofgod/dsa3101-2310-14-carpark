@@ -19,11 +19,11 @@ layout = dbc.Container([
             html.Div([html.Div(html.B("Select Date")),
             html.Div(dcc.DatePickerSingle(id='date-picker', date='2023-01-01'))]),
             html.Br(),
-            html.Div([html.Div(html.B("Select Time")),
-            html.Div(dcc.Input(id="time-picker", type="text", placeholder="hh:mm:ss", style={'text-align':'center', 'width':'150px'}))]),
-            html.Br(),
-            html.Div([html.B("Select Event"),
-            dcc.Dropdown(id = 'event-picker', options=campus_events, value = "No Event", clearable = False, style = {'font-size':'15px'})]),
+            #html.Div([html.Div(html.B("Select Time")),
+            #html.Div(dcc.Input(id="time-picker", type="text", placeholder="hh:mm:ss", style={'text-align':'center', 'width':'150px'}))]),
+            #html.Br(),
+            html.Div([html.Div(html.B("Select Event")),
+            html.Div(dcc.Dropdown(id = 'event-picker', options=campus_events, value = "No Event", clearable = False, style = {'font-size':'15px'}))]),
             html.Br(),
             html.Br(),
             html.Button('Simulate', id='simulate-button'),
@@ -31,6 +31,6 @@ layout = dbc.Container([
             html.Br(),
             html.Button('Reset Parameters', id='reset-button')
             ], 
-            style = {'text-align':'center','padding-top':'100px', 'background-color':'#ef7c00'})
+            style = {'text-align':'center','padding-top':'150px', 'background-color':'#ef7c00'})
             ])
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
