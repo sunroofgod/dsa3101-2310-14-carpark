@@ -18,7 +18,7 @@ layout = dbc.Container([
         dbc.Col(html.Img(src=dash.get_asset_url('nus_map.png'), style = {'width':'95%','height':'auto'}),width = 8 ,style = {'display': 'flex', 'justify-content': 'center', 'align-items':'center', 'padding':'10px 0px'}),
         dbc.Col([
             html.Div([html.Div(html.B("Select Month")),
-            html.Div(dcc.Dropdown(id = 'event-picker', options=months, value = "Jan", clearable = False, style = {'font-size':'15px'}))]),
+            html.Div(dcc.Dropdown(id = 'event-picker', options=months, value = "January", clearable = False ))]),
             html.Br(),
             #html.Div([html.Div(html.B("Select Date")),
             #html.Div(dcc.DatePickerSingle(id='date-picker', date='2023-01-01'))]),
@@ -27,7 +27,7 @@ layout = dbc.Container([
             #html.Div(dcc.Input(id="time-picker", type="text", placeholder="hh:mm:ss", style={'text-align':'center', 'width':'150px'}))]),
             #html.Br(),
             html.Div([html.Div(html.B("Select Event")),
-            html.Div(dcc.Dropdown(id = 'event-picker', options=campus_events, value = "No Event", clearable = False, style = {'font-size':'15px'}))]),
+            html.Div(dcc.Dropdown(id = 'event-picker', options=campus_events, value = "No Event", clearable = False))]),
             html.Br(),
             html.Br(),
             html.Button('Simulate', id='simulate-button'),
