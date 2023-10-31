@@ -66,7 +66,7 @@ class Car:
         print(f"Car {self.id} leaves")
         return
     
-    def park_duration(self, cp : str):
+    def park_duration(self, cp : str, hour : int):
         """
         Generate a random parking duration for a car based on car park type.
 
@@ -79,5 +79,5 @@ class Car:
         Returns:
             float: A random parking duration in minutes for the given car park type.
         """
-        tup = park_du[(cp, self.type)]
+        tup = park_du[(cp, self.type, hour)]
         return max(0, np.random.normal(tup[0], tup[1]))

@@ -31,18 +31,6 @@ def get_lambda(month : int, hour : int):
     """
     return LAMBDAS[(month, hour)]
 
-def minutes_to_hours(minutes : int):
-    """
-    Convert minutes to hours and return the result.
-
-    Args:
-        minutes (int): The number of minutes to convert to hours.
-
-    Returns:
-        int: The equivalent number of hours.
-    """
-    return int(minutes / 60)
-
 def arrivals_to_rate(arrivals : int):
     """
     Convert the number of arrivals to an arrival rate and return the result.
@@ -66,7 +54,7 @@ def get_arrival_interval(month : int, minutes : int):
     Returns:
         float: The calculated time interval between arrivals (in minutes).
     """
-    return arrivals_to_rate(np.random.poisson(get_lambda(month, minutes_to_hours(minutes))))
+    return arrivals_to_rate(np.random.poisson(get_lambda(month, params.minutes_to_hours(minutes))))
 
 def custom_choice(items : list, prob : list):
     """

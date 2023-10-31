@@ -1,5 +1,4 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 
 CAP_FPATH = "../../data/CP Lots NUS.xlsx"
 DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
@@ -8,6 +7,18 @@ capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
 ## TODO: filter based on carparks with non-0 capacity
+
+def minutes_to_hours(minutes : int):
+    """
+    Convert minutes to hours and return the result.
+
+    Args:
+        minutes (int): The number of minutes to convert to hours.
+
+    Returns:
+        int: The equivalent number of hours.
+    """
+    return int(minutes / 60)
 
 def get_carpark_capacity(data=capacity_data):
     """
@@ -114,11 +125,25 @@ def get_parking_duration_stats(data=cp_data):
     Returns:
         dict: A dictionary where keys are tuples of (car park name, user type), and values are tuples containing the median and standard deviation of parking durations.
     """
-    du = data.groupby(['carpark', 'type']).agg({'parked_min' : ['median', 'std']})
-    du = du.fillna(0)
-    du.index = du.index.set_levels([level.str.lower() for level in du.index.levels])
+    data['enter_dt'] = pd.to_datetime(data['enter_dt'])
+    data['hour'] = data['enter_dt'].dt.hour
+
+    unique_carparks = data[['carpark']].drop_duplicates()
+    unique_types = data[['type']].drop_duplicates()
+    unique_hours = pd.DataFrame({'hour':range(24)})
+
+    unique_df = unique_carparks.merge(unique_types, how="cross").merge(unique_hours, how="cross")
+
+    data = data.merge(unique_df, how="right")
+    du = data.groupby(['carpark', 'type', 'hour']).agg({'parked_min' : ['median', 'std']})
+
+    du = du.ffill()
+    du = du.bfill()
+
+    du.index = du.index.set_levels([du.index.levels[0].str.lower(), du.index.levels[1].str.lower(), du.index.levels[2]])
     du = du.to_dict()
     du_median = du[('parked_min', 'median')]
     du_std = du[('parked_min', 'std')] 
     du = {key : (du_median[key], du_std[key]) for key in du_median.keys()}
     return du
+
