@@ -40,7 +40,7 @@ navbar = dbc.Navbar(
                     dbc.Row(
                         dbc.Col([
                             html.Img(src=dash.get_asset_url('nus_logo.svg'), height="72px", style={"padding":"10px"}),
-                            dbc.NavbarBrand("Parkitect", style = {'font-weight':'bold','font-size':'36px', 'color':'#3A3B3C','padding':'0px 30px','vertical-align':'middle'})
+                            dbc.NavbarBrand("Parkitect", style = {'font-weight':'bold','font-size':'28px', 'color':'#3A3B3C','padding-left':'30px','vertical-align':'middle'})
                                 ])
 
                     ),

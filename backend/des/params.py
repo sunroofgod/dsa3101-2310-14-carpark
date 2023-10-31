@@ -126,31 +126,24 @@ def get_parking_duration_stats(data=cp_data):
         dict: A dictionary where keys are tuples of (car park name, user type), and values are tuples containing the median and standard deviation of parking durations.
     """
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
-    data['enter_hour'] = data['enter_dt'].dt.hour
-    data['month'] = data['enter_dt'].dt.month
-    data['year'] = data['enter_dt'].dt.year
     data['hour'] = data['enter_dt'].dt.hour
 
-    unique_carparks = pd.DataFrame({'carpark': data['carpark'].unique()})
-    unique_types = pd.DataFrame({'type': data['type'].unique()})
-    unique_hours = pd.DataFrame({'hour':range(0, 24, 1)})
+    unique_carparks = data[['carpark']].drop_duplicates()
+    unique_types = data[['type']].drop_duplicates()
+    unique_hours = pd.DataFrame({'hour':range(24)})
 
-    unique_df = unique_carparks.merge(unique_types, how="cross")
-    unique_df = unique_df.merge(unique_hours, how="cross")
+    unique_df = unique_carparks.merge(unique_types, how="cross").merge(unique_hours, how="cross")
 
-    data = data.merge(unique_df, how="right", on=['carpark', 'type', 'hour'])
+    data = data.merge(unique_df, how="right")
     du = data.groupby(['carpark', 'type', 'hour']).agg({'parked_min' : ['median', 'std']})
 
     du = du.ffill()
     du = du.bfill()
-    
-    du = du.reset_index().set_index(['carpark', 'type'])
-    du.index = du.index.set_levels([level.str.lower() for level in du.index.levels])
-    du = du.reset_index().set_index(['carpark', 'type', 'hour'])
 
-    d = {}
-    for i in range(len(du)):
-        d[du.index[i]] = tuple(du.values[i])
-    
-    return d
+    du.index = du.index.set_levels([du.index.levels[0].str.lower(), du.index.levels[1].str.lower(), du.index.levels[2]])
+    du = du.to_dict()
+    du_median = du[('parked_min', 'median')]
+    du_std = du[('parked_min', 'std')] 
+    du = {key : (du_median[key], du_std[key]) for key in du_median.keys()}
+    return du
 
