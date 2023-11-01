@@ -13,7 +13,8 @@ layout = dbc.Container([
     dbc.Row([
         dbc.Col(
             html.Div([
-                html.B("Currently Simulating:")
+                html.H4("Currently Simulating:"),
+                html.Div("None")
             ]
             ),style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF'}
             ),
