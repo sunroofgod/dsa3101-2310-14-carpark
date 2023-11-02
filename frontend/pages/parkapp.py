@@ -7,7 +7,7 @@ import random
 
 dash.register_page(__name__) #signifies homepage
 
-sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
+#sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
 
 # Variables
 campus_events = ['No Event','First Week New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
@@ -20,13 +20,16 @@ default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,
 
 #Helper function to generate arrival rates given month
 def generate_arrival_rate_month(x):
-    temp = sample_data[sample_data["month"] == x]
-    d = temp.set_index("hour")["delta_nett"].to_dict()
+    keys = range(0,24)
+    random_numbers = [random.randint(1, 1000) for _ in range(24)]
+    d = dict(zip(keys,random_numbers))
+    #temp = sample_data[sample_data["month"] == x]
+    #d = temp.set_index("hour")["delta_nett"].to_dict()
     return d
 
 def generate_arrival_rate_event(x):
     keys = range(0,24)
-    random_numbers = [random.randint(1, 100) for _ in range(24)]
+    random_numbers = [random.randint(1, 500) for _ in range(24)]
     d = dict(zip(keys,random_numbers))
     return d 
 
@@ -118,12 +121,11 @@ layout = dbc.Container([
     Output(component_id = "month-picker", component_property='value'),
     Output(component_id = "month-picker", component_property = 'placeholder'),
     Output(component_id = "month-picker", component_property = 'disabled'),
-    Input(component_id='event-picker', component_property='value'),
-    Input(component_id='month-picker', component_property='value')
+    Input(component_id='event-picker', component_property='value')
 )
-def disable_month(event,val):
+def disable_month(event):
     if event == "No Event":
-        return val,"Select Month...",False
+        return dash.no_update,"Select Month...",False
     else:
         return "", "Cannot Select Month", True
     
@@ -131,12 +133,13 @@ def disable_month(event,val):
 @callback(
     Output(component_id = 'arrival-graph', component_property = 'figure'),
     Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value')
+    Input(component_id = 'event-picker',component_property = 'value'),
+    prevent_initial_call = True
 )
 def update_graph(month,event):
-    if month == "" and event == "No Event":
+    if month is None and event == "No Event":
         return generate_arrival_graph(default_arrivals)
-    elif month != "":
+    elif month is not None and event == "No Event":
         d = generate_arrival_rate_month(month)
         return generate_arrival_graph(d)
     else:
@@ -177,7 +180,7 @@ def update_graph_event(event):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return 'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,"","No Event"
+        return 'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
         return dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
