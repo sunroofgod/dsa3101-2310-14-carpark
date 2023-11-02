@@ -199,6 +199,6 @@ def reset_state(clicks):
 def test(clicks,hi):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'simulate-button' in changed_id:
-        return str(int(hi)+1),generate_arrival_graph(test_d),str(int(hi)+1),"1","1","1","1","1","1"
+        return str(int(hi)+1),generate_arrival_graph(default_arrivals),str(int(hi)+1),"1","1","1","1","1","1"
     else:
         return dash.no_update,dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update
