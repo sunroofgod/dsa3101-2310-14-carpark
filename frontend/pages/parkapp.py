@@ -10,7 +10,7 @@ dash.register_page(__name__) #signifies homepage
 #sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
 
 # Variables
-campus_events = ['No Event','First Week New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
+campus_events = ['No Event','Week 0 New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
 months = [{'label':'January','value':1},{'label':'February','value':2},{'label':'March','value':3},{'label':'April','value':4},
           {'label':'May','value':5},{'label':'June','value':6},{'label':'July','value':7},{'label':'August','value':8},
           {'label':'September','value':9},{'label':'October','value':10},{'label':'November','value':11},{'label':'December','value':12}]
@@ -49,7 +49,7 @@ def generate_arrival_graph(d):
     fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
                   labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=300, height=300)
     fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
-    fig.update_yaxes(minallowed=0)
+    fig.update_yaxes(rangemode='nonnegative')
     return fig
 
 def generate_simulation_graph(d):
@@ -57,7 +57,7 @@ def generate_simulation_graph(d):
     fig = px.line(df, x = 'hour', y = 'arrivals',
                   labels = {'hour':'Hour of Day', 'arrivals': ''},width=250, height=250)
     fig.update_layout(margin = dict(l=0,r=0,b=0,t=0), font_family = "Open Sans")
-    fig.update_yaxes(minallowed=0)
+    fig.update_yaxes(rangemode='nonnegative')
     return fig
 
 def vert_slider(hour, val):
@@ -123,7 +123,9 @@ layout = dbc.Container([
                 html.H4("Currently Simulating:", style={'font-weight':'bold'}),
                 html.Div("None",id = "simulation-contents")
             ]
-            ),style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF'}
+            ),
+            width={'size': 2, 'order': 1},
+            style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF'}
             ),
         dbc.Col( # Center partition
             html.Div([
@@ -166,7 +168,7 @@ layout = dbc.Container([
                 ],
                 style={'position': 'relative', 'font-size': '22.8px'}
             ),
-            width=8,
+            width={'size': 8, 'order': 2},
             style= {'padding': '0px'}
             ),
         dbc.Col([ # Right partition
@@ -178,10 +180,11 @@ layout = dbc.Container([
             html.Br(),
             html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
             html.Br(),
-            dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
-            dbc.Button('Reset Parameters', id='reset-button', style={'display':'inline-block','margin-right':'2%', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
-            dbc.Button('Simulate', id='simulate-button', style={'display':'inline-block', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'})
+            dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Reset Parameters', id='reset-button', style={'display':'inline-block','margin-right':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Simulate', id='simulate-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'})
             ], 
+            width={'size': 2, 'order': 3},
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
             ]),
             html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block'),
