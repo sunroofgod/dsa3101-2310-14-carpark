@@ -14,24 +14,34 @@ campus_events = ['No Event','First Week New AY', 'Well-Being Day', 'Commencement
 months = [{'label':'January','value':1},{'label':'February','value':2},{'label':'March','value':3},{'label':'April','value':4},
           {'label':'May','value':5},{'label':'June','value':6},{'label':'July','value':7},{'label':'August','value':8},
           {'label':'September','value':9},{'label':'October','value':10},{'label':'November','value':11},{'label':'December','value':12}]
-
-default_button = "100"
+month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 
+                      8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' }
+default_button = "0"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
+
+# Sample Data for Months
+month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
+month_data_keys = range(1,13)
+month_data = dict(zip(month_data_keys,month_data_values))
+
+# Sample Data Events
+events_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(10)]
+events_data = dict(zip(campus_events,events_data_values))
 
 #Helper function to generate arrival rates given month
 def generate_arrival_rate_month(x):
-    keys = range(0,24)
-    random_numbers = [random.randint(1, 1000) for _ in range(24)]
-    d = dict(zip(keys,random_numbers))
+    #keys = range(0,24)
+    #random_numbers = [random.randint(1, 1000) for _ in range(24)]
+    #d = dict(zip(keys,random_numbers))
     #temp = sample_data[sample_data["month"] == x]
     #d = temp.set_index("hour")["delta_nett"].to_dict()
-    return d
+    return month_data[x]
 
 def generate_arrival_rate_event(x):
-    keys = range(0,24)
-    random_numbers = [random.randint(1, 500) for _ in range(24)]
-    d = dict(zip(keys,random_numbers))
-    return d 
+    #keys = range(0,24)
+    #random_numbers = [random.randint(1, 500) for _ in range(24)]
+    #d = dict(zip(keys,random_numbers))
+    return events_data[x] 
 
 #Helper function to generate plots from dictionary representation
 def generate_arrival_graph(d):
@@ -39,6 +49,14 @@ def generate_arrival_graph(d):
     fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
                   labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=300, height=300)
     fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
+    fig.update_yaxes(minallowed=0)
+    return fig
+
+def generate_simulation_graph(d):
+    df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
+    fig = px.line(df, x = 'hour', y = 'arrivals',
+                  labels = {'hour':'Hour of Day', 'arrivals': ''},width=250, height=250)
+    fig.update_layout(margin = dict(l=0,r=0,b=0,t=0), font_family = "Open Sans")
     fig.update_yaxes(minallowed=0)
     return fig
 
@@ -54,14 +72,14 @@ def refine_modal(base, d):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Current Base: "+ base), close_button= False),
         dbc.ModalBody([html.H4("Drag Sliders to Modify Number of Cars arriving in NUS at each hour"),
-                        dbc.Row([vert_slider(i, d[i]) for i in range(24)], style={'padding-left':'2%'}),
+                        dbc.Row([vert_slider(i, d[i]) for i in range(24)], id = 'row_slider', style={'padding-left':'2%'}),
                         html.B('Enter Hour')
                         ], style= {'text-align':'center', 'font-size':'19px'}),
                         
         dbc.ModalFooter([
-                    dbc.Button('Reset to Base', style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+                    dbc.Button('Reset to Base', id = 'refine-modal-reset',style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
                     dbc.Button(
-                        "Save", id="close-refine-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
+                        "Save and Exit", id="close-refine-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
                     )])
     ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
 
@@ -163,11 +181,9 @@ def disable_month(event):
 )
 def update_graph(month,event):
     if month is None and event == "No Event":
-        return refine_modal("No Event", default_arrivals),generate_arrival_graph(default_arrivals)
+        return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_graph(default_arrivals)
     elif month is not None and event == "No Event":
         d = generate_arrival_rate_month(month)
-        month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 
-                      8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' }
         return refine_modal(month_dict[month], d),generate_arrival_graph(d)
     else:
         d = generate_arrival_rate_event(event)
@@ -244,6 +260,32 @@ def update_graph_after_refine(*args):
     d = dict(zip(range(24),args))
     return generate_arrival_graph(d), *args
 
+# Callback to reset modal
+@callback(
+    Output('row_slider','children'),
+    Output(component_id = 'arrival-graph', component_property = 'figure', allow_duplicate=True),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input(component_id='refine-modal-reset', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+
+def reset_refine_modal(month,event, clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'refine-modal-reset' in changed_id:
+        if month is None and event == "No Event":
+            return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_graph(default_arrivals)
+        elif month is not None and event == "No Event":
+            d = generate_arrival_rate_month(month)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_graph(d)
+        else:
+            d = generate_arrival_rate_event(event)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_graph(d)
+    else:
+        return dash.no_update, dash.no_update
+
+
+
 
 # Callback to revert to original settings and carpark state
 @callback(
@@ -268,10 +310,9 @@ def reset_state(clicks):
     else:
         return dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
-
+'''
 @callback(
     Output(component_id='simulation-contents',component_property='children',allow_duplicate=True),
-    Output(component_id='arrival-graph', component_property='figure', allow_duplicate=True),
     Output(component_id='cp3',component_property='children',allow_duplicate=True),
     Output(component_id='cp3a',component_property='children',allow_duplicate=True),
     Output(component_id='cp4',component_property='children',allow_duplicate=True),
@@ -286,6 +327,66 @@ def reset_state(clicks):
 def test(clicks,hi):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'simulate-button' in changed_id:
-        return str(int(hi)+1),generate_arrival_graph(default_arrivals),str(int(hi)+1),"1","1","1","1","1","1"
+        return str(int(hi)+1),str(int(hi)+1),"1","1","1","1","1","1"
     else:
-        return dash.no_update,dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update
+    
+'''
+# Simulation Callbacks
+@callback(
+    Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
+    Input(component_id='simulate-button', component_property='n_clicks'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call = True
+)
+def cp_simulation(clicks, month, event, *args):
+     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+     if 'simulate-button' in changed_id:
+        if event == "No Event" and month is None:
+            if list(args) == list(default_arrivals.values()):
+                first = html.B("Empty Simulation")
+            else:
+                first = html.B("Custom")
+        elif event == "No Event":
+            if list(args) == list(generate_arrival_rate_month(month).values()):
+                first = html.B(month_dict[month])
+            else:
+                first = html.B(month_dict[month] + ' - Custom')
+        else:
+            if list(args) == list(generate_arrival_rate_event(event).values()):
+                first = html.B(event)
+            else:
+                first = html.B(event + ' - Custom')
+        
+        d = dict(zip(range(24),args))
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+
+        return [first,html.Br(),graph]
+     else:
+         return dash.no_update
+
