@@ -42,13 +42,36 @@ def generate_arrival_graph(d):
     fig.update_yaxes(minallowed=0)
     return fig
 
+def vert_slider(hour, val):
+    return dbc.Col([html.Div(html.Div(str(val), id = "value_" + str(hour)), style= {'font-size':'16px','text-align':'center', 'margin-right':'50%'}),
+                    html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 9999, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
+                    html.Div(html.Div(str(hour)), style= {'text-align':'center', 'margin-right':'50%'})],style={'padding':'0px'})
+
+
+
+#Helper function for refine graph modal
+def refine_modal(base, d):
+    return dbc.Modal([
+        dbc.ModalHeader(dbc.ModalTitle("Current Base: "+ base), close_button= False),
+        dbc.ModalBody([html.H4("Drag Sliders to Modify Number of Cars arriving in NUS at each hour"),
+                        dbc.Row([vert_slider(i, d[i]) for i in range(24)], style={'padding-left':'2%'}),
+                        html.B('Enter Hour')
+                        ], style= {'text-align':'center', 'font-size':'19px'}),
+                        
+        dbc.ModalFooter([
+                    dbc.Button('Reset to Base', style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+                    dbc.Button(
+                        "Save", id="close-refine-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
+                    )])
+    ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
+
 
 
 layout = dbc.Container([
     dbc.Row([
         dbc.Col( # Left partition
             html.Div([
-                html.H4("Currently Simulating:"),
+                html.H4("Currently Simulating:", style={'font-weight':'bold'}),
                 html.Div("None",id = "simulation-contents")
             ]
             ),style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF'}
@@ -106,12 +129,13 @@ layout = dbc.Container([
             html.Br(),
             html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
             html.Br(),
-            html.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%'}),
-            html.Button('Reset Parameters', id='reset-button', style={'display':'inline-block','margin-right':'2%'}),
-            html.Button('Simulate', id='simulate-button', style={'display':'inline-block'})
+            dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+            dbc.Button('Reset Parameters', id='reset-button', style={'display':'inline-block','margin-right':'2%', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+            dbc.Button('Simulate', id='simulate-button', style={'display':'inline-block', 'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'})
             ], 
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
-            ])
+            ]),
+            html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block')
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
 
@@ -131,6 +155,7 @@ def disable_month(event):
     
 # Callback to display graph of selected month
 @callback(
+    Output('refine-modal-block','children'),
     Output(component_id = 'arrival-graph', component_property = 'figure'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value')
@@ -138,27 +163,86 @@ def disable_month(event):
 )
 def update_graph(month,event):
     if month is None and event == "No Event":
-        return generate_arrival_graph(default_arrivals)
+        return refine_modal("No Event", default_arrivals),generate_arrival_graph(default_arrivals)
     elif month is not None and event == "No Event":
         d = generate_arrival_rate_month(month)
-        return generate_arrival_graph(d)
+        month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 
+                      8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' }
+        return refine_modal(month_dict[month], d),generate_arrival_graph(d)
     else:
         d = generate_arrival_rate_event(event)
-        return generate_arrival_graph(d) 
+        return refine_modal(event, d),generate_arrival_graph(d) 
 
-'''
-# Callback to display grpah of selected event
+
+# Callback to toggle refine modal
 @callback(
-    Output(component_id = 'arrival-graph', component_property = 'figure',allow_duplicate=True),
-    Input(component_id = 'event-picker', component_property = 'value'),
-    prevent_initial_call = True
+        Output('refine-modal','is_open'),
+        Input('refine-button','n_clicks'),
+        Input("close-refine-modal",'n_clicks')
 )
-def update_graph_event(event):
-    if event != 'No Event':
-        d = generate_arrival_rate_event(event)
-        return generate_arrival_graph(d)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "refine-button" in changed_id:
+        return True
     else:
-        return dash.no_update'''
+        return False
+
+# Callback to use refine modal to adjust graph arrival rates
+@callback(
+    Output('arrival-graph','figure', allow_duplicate=True),
+    Output('value_0','children'),
+    Output('value_1','children'),
+    Output('value_2','children'),
+    Output('value_3','children'),
+    Output('value_4','children'),
+    Output('value_5','children'),
+    Output('value_6','children'),
+    Output('value_7','children'),
+    Output('value_8','children'),
+    Output('value_9','children'),
+    Output('value_10','children'),
+    Output('value_11','children'),
+    Output('value_12','children'),
+    Output('value_13','children'),
+    Output('value_14','children'),
+    Output('value_15','children'),
+    Output('value_16','children'),
+    Output('value_17','children'),
+    Output('value_18','children'),
+    Output('value_19','children'),
+    Output('value_20','children'),
+    Output('value_21','children'),
+    Output('value_22','children'),
+    Output('value_23','children'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call=True
+)
+def update_graph_after_refine(*args):
+    d = dict(zip(range(24),args))
+    return generate_arrival_graph(d), *args
 
 
 # Callback to revert to original settings and carpark state
