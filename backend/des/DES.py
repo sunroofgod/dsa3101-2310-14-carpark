@@ -15,7 +15,7 @@ NSIM = 1
 CP_CAPACITY = params.get_carpark_capacity()
 CP_PROB = params.get_carpark_prob()
 CAR_PROB = params.get_parking_type_prop()
-LAMBDAS = params.get_lambda()
+LAMBDAS = params.get_arrival_rates()
 MONTH = datetime.date.today().month
 
 def get_lambda(month : int, hour : int):

@@ -95,7 +95,7 @@ def get_parking_type_prop(data=cp_data):
 
     return users
 
-def get_lambda(data=cp_data):
+def get_arrival_rates(data=cp_data):
     """
     Calculate the mean arrival (lambda) of users for each month and hour.
 
