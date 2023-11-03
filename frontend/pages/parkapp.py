@@ -92,7 +92,7 @@ layout = dbc.Container([
                 ]
                 ),
                 ],
-                style={'position': 'relative'}
+                style={'position': 'relative', 'font-size': '150%'}
             ),
             width=8,
             style= {'padding': '0px'}

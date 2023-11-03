@@ -4,6 +4,8 @@ from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 import pandas as pd
 
+
+external_stylesheets = ['assets/styles.css']
 app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # CSS styles for navbar
