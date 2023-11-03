@@ -83,6 +83,37 @@ def refine_modal(base, d):
                     )])
     ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
 
+def cp_modal(cp,a,b,c,d):
+    return dbc.Modal([
+        dbc.ModalHeader(dbc.ModalTitle(cp), close_button= False),
+        dbc.ModalBody([
+            html.B("Occuipied Lots: " + str(a+c) + '/' + str(b+d), id = 'occupied_cp'),
+            html.Div("Occuipied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}, id = 'occupied_red_cp'),
+            html.Div("Occuipied White Lots: " + str(c) + '/' + str(d), id = 'occupied_white_cp'),
+            html.Br(),
+            html.H4('Simulation Parameters:'),
+            html.Div('Carpark Status:'),
+            html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp-status', value = "Open", clearable = False), style={'margin-bottom':'3%'}),
+            html.Div([
+            html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center'}),
+            html.Div(dcc.Slider(id = "slider_red_cp",min = 0, max = b, step = 1, value = b, marks = None)),
+            html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center'}),
+            html.Div(dcc.Slider(id = "slider_white_cp",min = 0, max = d, step = 1, value = d, marks = None)),
+            html.Div(
+                [html.B(id = 'to_simulate_red_cp'),
+                 html.Br(),
+                html.B(id = 'to_simulate_white_cp')]
+            )
+            ])
+
+        ], style= {'text-align':'center', 'font-size':'19px'}),
+        dbc.ModalFooter([
+                    dbc.Button('Reset Parameters', id = 'cp-modal-reset',style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+                    dbc.Button(
+                        "Save and Exit", id="close-cp-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
+                    )])
+    ], id = 'cp-modal', is_open= False, backdrop = False, centered = True)
+
 
 
 layout = dbc.Container([
@@ -153,9 +184,37 @@ layout = dbc.Container([
             ], 
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
             ]),
-            html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block')
+            html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block'),
+            html.Div(cp_modal("CP3",0,100,0,70))
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp','disabled'),
+    Output('slider_white_cp','disabled'),
+    Input('cp-status','value')
+)
+def show_cp_params(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp','children'),
+    Output('to_simulate_white_cp','children'),
+    Input('cp-status','value'),
+    Input('slider_red_cp','value'),
+    Input('slider_white_cp','value')
+)
+def params_to_simulate(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
+    else:
+        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
 
 # Callback for select event interactions with select month
 # Can only select month when value of select event is No Event
@@ -189,6 +248,20 @@ def update_graph(month,event):
         d = generate_arrival_rate_event(event)
         return refine_modal(event, d),generate_arrival_graph(d) 
 
+
+# Callback to toggle cp modal
+@callback(
+        Output('cp-modal','is_open'),
+        Input('cp3','n_clicks'),
+        Input("close-cp-modal",'n_clicks')
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp3" in changed_id:
+        return True
+    else:
+        return False
+    
 
 # Callback to toggle refine modal
 @callback(
