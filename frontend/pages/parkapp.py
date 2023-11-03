@@ -1,6 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc, callback, Input, Output
+from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import pandas as pd
 import random
@@ -15,7 +15,7 @@ months = [{'label':'January','value':1},{'label':'February','value':2},{'label':
           {'label':'May','value':5},{'label':'June','value':6},{'label':'July','value':7},{'label':'August','value':8},
           {'label':'September','value':9},{'label':'October','value':10},{'label':'November','value':11},{'label':'December','value':12}]
 
-default_button = "0"
+default_button = "100"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 
 #Helper function to generate arrival rates given month
@@ -58,41 +58,41 @@ layout = dbc.Container([
             html.Div(html.Img(src=dash.get_asset_url('nus_map.png'), style={'width': '100%', 'height': 'auto'}), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
             html.Div([
                 html.Button(default_button, id='cp3', className = 'cp-button', style = {'top':'16%', 'left':'27%'}),
-                html.Div('CP3', style = {'position': 'absolute', 'top': '12%', 'left': '27.7%', 'font-weight': 'bold'})
+                html.Div('CP3', style = {'position': 'absolute', 'top': '12.5%', 'left': '27.7%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
                 html.Button(default_button, id='cp3a', className = 'cp-button', style = {'top':'17%', 'left':'32%'}),
-                html.Div('CP3A', style = {'position': 'absolute', 'top': '13%', 'left': '32%', 'font-weight': 'bold'})
+                html.Div('CP3A', style = {'position': 'absolute', 'top': '13.5%', 'left': '32.3%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
                 html.Button(default_button, id='cp4', className = 'cp-button', style = {'top':'32%', 'left':'34%'}),
-                html.Div('CP4', style = {'position': 'absolute', 'top': '39%', 'left': '34.7%', 'font-weight': 'bold'})
+                html.Div('CP4', style = {'position': 'absolute', 'top': '39%', 'left': '34.8%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
                 html.Button(default_button, id='cp5', className = 'cp-button',style = {'top':'34%', 'left':'43%'}),
-                html.Div('CP5', style = {'position': 'absolute', 'top': '41%', 'left': '43.7%', 'font-weight': 'bold'})
+                html.Div('CP5', style = {'position': 'absolute', 'top': '41%', 'left': '43.8%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
-                html.Button(default_button, id='cp5b', className = 'cp-button', style = {'top':'26%', 'left':'42%'}),
-                html.Div('CP5B', style = {'position': 'absolute', 'top': '22%', 'left': '42%', 'font-weight': 'bold'})
+                html.Button(default_button, id='cp5b', className = 'cp-button', style = {'top':'25.5%', 'left':'42%'}),
+                html.Div('CP5B', style = {'position': 'absolute', 'top': '22%', 'left': '42.3%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
                 html.Button(default_button, id='cp6b', className = 'cp-button', style = {'top':'62%', 'left':'62%'}),
-                html.Div('CP6B', style = {'position': 'absolute', 'top': '69%', 'left': '62.2%', 'font-weight': 'bold'})
+                html.Div('CP6B', style = {'position': 'absolute', 'top': '69%', 'left': '62.3%', 'font-weight': 'bold'})
                 ]
                 ),
             html.Div([
                 html.Button(default_button, id='cp10', className = 'cp-button', style = {'top':'53%', 'left':'84%'}),
-                html.Div('CP10', style = {'position': 'absolute', 'top': '60%', 'left': '84.2%', 'font-weight': 'bold'})
+                html.Div('CP10', style = {'position': 'absolute', 'top': '60%', 'left': '84.3%', 'font-weight': 'bold'})
                 ]
                 ),
                 ],
-                style={'position': 'relative', 'font-size': '150%'}
+                style={'position': 'relative', 'font-size': '22.8px'}
             ),
             width=8,
             style= {'padding': '0px'}
@@ -127,14 +127,14 @@ def disable_month(event):
     if event == "No Event":
         return dash.no_update,"Select Month...",False
     else:
-        return "", "Cannot Select Month", True
+        return None, "Cannot Select Month", True
     
 # Callback to display graph of selected month
 @callback(
     Output(component_id = 'arrival-graph', component_property = 'figure'),
     Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value'),
-    prevent_initial_call = True
+    Input(component_id = 'event-picker',component_property = 'value')
+    
 )
 def update_graph(month,event):
     if month is None and event == "No Event":
@@ -196,7 +196,7 @@ def reset_state(clicks):
     Output(component_id='cp6b',component_property='children',allow_duplicate=True),
     Output(component_id='cp10',component_property='children',allow_duplicate=True),
     Input(component_id='simulate-button', component_property='n_clicks'),
-    Input(component_id='cp3',component_property='children'),
+    State(component_id='cp3',component_property='children'),
     prevent_initial_call=True
 )
 def test(clicks,hi):

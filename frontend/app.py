@@ -5,8 +5,7 @@ import plotly.express as px
 import pandas as pd
 
 
-external_stylesheets = ['assets/styles.css']
-app = Dash(__name__, use_pages=True, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__, use_pages=True, external_stylesheets=['https://fonts.googleapis.com/css?family=Open+Sans:400,600',dbc.themes.BOOTSTRAP])
 
 # CSS styles for navbar
 nav_text_default = {'color':'#3A3B3C', 'text-align':'center'}
