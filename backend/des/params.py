@@ -8,6 +8,9 @@ cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
 ## TODO: filter based on carparks with non-0 capacity
 
+def get_month_arrival_rate(month : int):
+    return {h : val for (m, h), val in get_arrival_rates().items() if m == month}
+
 def minutes_to_hours(minutes : int):
     """
     Convert minutes to hours and return the result.
