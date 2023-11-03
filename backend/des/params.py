@@ -9,6 +9,15 @@ cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 ## TODO: filter based on carparks with non-0 capacity
 
 def get_month_arrival_rate(month : int):
+    """
+    Get the arrival rate for each hour of a given month.
+
+    Args:
+        month (int): The month (1-12).
+
+    Returns:
+        dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
+    """
     return {h : val for (m, h), val in get_arrival_rates().items() if m == month}
 
 def minutes_to_hours(minutes : int):
