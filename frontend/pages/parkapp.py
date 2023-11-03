@@ -183,8 +183,12 @@ layout = dbc.Container([
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
-            dbc.Button('Reset All', id='reset-button', style={'display':'inline-block','margin-right':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
-            dbc.Button('Simulate', id='simulate-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'})
+            dbc.Button('Reset All', id='reset-button', style={'margin-bottom':'2%','display':'inline-block','margin-right':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Simulate', id='simulate-button', style={'margin-bottom':'2%','display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            html.Br(),
+            dbc.Button('Reset CP Params', id='reset-cp-button', style={'display':'inline-block','margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            html.Br(),
+            dbc.Button('Reset Events', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             ], 
             width={'size': 2, 'order': 3},
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
@@ -196,6 +200,9 @@ layout = dbc.Container([
             html.Div(cp_modal("cp5",0,17,0,53), id = 'cp5_modal'),
             html.Div(cp_modal("cp5b",0,32,0,0), id = 'cp5b_modal'),
             html.Div(cp_modal("cp6b",0,130,0,43), id = 'cp6b_modal'),
+            html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False)),
+            html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
+            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False))
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
@@ -679,8 +686,9 @@ def reset_cp_params(clicks,max_red,max_white):
 
 
 
-# Callback to revert to original settings and carpark state
+# Callback for reset all: revert to original settings and carpark state
 @callback(
+    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
     Output(component_id='cp3_modal',component_property='children'),
     Output(component_id='cp3a_modal',component_property='children'),
     Output(component_id='cp4_modal',component_property='children'),
@@ -704,9 +712,24 @@ def reset_cp_params(clicks,max_red,max_white):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
+# Callback to close reset all modals:
+@callback(
+        Output('reset-all-modal','is_open',allow_duplicate = True),
+        Input("close-reset-all-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_all_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-all-modal" in changed_id:
+        return False
+    else:
+        return True
+
 
 '''
 @callback(
@@ -730,6 +753,76 @@ def test(clicks,hi):
         return dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update, dash.no_update,dash.no_update
     
 '''
+
+# Callback for reset cp params: reset params for all callparks only
+@callback(
+    Output(component_id='reset-cp-modal', component_property='is_open'),
+    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
+    Input(component_id='reset-cp-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_all_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-cp-button' in changed_id:
+        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43)
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
+
+# Callback to close reset cp modals:
+@callback(
+        Output('reset-cp-modal','is_open',allow_duplicate = True),
+        Input("close-reset-cp-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_cp_params_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-cp-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset events: reset event and month selection only
+@callback(
+    Output(component_id='reset-events-modal', component_property='is_open'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='cp3',component_property='children',allow_duplicate=True),
+    Output(component_id='cp3a',component_property='children',allow_duplicate=True),
+    Output(component_id='cp4',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5b',component_property='children',allow_duplicate=True),
+    Output(component_id='cp6b',component_property='children',allow_duplicate=True),
+    #Output(component_id='cp10',component_property='children'),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
+    Input(component_id='reset-events-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_events(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-events-button' in changed_id:
+        return True,generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
+
+# Callback to close reset events modals:
+@callback(
+        Output('reset-events-modal','is_open',allow_duplicate = True),
+        Input("close-reset-events-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_events_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-events-modal" in changed_id:
+        return False
+    else:
+        return True
+
 # Simulation Callbacks
 @callback(
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
