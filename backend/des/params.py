@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 CAP_FPATH = "../../data/CP Lots NUS.xlsx"
 DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
@@ -181,3 +182,11 @@ def get_parking_duration_stats(data=cp_data):
     du = {key : (du_median[key], du_std[key]) for key in du_median.keys()}
     return du
 
+## TODO: take input from user / database
+SIM_TIME = 24 * 60 # in minutes
+NSIM = 1
+CP_CAPACITY = get_carpark_capacity()
+CP_PROB = get_carpark_prob()
+CAR_PROB = get_parking_type_prop()
+LAMBDAS = get_arrival_rates()
+MONTH = datetime.date.today().month

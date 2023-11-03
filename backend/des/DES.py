@@ -9,15 +9,6 @@ import datetime
 
 ## time unit : minutes
 
-## TODO: take input from user / database
-SIM_TIME = 24 * 60 # in minutes
-NSIM = 1
-CP_CAPACITY = params.get_carpark_capacity()
-CP_PROB = params.get_carpark_prob()
-CAR_PROB = params.get_parking_type_prop()
-LAMBDAS = params.get_arrival_rates()
-MONTH = datetime.date.today().month
-
 def get_lambda(month : int, hour : int):
     """
     Get the number of arrivals lambda for a given month and hour from LAMBDAS.
@@ -29,7 +20,7 @@ def get_lambda(month : int, hour : int):
     Returns:
         float: The number of arrivala (lambda).
     """
-    return LAMBDAS[(month, hour)]
+    return params.LAMBDAS[(month, hour)]
 
 def arrivals_to_rate(arrivals : int):
     """
@@ -93,7 +84,7 @@ def create_cp(env : simpy.Environment, cp_dict : dict):
 #     return car
 
 ## Generate entire process of 1 car
-def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=MONTH):
+def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=params.MONTH):
     """
     Generate the entire process of car arrivals and parking.
 
@@ -221,7 +212,7 @@ def print_stats(d : dict):
         print(f"{cp:<5}: {stat}")
     return
 
-def sim(cap=CP_CAPACITY, cp_prob=CP_PROB, car_prob=CAR_PROB, t=SIM_TIME):
+def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME):
     """
     Run a car park simulation.
 
@@ -255,7 +246,7 @@ if __name__ == "__main__":
     overall_stats = {}
     
     ## Run simulation for n times
-    for i in range(NSIM):
+    for i in range(params.NSIM):
         ## Track simulation time
         start = time.time() 
 
