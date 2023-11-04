@@ -1,22 +1,7 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy import text
 import sqlalchemy
 from database.mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
-
-""" load_dotenv('.env')
-
-DATABASE_NAME = os.environ['DATABASE_NAME']
-MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
-MYSQL_PASSWORD = os.environ['MYSQL_PASSWORD']
-CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@localhost:3306/{DATABASE_NAME}'
-NUM_OF_TABLES = 1
-
-engine = sqlalchemy.create_engine(
-    CONNECTION_STRING
-)
-db = engine.connect() """
 
 db = connect_db()
 
