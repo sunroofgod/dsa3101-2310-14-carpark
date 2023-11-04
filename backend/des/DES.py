@@ -20,7 +20,7 @@ def get_lambda(month : int, hour : int):
     Returns:
         float: The number of arrivala (lambda).
     """
-    return params.LAMBDAS[(month, hour)]
+    return np.random.poisson(params.LAMBDAS[(month, hour)])
 
 def arrivals_to_rate(arrivals : int):
     """
@@ -45,7 +45,7 @@ def get_arrival_interval(month : int, minutes : int):
     Returns:
         float: The calculated time interval between arrivals (in minutes).
     """
-    return arrivals_to_rate(np.random.poisson(get_lambda(month, params.minutes_to_hours(minutes))))
+    return arrivals_to_rate(get_lambda(month, params.minutes_to_hours(minutes)))
 
 def custom_choice(items : list, prob : list):
     """
