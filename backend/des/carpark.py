@@ -206,7 +206,8 @@ class CarPark:
                 self.totalRed, 
                 self.whiteRejected, 
                 self.redRejected, 
-                self.occupied(ratio=True)]
+                self.whiteCars, 
+                self.redCars]
 
     def park_car(self, car : Car):
         """
