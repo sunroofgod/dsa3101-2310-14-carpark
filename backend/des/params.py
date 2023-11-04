@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 
 CAP_FPATH = "../../data/CP Lots NUS.xlsx"
 DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
@@ -7,6 +8,40 @@ capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
 ## TODO: filter based on carparks with non-0 capacity
+
+def get_month_arrival_rate(month : int):
+    """
+    Get the arrival rate for each hour of a given month.
+
+    Args:
+        month (int): The month (1-12).
+
+    Returns:
+        dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
+    """
+    return {h : val for (m, h), val in get_arrival_rates().items() if m == month}
+
+def get_day_arrival_rate(day : str, data=cp_data):
+    """
+    Get the arrival rate for each hour of a given day.
+
+    Args:
+        day (str): The date in YYYY-MM-DD format.
+
+    Returns:
+        dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
+    """
+    day = pd.to_datetime(day)
+    data['enter_dt'] = pd.to_datetime(data['enter_dt'])
+    filtered_data = data[data['enter_dt'].dt.date == day.date()]
+    filtered_data['enter_hour'] = filtered_data['enter_dt'].dt.hour
+    filtered_data['year'] = filtered_data['enter_dt'].dt.year
+
+    users = filtered_data[["year", "enter_hour"]]
+    users = users.groupby(["year", "enter_hour"]).size().reset_index()
+    users = users.groupby(["enter_hour"]).agg({0 : 'mean'})
+    return users.to_dict()[0]
+
 
 def minutes_to_hours(minutes : int):
     """
@@ -95,7 +130,7 @@ def get_parking_type_prop(data=cp_data):
 
     return users
 
-def get_lambda(data=cp_data):
+def get_arrival_rates(data=cp_data):
     """
     Calculate the mean arrival (lambda) of users for each month and hour.
 
@@ -147,3 +182,11 @@ def get_parking_duration_stats(data=cp_data):
     du = {key : (du_median[key], du_std[key]) for key in du_median.keys()}
     return du
 
+## TODO: take input from user / database
+SIM_TIME = 24 * 60 # in minutes
+NSIM = 1
+CP_CAPACITY = get_carpark_capacity()
+CP_PROB = get_carpark_prob()
+CAR_PROB = get_parking_type_prop()
+LAMBDAS = get_arrival_rates()
+MONTH = datetime.date.today().month
