@@ -5,7 +5,17 @@ import plotly.express as px
 import pandas as pd
 import random
 
+import os
+path = os.getcwd()
+
+import sys
+sys.path.append(path + r'\backend\des')
+
+from params import get_month_arrival_rate
+
+
 dash.register_page(__name__) #signifies homepage
+
 
 #sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
 

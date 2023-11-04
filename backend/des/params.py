@@ -1,8 +1,10 @@
 import pandas as pd
 import datetime
+import os
+path = os.getcwd()
 
-CAP_FPATH = "../../data/CP Lots NUS.xlsx"
-DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
+CAP_FPATH = path + r"\data\CP Lots NUS.xlsx"
+DATA_FPATH = path + r"\data\cleaned\all_carparks_cleaned.csv"
 
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
