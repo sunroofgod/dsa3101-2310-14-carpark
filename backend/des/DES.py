@@ -5,7 +5,6 @@ from carpark import CarPark
 from car import Car
 import time
 import params
-import datetime
 
 ## time unit : minutes
 
@@ -240,13 +239,11 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
     stats = stats_summary(carparks)
     return stats
 
-if __name__ == "__main__":
-    
+def run_nsim(n=100, cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME, overall_stats={}):
     init_time = time.time()
-    overall_stats = {}
-    
+
     ## Run simulation for n times
-    for i in range(params.NSIM):
+    for i in range(n):
         ## Track simulation time
         start = time.time() 
 
@@ -261,3 +258,7 @@ if __name__ == "__main__":
     duration = (time.time() - init_time) / 60 # convert to minutes
     print_stats(overall_stats)
     print(f"--- Total running time {duration:.2f} minutes ---")
+    return overall_stats
+
+if __name__ == "__main__":
+    overall_stats = run_nsim()
