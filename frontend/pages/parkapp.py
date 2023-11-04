@@ -265,7 +265,7 @@ layout = dbc.Container([
                 html.B("Simulation in Progress! Please wait..."), 
                 html.Div(dbc.Spinner(color="primary", type="border"), style = {'float':'right'})
                 ]),
-                ],id="loading-modal",is_open=False,backdrop = False,
+                ],id="loading-modal",is_open=False,backdrop = False,centered = True
         ))
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
