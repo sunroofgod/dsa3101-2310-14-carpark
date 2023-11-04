@@ -53,6 +53,14 @@ def generate_arrival_graph(d):
     fig.update_yaxes(rangemode='nonnegative')
     return fig
 
+def generate_simulate_modal_graph(d):
+    df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
+    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
+                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=300, height=300)
+    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
+    fig.update_yaxes(rangemode='nonnegative')
+    return fig
+
 def generate_simulation_graph(d):
     df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
     fig = px.line(df, x = 'hour', y = 'arrivals',
@@ -84,6 +92,7 @@ def refine_modal(base, d):
                     )])
     ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
 
+# Helper function for carpark modal
 def cp_modal(cp,a,b,c,d):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp]), close_button= False),
@@ -115,8 +124,20 @@ def cp_modal(cp,a,b,c,d):
                     )])
     ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
 
+# Helper function for confirmation of simulation modal
+def simulate_modal():
+    return dbc.Modal([
+         dbc.ModalHeader(dbc.ModalTitle("You are about to simulate:"), close_button= False),
+         dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px'}),
+         dbc.ModalFooter([
+            html.H5("Confirm Simulation?"),
+            dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+            dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+         ])
+    ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
 
 
+# layout
 layout = dbc.Container([
     dbc.Row([
         dbc.Col( # Left partition
@@ -202,7 +223,8 @@ layout = dbc.Container([
             html.Div(cp_modal("cp6b",0,130,0,43), id = 'cp6b_modal'),
             html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False)),
             html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
-            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False))
+            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False)),
+            html.Div(simulate_modal())
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
@@ -483,7 +505,7 @@ def params_to_simulate(status,red,white,red_max,white_max):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: 0 (100% Capacity)"]
 
 # Callback to reset simulation numbers
 @callback(
@@ -829,12 +851,54 @@ def toggle_reset_events_modal(n1):
     else:
         return True
 
-# Simulation Callbacks
+
+'''
+Simulation CALLBACKS
+'''
+# Toggle Simulation Confirmation Modal
 @callback(
-    Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
+    Output('simulate-modal','is_open'),
+    Input('simulate-button','n_clicks'),
+    Input('simulate-modal-no','n_clicks'),
+    Input('simulate-modal-yes','n_clicks')
+)
+def open_simulation_modal(n1,n2,n3):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-button' in changed_id:
+        return True
+    else:
+        return False
+
+# Callbacks for modal content
+@callback(
+    Output(component_id='simulate-modal-contents',component_property='children', allow_duplicate=True),
     Input(component_id='simulate-button', component_property='n_clicks'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','value'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_red_cp3a','max'),
+    Input('slider_white_cp3a','value'),
+    Input('slider_white_cp3a','max'),
+    Input('slider_red_cp4','value'),
+    Input('slider_red_cp4','max'),
+    Input('slider_white_cp4','value'),
+    Input('slider_white_cp4','max'),
+    Input('slider_red_cp5','value'),
+    Input('slider_red_cp5','max'),
+    Input('slider_white_cp5','value'),
+    Input('slider_white_cp5','max'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_red_cp5b','max'),
+    Input('slider_white_cp5b','value'),
+    Input('slider_white_cp5b','max'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_red_cp6b','max'),
+    Input('slider_white_cp6b','value'),
+    Input('slider_white_cp6b','max'),
     Input('slider_0','value'),
     Input('slider_1','value'),
     Input('slider_2','value'),
@@ -861,7 +925,13 @@ def toggle_reset_events_modal(n1):
     Input('slider_23','value'),
     prevent_initial_call = True
 )
-def cp_simulation(clicks, month, event, *args):
+def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
+    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
+    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
+    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max,
+    *args):
      changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
      if 'simulate-button' in changed_id:
         if event == "No Event" and month is None:
@@ -881,9 +951,143 @@ def cp_simulation(clicks, month, event, *args):
                 first = html.B(event + ' - Custom')
         
         d = dict(zip(range(24),args))
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulate_modal_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+        cp3 = html.B('Carpark 3 Capacities: Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%')
+        cp3a = html.B('Carpark 3A Capacities: Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%')
+        cp4 = html.B('Carpark 4 Capacities: Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%')
+        cp5 = html.B('Carpark 5 Capacities: Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%')
+        cp5b = html.B('Carpark 5B Capacities: Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%, White - ' + '100%')
+        cp6b = html.B('Carpark 6B Capacities: Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%')
 
-        return [first,html.Br(),graph]
+        return [first,
+        html.Br(),
+        graph, 
+        cp3, 
+        html.Br(),
+        cp3a,
+        html.Br(),
+        cp4,
+        html.Br(),
+        cp5,
+        html.Br(),
+        cp5b,
+        html.Br(),
+        cp6b]
+
+
+     else:
+         return dash.no_update
+
+
+
+
+
+# Simulation Callbacks
+@callback(
+    Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','value'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_red_cp3a','max'),
+    Input('slider_white_cp3a','value'),
+    Input('slider_white_cp3a','max'),
+    Input('slider_red_cp4','value'),
+    Input('slider_red_cp4','max'),
+    Input('slider_white_cp4','value'),
+    Input('slider_white_cp4','max'),
+    Input('slider_red_cp5','value'),
+    Input('slider_red_cp5','max'),
+    Input('slider_white_cp5','value'),
+    Input('slider_white_cp5','max'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_red_cp5b','max'),
+    Input('slider_white_cp5b','value'),
+    Input('slider_white_cp5b','max'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_red_cp6b','max'),
+    Input('slider_white_cp6b','value'),
+    Input('slider_white_cp6b','max'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call = True
+)
+def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
+    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
+    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
+    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, *args):
+     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+     if 'simulate-modal-yes' in changed_id:
+        if event == "No Event" and month is None:
+            if list(args) == list(default_arrivals.values()):
+                first = html.B("Empty Simulation")
+            else:
+                first = html.B("Custom")
+        elif event == "No Event":
+            if list(args) == list(generate_arrival_rate_month(month).values()):
+                first = html.B(month_dict[month])
+            else:
+                first = html.B(month_dict[month] + ' - Custom')
+        else:
+            if list(args) == list(generate_arrival_rate_event(event).values()):
+                first = html.B(event)
+            else:
+                first = html.B(event + ' - Custom')
+        
+        d = dict(zip(range(24),args))
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center','margin-bottom':'2%'})
+
+        cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%, White - ' + '100%'], style = {'margin-bottom':'1.5%'})
+        cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
+
+        return [first,
+        html.Br(),
+        graph,
+        html.Div([
+        cp3, 
+        html.Br(),
+        cp3a,
+        html.Br(),
+        cp4,
+        html.Br(),
+        cp5,
+        html.Br(),
+        cp5b,
+        html.Br(),
+        cp6b], style = {'font-size':'15px'})]
+
      else:
          return dash.no_update
 
