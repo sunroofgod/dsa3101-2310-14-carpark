@@ -179,7 +179,7 @@ layout = dbc.Container([
             html.Div([html.Div(html.B("Select Month")),
             html.Div(dcc.Dropdown(id = 'month-picker', options=months))]),
             html.Br(),
-            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
+            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals), style={'max-width': '100%', 'width': 'auto'}),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'max-width': '100%', 'width': 'auto'}),
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
