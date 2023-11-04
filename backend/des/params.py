@@ -40,7 +40,11 @@ def get_day_arrival_rate(day : str, data=cp_data):
     users = filtered_data[["year", "enter_hour"]]
     users = users.groupby(["year", "enter_hour"]).size().reset_index()
     users = users.groupby(["enter_hour"]).agg({0 : 'mean'})
-    return users.to_dict()[0]
+    users = users.to_dict()[0] 
+    
+    for h in range(24):
+        users[h] = users.get(h, 0)
+    return users
 
 
 def minutes_to_hours(minutes : int):
