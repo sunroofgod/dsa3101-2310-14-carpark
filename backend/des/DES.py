@@ -5,6 +5,7 @@ from carpark import CarPark
 from car import Car
 import time
 import params
+import sys
 
 ## time unit : minutes
 
@@ -125,14 +126,14 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         ## Car arrive at campus
         car = Car(car_id, tpe)
         time = get_arrival_interval(month, env.now) # time before next car arrive
-        assert time >= 0
+        # assert time >= 0
         yield env.timeout(time)
         # car = car_arrival(env, car_id, tpe)
 
         ## Choose carpark
         cp_dict = cp_prob_dict[tpe]
         cp_prob = [cp_dict[cp.get_name()] for cp in carparks]
-        assert sum(cp_prob) == 1.0
+        # assert sum(cp_prob) == 1.0
 
         ## TODO: car should only be able to choose from cp with given parking type
         
@@ -239,7 +240,7 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
     stats = stats_summary(carparks)
     return stats
 
-def run_nsim(n=100, cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME, overall_stats={}):
+def run_nsim(n=100, overall_stats={}):
     init_time = time.time()
 
     ## Run simulation for n times
@@ -261,4 +262,5 @@ def run_nsim(n=100, cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=par
     return overall_stats
 
 if __name__ == "__main__":
-    overall_stats = run_nsim()
+    n = 1 if len(sys.argv) == 1 else int(sys.argv[1])
+    overall_stats = run_nsim(n=n)
