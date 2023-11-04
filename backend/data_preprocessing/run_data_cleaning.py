@@ -72,9 +72,13 @@ def clean_carpark_data(path:str):
     df.loc[df['staff_du'].notnull(), 'type'] = 'staff'
     df.loc[df['student_du'].notnull(), 'type'] = 'student'
     df.loc[df['esp_du'].notnull(), 'type'] = 'esp'
+
     # drop the X_du columns
     df.drop(columns=['hourly_du', 'staff_du', 'student_du', 'esp_du'], inplace=True)
 
+    # drop rows with invalid IU
+    df = df[df['IU']!='5228257a']
+    
     # add exit_id values if needed, mainly for Cp10
     if 'exit_id' not in df.columns:
         df['exit_id'] = np.nan
@@ -137,4 +141,4 @@ if __name__ == '__main__':
                 'Cp_multiple': '../../data/raw_Cp33a45b6b_a.csv',
                 'Cp10': '../../data/Sample raw data format - duration_cp10_Apr2023_a.csv'}
     
-    load_and_clean_data(carpark_data)
+    clean_data = load_and_clean_data(carpark_data)
