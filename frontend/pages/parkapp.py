@@ -101,9 +101,9 @@ def cp_modal(cp,a,b,c,d):
             html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center'}),
             html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
             html.Div(
-                [html.B("Red Lot Occupancy to Simulate: " + str(b),id = 'to_simulate_red_'+cp),
+                [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)" ,id = 'to_simulate_red_'+cp, style = {'font-size':'15px'}),
                  html.Br(),
-                html.B("White Lot Occupancy to Simulate: " + str(d),id = 'to_simulate_white_'+cp)]
+                html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px'})]
             )
             ])
 
@@ -241,13 +241,15 @@ def show_cp_params(status):
     Output('to_simulate_white_cp3','children'),
     Input('cp_status_cp3','value'),
     Input('slider_red_cp3','value'),
-    Input('slider_white_cp3','value')
+    Input('slider_white_cp3','value'),
+    State('slider_red_cp3', 'max'),
+    State('slider_white_cp3', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate(status,red,white,red_max,white_max):
     if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
 
 # Callback to reset simulation numbers
 @callback(
@@ -298,13 +300,15 @@ def show_cp_params(status):
     Output('to_simulate_white_cp3a','children'),
     Input('cp_status_cp3a','value'),
     Input('slider_red_cp3a','value'),
-    Input('slider_white_cp3a','value')
+    Input('slider_white_cp3a','value'),
+    State('slider_red_cp3a', 'max'),
+    State('slider_white_cp3a', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate(status,red,white,red_max,white_max):
     if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
 
 # Callback to reset simulation numbers
 @callback(
@@ -322,9 +326,240 @@ def reset_cp_params(clicks,max_red,max_white):
     else:
         return dash.no_update, dash.no_update,dash.no_update
 
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp4','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp4','n_clicks')
+        
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp4" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp4','disabled'),
+    Output('slider_white_cp4','disabled'),
+    Input('cp_status_cp4','value')
+)
+def show_cp_params(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp4','children'),
+    Output('to_simulate_white_cp4','children'),
+    Input('cp_status_cp4','value'),
+    Input('slider_red_cp4','value'),
+    Input('slider_white_cp4','value'),
+    State('slider_red_cp4', 'max'),
+    State('slider_white_cp4', 'max'),
+)
+def params_to_simulate(status,red,white,red_max,white_max):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_red_cp4','value'),
+    Output('slider_white_cp4','value'),
+    Output('cp_status_cp4','value'),
+    Input('reset-modal-cp4','n_clicks'),
+    State('slider_red_cp4','max'),
+    State('slider_white_cp4','max')
+)
+def reset_cp_params(clicks,max_red,max_white):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp4' in changed_id:
+        return max_red, max_white, "Open"
+    else:
+        return dash.no_update, dash.no_update,dash.no_update
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp5','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp5','n_clicks')
+        
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp5" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp5','disabled'),
+    Output('slider_white_cp5','disabled'),
+    Input('cp_status_cp5','value')
+)
+def show_cp_params(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp5','children'),
+    Output('to_simulate_white_cp5','children'),
+    Input('cp_status_cp5','value'),
+    Input('slider_red_cp5','value'),
+    Input('slider_white_cp5','value'),
+    State('slider_red_cp5', 'max'),
+    State('slider_white_cp5', 'max'),
+)
+def params_to_simulate(status,red,white,red_max,white_max):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_red_cp5','value'),
+    Output('slider_white_cp5','value'),
+    Output('cp_status_cp5','value'),
+    Input('reset-modal-cp5','n_clicks'),
+    State('slider_red_cp5','max'),
+    State('slider_white_cp5','max')
+)
+def reset_cp_params(clicks,max_red,max_white):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp5' in changed_id:
+        return max_red, max_white, "Open"
+    else:
+        return dash.no_update, dash.no_update,dash.no_update
+
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp5b','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp5b','n_clicks')
+        
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp5b" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp5b','disabled'),
+    Output('slider_white_cp5b','disabled'),
+    Input('cp_status_cp5b','value')
+)
+def show_cp_params(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp5b','children'),
+    Output('to_simulate_white_cp5b','children'),
+    Input('cp_status_cp5b','value'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_white_cp5b','value'),
+    State('slider_red_cp5b', 'max'),
+    State('slider_white_cp5b', 'max'),
+)
+def params_to_simulate(status,red,white,red_max,white_max):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_red_cp5b','value'),
+    Output('slider_white_cp5b','value'),
+    Output('cp_status_cp5b','value'),
+    Input('reset-modal-cp5b','n_clicks'),
+    State('slider_red_cp5b','max'),
+    State('slider_white_cp5b','max')
+)
+def reset_cp_params(clicks,max_red,max_white):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp5b' in changed_id:
+        return max_red, max_white, "Open"
+    else:
+        return dash.no_update, dash.no_update,dash.no_update
 
 
 
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp6b','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp6b','n_clicks')
+        
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp6b" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp6b','disabled'),
+    Output('slider_white_cp6b','disabled'),
+    Input('cp_status_cp6b','value')
+)
+def show_cp_params(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp6b','children'),
+    Output('to_simulate_white_cp6b','children'),
+    Input('cp_status_cp6b','value'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_white_cp6b','value'),
+    State('slider_red_cp6b', 'max'),
+    State('slider_white_cp6b', 'max'),
+)
+def params_to_simulate(status,red,white,red_max,white_max):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_red_cp6b','value'),
+    Output('slider_white_cp6b','value'),
+    Output('cp_status_cp6b','value'),
+    Input('reset-modal-cp6b','n_clicks'),
+    State('slider_red_cp6b','max'),
+    State('slider_white_cp6b','max')
+)
+def reset_cp_params(clicks,max_red,max_white):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp6b' in changed_id:
+        return max_red, max_white, "Open"
+    else:
+        return dash.no_update, dash.no_update,dash.no_update
 
 
 '''
@@ -456,235 +691,6 @@ def reset_refine_modal(month,event, clicks):
             return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_graph(d)
     else:
         return dash.no_update, dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp4','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp4','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp4" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp4','disabled'),
-    Output('slider_white_cp4','disabled'),
-    Input('cp_status_cp4','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp4','children'),
-    Output('to_simulate_white_cp4','children'),
-    Input('cp_status_cp4','value'),
-    Input('slider_red_cp4','value'),
-    Input('slider_white_cp4','value')
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
-    else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_red_cp4','value'),
-    Output('slider_white_cp4','value'),
-    Output('cp_status_cp4','value'),
-    Input('reset-modal-cp4','n_clicks'),
-    State('slider_red_cp4','max'),
-    State('slider_white_cp4','max')
-)
-def reset_cp_params(clicks,max_red,max_white):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp4' in changed_id:
-        return max_red, max_white, "Open"
-    else:
-        return dash.no_update, dash.no_update,dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp5','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp5','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp5" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp5','disabled'),
-    Output('slider_white_cp5','disabled'),
-    Input('cp_status_cp5','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp5','children'),
-    Output('to_simulate_white_cp5','children'),
-    Input('cp_status_cp5','value'),
-    Input('slider_red_cp5','value'),
-    Input('slider_white_cp5','value')
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
-    else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_red_cp5','value'),
-    Output('slider_white_cp5','value'),
-    Output('cp_status_cp5','value'),
-    Input('reset-modal-cp5','n_clicks'),
-    State('slider_red_cp5','max'),
-    State('slider_white_cp5','max')
-)
-def reset_cp_params(clicks,max_red,max_white):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp5' in changed_id:
-        return max_red, max_white, "Open"
-    else:
-        return dash.no_update, dash.no_update,dash.no_update
-
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp5b','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp5b','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp5b" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp5b','disabled'),
-    Output('slider_white_cp5b','disabled'),
-    Input('cp_status_cp5b','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp5b','children'),
-    Output('to_simulate_white_cp5b','children'),
-    Input('cp_status_cp5b','value'),
-    Input('slider_red_cp5b','value'),
-    Input('slider_white_cp5b','value')
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
-    else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_red_cp5b','value'),
-    Output('slider_white_cp5b','value'),
-    Output('cp_status_cp5b','value'),
-    Input('reset-modal-cp5b','n_clicks'),
-    State('slider_red_cp5b','max'),
-    State('slider_white_cp5b','max')
-)
-def reset_cp_params(clicks,max_red,max_white):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp5b' in changed_id:
-        return max_red, max_white, "Open"
-    else:
-        return dash.no_update, dash.no_update,dash.no_update
-
-
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp6b','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp6b','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp6b" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp6b','disabled'),
-    Output('slider_white_cp6b','disabled'),
-    Input('cp_status_cp6b','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp6b','children'),
-    Output('to_simulate_white_cp6b','children'),
-    Input('cp_status_cp6b','value'),
-    Input('slider_red_cp6b','value'),
-    Input('slider_white_cp6b','value')
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Occupancy to Simulate: 0"], ["White Lot Occupancy to Simulate: 0"]
-    else:
-        return ["Red Lot Occupancy to Simulate: " + str(red)], ["White Lot Occupancy to Simulate: " + str(white)]
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_red_cp6b','value'),
-    Output('slider_white_cp6b','value'),
-    Output('cp_status_cp6b','value'),
-    Input('reset-modal-cp6b','n_clicks'),
-    State('slider_red_cp6b','max'),
-    State('slider_white_cp6b','max')
-)
-def reset_cp_params(clicks,max_red,max_white):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp6b' in changed_id:
-        return max_red, max_white, "Open"
-    else:
-        return dash.no_update, dash.no_update,dash.no_update
-
-
 
 # Callback for reset all: revert to original settings and carpark state
 @callback(
