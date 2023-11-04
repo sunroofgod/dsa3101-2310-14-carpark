@@ -1,8 +1,8 @@
 import pandas as pd
 import datetime
 import os
-path = os.getcwd()
 
+path = os.getcwd()
 CAP_FPATH = path + r"\data\CP Lots NUS.xlsx"
 DATA_FPATH = path + r"\data\cleaned\all_carparks_cleaned.csv"
 
@@ -38,7 +38,6 @@ def get_day_arrival_rate(day : str, data=cp_data):
     filtered_data = data[data['enter_dt'].dt.date == day.date()]
     filtered_data['enter_hour'] = filtered_data['enter_dt'].dt.hour
     filtered_data['year'] = filtered_data['enter_dt'].dt.year
-
     users = filtered_data[["year", "enter_hour"]]
     users = users.groupby(["year", "enter_hour"]).size().reset_index()
     users = users.groupby(["enter_hour"]).agg({0 : 'mean'})
@@ -187,8 +186,9 @@ def get_parking_duration_stats(data=cp_data):
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
 NSIM = 1
-CP_CAPACITY = get_carpark_capacity()
-CP_PROB = get_carpark_prob()
+CP_CAPACITY = get_carpark_capacity() #modify by frontend
+CP_PROB = get_carpark_prob() 
 CAR_PROB = get_parking_type_prop()
-LAMBDAS = get_arrival_rates()
+LAMBDAS = get_arrival_rates() #modify by frontend
 MONTH = datetime.date.today().month
+

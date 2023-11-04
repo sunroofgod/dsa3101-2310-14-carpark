@@ -11,7 +11,7 @@ path = os.getcwd()
 import sys
 sys.path.append(path + r'\backend\des')
 
-from params import get_month_arrival_rate
+from params import get_month_arrival_rate, get_day_arrival_rate
 
 
 dash.register_page(__name__) #signifies homepage
@@ -30,13 +30,14 @@ default_button = "0"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
 
+
 # Sample Data for Months
 month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
 month_data_keys = range(1,13)
 month_data = dict(zip(month_data_keys,month_data_values))
 
 # Sample Data Events
-events_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(10)]
+events_data_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
 events_data = dict(zip(campus_events,events_data_values))
 
 #Helper function to generate arrival rates given month
@@ -46,13 +47,20 @@ def generate_arrival_rate_month(x):
     #d = dict(zip(keys,random_numbers))
     #temp = sample_data[sample_data["month"] == x]
     #d = temp.set_index("hour")["delta_nett"].to_dict()
-    return month_data[x]
+    return get_month_arrival_rate(x)
 
 def generate_arrival_rate_event(x):
-    #keys = range(0,24)
-    #random_numbers = [random.randint(1, 500) for _ in range(24)]
-    #d = dict(zip(keys,random_numbers))
-    return events_data[x] 
+    date = events_data[x]
+    d = get_day_arrival_rate(date)
+    nd = {}
+
+    for i in range(24):
+        if i in d.keys():
+            nd[i] = d[i]
+        else:
+            nd[i] = 0
+
+    return nd
 
 #Helper function to generate plots from dictionary representation
 def generate_arrival_graph(d):
@@ -794,6 +802,7 @@ def reset_refine_modal(month,event, clicks):
     Output(component_id='cp5_modal',component_property='children'),
     Output(component_id='cp5b_modal',component_property='children'),
     Output(component_id='cp6b_modal',component_property='children'),
+    Output(component_id='cp10_modal',component_property='children'),
     Output(component_id='simulation-contents',component_property='children'),
     Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
     Output(component_id='cp3',component_property='children'),
@@ -811,9 +820,9 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # Callback to close reset all modals:
