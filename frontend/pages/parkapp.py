@@ -211,16 +211,18 @@ layout = dbc.Container([
             html.Div([html.Div(html.B("Select Month")),
             html.Div(dcc.Dropdown(id = 'month-picker', options=months))]),
             html.Br(),
+            dbc.Button('Reset Events and Months', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            html.Br(),
+            html.Br(),
             html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals), style={'width': '100%'}),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
+            dbc.Button('Reset CP Params', id='reset-cp-button', style={'display':'inline-block','margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            html.Br(),            
             dbc.Button('Reset All', id='reset-button', style={'margin-bottom':'2%','display':'inline-block','margin-right':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             dbc.Button('Simulate', id='simulate-button', style={'margin-bottom':'2%','display':'inline-block', 'background-color':'#000000', 'color' : '#FFFFFF' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
-            dbc.Button('Reset CP Params', id='reset-cp-button', style={'display':'inline-block','margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
-            html.Br(),
-            dbc.Button('Reset Events and Months', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             ], 
             width={'size': 2, 'order': 3},
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
@@ -1001,6 +1003,7 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_23','value'),
     prevent_initial_call = True
 )
+
 def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
@@ -1173,6 +1176,7 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
     Input('slider_23','value'),
     prevent_initial_call = True
 )
+
 def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
@@ -1200,8 +1204,17 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
                 first = html.B(event + ' - Custom')
         
         d = dict(zip(range(24),args))
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center','margin-bottom':'2%'})
 
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),
+                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) #, 'border': '3px orange solid', 'margin':'0'})
+        
+        # graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),
+        #                 # style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'})
+        #                 style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%', 'border': '3px orange solid'})
+        # # graph = html.Div(dcc.Graph(config={'staticPlot':True},figure = generate_simulation_graph(d), style={'width':'100%'}), 
+        # #                  style={'display':'flex', 'justify-content':'center', 'align-items': 'center', 'width':'100%'}
+        # # )
+        
         cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
         cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
         cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
@@ -1209,25 +1222,33 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
         cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%, White - ' + '100%'], style = {'margin-bottom':'1.5%'})
         cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
         cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + str(round(cp10_red_v*100/cp10_red_max)) + '%, White - ' + str(round(cp10_white_v*100/cp10_white_max)) + '%'])
-
+        cp3_div = html.Div(cp3, style={'border': '2px solid black', 'padding': '5px'})
+        cp3a_div = html.Div(cp3a, style={'border': '2px solid black', 'padding': '5px'})
+        cp4_div = html.Div(cp4, style={'border': '2px solid black', 'padding': '5px'})
+        cp5_div = html.Div(cp5, style={'border': '2px solid black', 'padding': '5px'})
+        cp5b_div = html.Div(cp5b, style={'border': '2px solid black', 'padding': '5px'})
+        cp6b_div = html.Div(cp6b, style={'border': '2px solid black', 'padding': '5px'})
+        cp10_div = html.Div(cp10, style={'border': '2px solid black', 'padding': '5px'})
         return [first,
         html.Br(),
         graph,
-        html.Div([
-        cp3, 
         html.Br(),
-        cp3a,
-        html.Br(),
-        cp4,
-        html.Br(),
-        cp5,
-        html.Br(),
-        cp5b,
-        html.Br(),
-        cp6b,
-        html.Br(),
-        cp10], style = {'font-size':'15px'})]
-
+        html.Div(
+            children=[
+                cp3_div, 
+                cp3a_div,
+                cp4_div,
+                cp5_div,
+                cp5b_div,
+                cp6b_div,
+                cp10_div], 
+            style = {'font-size':'12px', 'font-family': 'Open Sans',
+                    'background-color':'white   ', 'color':'black',
+                    'display': 'inline-block', 'justify-content':'center', 'align-items':'center'})]
+     
+        
+        
      else:
          return dash.no_update
-
+     
+     
