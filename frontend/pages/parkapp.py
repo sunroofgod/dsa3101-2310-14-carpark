@@ -107,9 +107,9 @@ def cp_modal(cp,a,b,c,d):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
         dbc.ModalBody([
-            html.B("Occuipied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}, id = 'occupied_'+cp),
-            html.Div("Occuipied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}, id = 'occupied_red'+cp),
-            html.Div("Occuipied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"}, id = 'occupied_white_'+cp),
+            html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}, id = 'occupied_'+cp),
+            html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}, id = 'occupied_red'+cp),
+            html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"}, id = 'occupied_white_'+cp),
             html.Br(),
             html.H4('Simulation Parameters:', style = {"color" : "white"}),
             html.Div('Carpark Status:', style = {"color" : "white"}),
@@ -138,12 +138,12 @@ def cp_modal(cp,a,b,c,d):
 # Helper function for confirmation of simulation modal
 def simulate_modal():
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle("You are about to simulate:"), close_button= False),
+         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False),
          dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px'}),
          dbc.ModalFooter([
             html.H5("Confirm Simulation?"),
-            dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
             dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
+            dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
          ])
     ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
 
@@ -963,12 +963,55 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
         
         d = dict(zip(range(24),args))
         graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulate_modal_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
-        cp3 = html.B('Carpark 3 Capacities: Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%')
-        cp3a = html.B('Carpark 3A Capacities: Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%')
-        cp4 = html.B('Carpark 4 Capacities: Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%')
-        cp5 = html.B('Carpark 5 Capacities: Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%')
-        cp5b = html.B('Carpark 5B Capacities: Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%, White - ' + '100%')
-        cp6b = html.B('Carpark 6B Capacities: Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%')
+        cp3 = html.Div([
+            html.Span('Carpark 3 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp3_red_v * 100 / cp3_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp3_white_v * 100 / cp3_white_max)) + '%'
+        ])
+        cp3a = html.Div([
+            html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp3a_red_v * 100 / cp3a_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp3a_white_v * 100 / cp3a_white_max)) + '%'
+        ])
+        cp4 = html.Div([
+            html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp4_red_v * 100 / cp4_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp4_white_v * 100 / cp4_white_max)) + '%'
+        ])
+        cp5 = html.Div([
+            html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp5_red_v * 100 / cp5_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp5_white_v * 100 / cp5_white_max)) + '%'
+        ])
+        cp5b = html.Div([ 
+            html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp5b_red_v * 100 / cp5b_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + '100%'          ##bug??
+        ])
+        cp6b = html.Div([
+            html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            ' ',
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp6b_red_v * 100 / cp6b_red_max)) + '%, ',
+            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            ' - ' + str(round(cp6b_white_v * 100 / cp6b_white_max)) + '%'
+        ])
+
 
         return [first,
         html.Br(),
