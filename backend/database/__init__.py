@@ -2,9 +2,10 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import text
 import sqlalchemy
+from database.mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
 
-load_dotenv('.env')
+""" load_dotenv('.env')
 
 DATABASE_NAME = os.environ['DATABASE_NAME']
 MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
@@ -15,7 +16,9 @@ NUM_OF_TABLES = 1
 engine = sqlalchemy.create_engine(
     CONNECTION_STRING
 )
-db = engine.connect()
+db = engine.connect() """
+
+db = connect_db()
 
 def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
     db.execute(text(
