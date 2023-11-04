@@ -186,9 +186,9 @@ def get_parking_duration_stats(data=cp_data):
 ## TODO: take input from user / database
 SIM_TIME = 24 * 60 # in minutes
 NSIM = 1
-CP_CAPACITY = get_carpark_capacity() #modify by frontend
+CP_CAPACITY = get_carpark_capacity()
 CP_PROB = get_carpark_prob() 
 CAR_PROB = get_parking_type_prop()
-LAMBDAS = get_arrival_rates() #modify by frontend
+LAMBDAS = get_arrival_rates()
 MONTH = datetime.date.today().month
 

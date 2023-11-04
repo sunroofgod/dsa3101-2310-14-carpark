@@ -4,6 +4,7 @@ from dash import html, dcc, callback, Input, Output, State
 import plotly.express as px
 import pandas as pd
 import random
+import time
 
 import os
 path = os.getcwd()
@@ -29,7 +30,6 @@ month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6:
 default_button = "0"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
-
 
 # Sample Data for Months
 month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
@@ -61,6 +61,18 @@ def generate_arrival_rate_event(x):
             nd[i] = 0
 
     return nd
+
+# Helper function to run fake simulation
+def simulate_des(arrival_rates, lots_d):
+    cp3_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 10]
+    cp3a_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
+    cp4_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
+    cp5_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
+    cp5b_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 0]
+    cp6b_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 10]
+    cp10_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 10]
+    return {'cp3':cp3_ls, 'cp3a':cp3a_ls, 'cp4':cp4_ls, 'cp5':cp5_ls, 'cp5b':cp5b_ls,'cp6b':cp6b_ls, 'cp10':cp10_ls}
+
 
 #Helper function to generate plots from dictionary representation
 def generate_arrival_graph(d):
@@ -115,9 +127,10 @@ def cp_modal(cp,a,b,c,d):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
         dbc.ModalBody([
-            html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}, id = 'occupied_'+cp),
-            html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}, id = 'occupied_red'+cp),
-            html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"}, id = 'occupied_white_'+cp),
+            html.Div([
+            html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"})], id = 'occupied_'+cp),
             html.Br(),
             html.H4('Simulation Parameters:', style = {"color" : "white"}),
             html.Div('Carpark Status:', style = {"color" : "white"}),
@@ -244,7 +257,14 @@ layout = dbc.Container([
             html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False)),
             html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
             html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False)),
-            html.Div(simulate_modal())
+            html.Div(simulate_modal()),
+            html.Div(dbc.Modal([
+                dbc.ModalBody([
+                html.B("Simulation in Progress! Please wait..."), 
+                html.Div(dbc.Spinner(color="primary", type="border"), style = {'float':'right'})
+                ]),
+                ],id="loading-modal",is_open=False,backdrop = False,
+        ))
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
@@ -795,6 +815,13 @@ def reset_refine_modal(month,event, clicks):
 
 # Callback for reset all: revert to original settings and carpark state
 @callback(
+    Output(component_id='cp3',component_property='style'),
+    Output(component_id='cp3a',component_property='style'),
+    Output(component_id='cp4',component_property='style'),
+    Output(component_id='cp5',component_property='style'),
+    Output(component_id='cp5b',component_property='style'),
+    Output(component_id='cp6b',component_property='style'),
+    Output(component_id='cp10',component_property='style'),
     Output(component_id = 'reset-all-modal', component_property = 'is_open'),
     Output(component_id='cp3_modal',component_property='children'),
     Output(component_id='cp3a_modal',component_property='children'),
@@ -820,9 +847,9 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return {'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # Callback to close reset all modals:
@@ -900,13 +927,6 @@ def toggle_reset_cp_params_modal(n1):
 @callback(
     Output(component_id='reset-events-modal', component_property='is_open'),
     Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='cp3',component_property='children',allow_duplicate=True),
-    Output(component_id='cp3a',component_property='children',allow_duplicate=True),
-    Output(component_id='cp4',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5b',component_property='children',allow_duplicate=True),
-    Output(component_id='cp6b',component_property='children',allow_duplicate=True),
-    Output(component_id='cp10',component_property='children', allow_duplicate = True),
     Output(component_id='month-picker',component_property='value', allow_duplicate=True),
     Output(component_id='event-picker',component_property='value',allow_duplicate=True),
     Input(component_id='reset-events-button', component_property='n_clicks'),
@@ -915,9 +935,9 @@ def toggle_reset_cp_params_modal(n1):
 def reset_events(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-events-button' in changed_id:
-        return True,generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return True,generate_arrival_graph(default_arrivals),None,"No Event"
     else:
-        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
+        return False,dash.no_update,dash.no_update,dash.no_update
 
 # Callback to close reset events modals:
 @callback(
@@ -1240,3 +1260,229 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
      else:
          return dash.no_update
 
+
+
+@callback(
+    Output(component_id = 'loading-modal',component_property='is_open'),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks')
+)
+def open_loading(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-modal-yes' in changed_id:
+        return True
+    else:
+        return False
+
+# Callback to update contents of cp modals
+@callback(
+    Output(component_id = 'loading-modal',component_property='is_open',allow_duplicate=True),
+    Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp3', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp3',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp3a', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp3a', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp3a',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp4', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp4', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp4',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp5', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp5', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp5',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp5b', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp5b', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp5b',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp6b', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp6b', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp6b',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp10', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp10', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp10',component_property='children', allow_duplicate=True),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','value'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_red_cp3a','max'),
+    Input('slider_white_cp3a','value'),
+    Input('slider_white_cp3a','max'),
+    Input('slider_red_cp4','value'),
+    Input('slider_red_cp4','max'),
+    Input('slider_white_cp4','value'),
+    Input('slider_white_cp4','max'),
+    Input('slider_red_cp5','value'),
+    Input('slider_red_cp5','max'),
+    Input('slider_white_cp5','value'),
+    Input('slider_white_cp5','max'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_red_cp5b','max'),
+    Input('slider_white_cp5b','value'),
+    Input('slider_white_cp5b','max'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_red_cp6b','max'),
+    Input('slider_white_cp6b','value'),
+    Input('slider_white_cp6b','max'),
+    Input('slider_red_cp10','value'),
+    Input('slider_red_cp10','max'),
+    Input('slider_white_cp10','value'),
+    Input('slider_white_cp10','max'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call = True
+)
+def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
+    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
+    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
+    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
+    cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
+    *args):
+    lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
+    'cp5b':(cp5b_white_v,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),'cp10':(cp10_white_v,cp10_red_v)}
+    arrival_rates = args
+    outputs = simulate_des(arrival_rates,lots_d)
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-modal-yes' in changed_id:
+        cp3_outputs = outputs['cp3']
+        cp3_ratio = round((cp3_outputs[4]+cp3_outputs[5])*100/(cp3_red_v+cp3_white_v))
+        cp3_style = dash.no_update
+        
+        if cp3_ratio >= 60 and cp3_ratio < 70:
+            cp3_style = {'background-color':'orange', 'top':'16%', 'left':'27%'}
+        elif cp3_ratio >= 70:
+            cp3_style = {'background-color':'red', 'top':'16%', 'left':'27%'}
+        else:
+            cp3_style = {'background-color':'green', 'top':'16%', 'left':'27%'}
+
+        occupied_cp3 =  html.Div([
+            html.B("Occupied Lots: " + str(cp3_outputs[4]+cp3_outputs[5]) + '/' + str(cp3_red_v+cp3_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3_outputs[5]) + '/' + str(cp3_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3_outputs[4]) + '/' + str(cp3_white_v), style = {"color" : "white"})])
+        
+        cp3a_outputs = outputs['cp3a']
+        cp3a_ratio = round((cp3a_outputs[4]+cp3a_outputs[5])*100/(cp3a_red_v+cp3a_white_v))
+        cp3a_style = dash.no_update
+        
+        if cp3a_ratio >= 60 and cp3a_ratio < 70:
+            cp3a_style = {'background-color':'orange', 'top':'17%', 'left':'32%'}
+        elif cp3a_ratio >= 70:
+            cp3a_style = {'background-color':'red', 'top':'17%', 'left':'32%'}
+        else:
+            cp3a_style = {'background-color':'green', 'top':'17%', 'left':'32%'}
+
+        occupied_cp3a =  html.Div([
+            html.B("Occupied Lots: " + str(cp3a_outputs[4]+cp3a_outputs[5]) + '/' + str(cp3a_red_v+cp3a_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5]) + '/' + str(cp3a_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[4]) + '/' + str(cp3a_white_v), style = {"color" : "white"})])
+
+        cp4_outputs = outputs['cp4']
+        cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(cp4_red_v+cp4_white_v))
+        cp4_style = dash.no_update
+        
+        if cp4_ratio >= 60 and cp4_ratio < 70:
+            cp4_style = {'background-color':'orange', 'top':'32%', 'left':'34%'}
+        elif cp4_ratio >= 70:
+            cp4_style = {'background-color':'red', 'top':'32%', 'left':'34%'}
+        else:
+            cp4_style = {'background-color':'green', 'top':'32%', 'left':'34%'}
+
+        occupied_cp4 =  html.Div([
+            html.B("Occupied Lots: " + str(cp4_outputs[4]+cp4_outputs[5]) + '/' + str(cp4_red_v+cp4_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp4_outputs[5]) + '/' + str(cp4_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp4_outputs[4]) + '/' + str(cp4_white_v), style = {"color" : "white"})])
+
+        cp5_outputs = outputs['cp5']
+        cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(cp5_red_v+cp5_white_v))
+        cp5_style = dash.no_update
+        
+        if cp5_ratio >= 60 and cp5_ratio < 70:
+            cp5_style = {'background-color':'orange', 'top':'34%', 'left':'43%'}
+        elif cp5_ratio >= 70:
+            cp5_style = {'background-color':'red', 'top':'34%', 'left':'43%'}
+        else:
+            cp5_style = {'background-color':'green', 'top':'34%', 'left':'43%'}
+
+        occupied_cp5 =  html.Div([
+            html.B("Occupied Lots: " + str(cp5_outputs[4]+cp5_outputs[5]) + '/' + str(cp5_red_v+cp5_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5_outputs[5]) + '/' + str(cp5_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5_outputs[4]) + '/' + str(cp5_white_v), style = {"color" : "white"})])
+
+        cp5b_outputs = outputs['cp5b']
+        cp5b_ratio = round((cp5b_outputs[4]+cp5b_outputs[5])*100/(cp5b_red_v+cp5b_white_v))
+        cp5b_style = dash.no_update
+        
+        if cp5b_ratio >= 60 and cp5b_ratio < 70:
+            cp5b_style = {'background-color':'orange', 'top':'25.5%', 'left':'42%'}
+        elif cp5b_ratio >= 70:
+            cp5b_style = {'background-color':'red', 'top':'25.5%', 'left':'42%'}
+        else:
+            cp5b_style = {'background-color':'green', 'top':'25.5%', 'left':'42%'}
+
+        occupied_cp5b =  html.Div([
+            html.B("Occupied Lots: " + str(cp5b_outputs[4]+cp5b_outputs[5]) + '/' + str(cp5b_red_v+cp5b_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5]) + '/' + str(cp5b_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5b_outputs[4]) + '/' + str(cp5b_white_v), style = {"color" : "white"})])
+
+        cp6b_outputs = outputs['cp6b']
+        cp6b_ratio = round((cp6b_outputs[4]+cp6b_outputs[5])*100/(cp6b_red_v+cp6b_white_v))
+        cp6b_style = dash.no_update
+        
+        if cp6b_ratio >= 60 and cp6b_ratio < 70:
+            cp6b_style = {'background-color':'orange', 'top':'62%', 'left':'62%'}
+        elif cp6b_ratio >= 70:
+            cp6b_style = {'background-color':'red', 'top':'62%', 'left':'62%'}
+        else:
+            cp6b_style = {'background-color':'green', 'top':'62%', 'left':'62%'}
+
+        occupied_cp6b =  html.Div([
+            html.B("Occupied Lots: " + str(cp6b_outputs[4]+cp6b_outputs[5]) + '/' + str(cp6b_red_v+cp6b_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5]) + '/' + str(cp6b_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(cp6b_white_v), style = {"color" : "white"})])
+
+        cp10_outputs = outputs['cp10']
+        cp10_ratio = round((cp10_outputs[4]+cp10_outputs[5])*100/(cp10_red_v+cp10_white_v))
+        cp10_style = dash.no_update
+        
+        if cp10_ratio >= 60 and cp10_ratio < 70:
+            cp10_style = {'background-color':'orange', 'top':'53%', 'left':'84%'}
+        elif cp10_ratio >= 70:
+            cp10_style = {'background-color':'red', 'top':'53%', 'left':'84%'}
+        else:
+            cp10_style = {'background-color':'green', 'top':'53%', 'left':'84%'}
+
+        occupied_cp10 =  html.Div([
+            html.B("Occupied Lots: " + str(cp10_outputs[4]+cp10_outputs[5]) + '/' + str(cp10_red_v+cp10_white_v), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(cp10_red_v), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(cp10_white_v), style = {"color" : "white"})])
+
+        time.sleep(10)
+        return False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
+    
+    else:
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update
