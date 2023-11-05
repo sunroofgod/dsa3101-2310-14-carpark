@@ -64,14 +64,14 @@ def generate_arrival_rate_event(x):
 
 # Helper function to run fake simulation
 def simulate_des(arrival_rates, lots_d):
-    cp3_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 10]
-    cp3a_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
-    cp4_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
-    cp5_ls = [random.randint(1, 1000), random.randint(1, 1000), random.randint(1, 500),random.randint(1, 500), 30, 5]
-    cp5b_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 0]
-    cp6b_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 10]
-    cp10_ls = [random.randint(1, 1000), 78, random.randint(1, 500),78, 30, 10]
-    return {'cp3':cp3_ls, 'cp3a':cp3a_ls, 'cp4':cp4_ls, 'cp5':cp5_ls, 'cp5b':cp5b_ls,'cp6b':cp6b_ls, 'cp10':cp10_ls}
+    d = {}
+    for key in lots_d.keys():
+        if key != 'cp5b':
+            d[key] = [random.randint(50, 500), random.randint(20, 250), random.randint(50, 250),random.randint(20, 125), random.randint(30,50), random.randint(10,20)]
+        else:
+            d[key] = [165, random.randint(20, 250), 165,random.randint(20, 150), 0, random.randint(10,20)]
+
+    return d
 
 
 #Helper function to generate plots from dictionary representation
@@ -124,37 +124,71 @@ def refine_modal(base, d):
 
 # Helper function for carpark modal
 def cp_modal(cp,a,b,c,d):
-    return dbc.Modal([
-        dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
-        dbc.ModalBody([
-            html.Div([
-            html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"})], id = 'occupied_'+cp),
-            html.Br(),
-            html.H4('Simulation Parameters:', style = {"color" : "white"}),
-            html.Div('Carpark Status:', style = {"color" : "white"}),
-            html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
-            html.Div([
-            html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : '#FF2800'}),
-            html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-            html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'white'}),
-            html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
-            html.Div(
-                [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'#FF2800'}),
-                 html.Br(),
-                html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "white"})]
-            )
-            ])
+    if cp != "cp5b":
+        return dbc.Modal([
+            dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
+            dbc.ModalBody([
+                html.Div([
+                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
+                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),
+                html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"})], id = 'occupied_'+cp),
+                html.Br(),
+                html.H4('Simulation Parameters:', style = {"color" : "white"}),
+                html.Div('Carpark Status:', style = {"color" : "white"}),
+                html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
+                html.Div([
+                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : '#FF2800'}),
+                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
+                html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'white'}),
+                html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
+                html.Div(
+                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'#FF2800'}),
+                    html.Br(),
+                    html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "white"})]
+                )
+                ])
 
-        ], style= {'text-align':'center', 'font-size':'19px', "background-color": "#003d7c"}),
-        dbc.ModalFooter([
-                    dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
-                    dbc.Button(
-                        "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
-                    )]
-                    , style = {"background-color" : "#003d7c"})
-    ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "#003d7c"}),
+            dbc.ModalFooter([
+                        dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+                        dbc.Button(
+                            "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
+                        )]
+                        , style = {"background-color" : "#003d7c"})
+        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+    
+    else:
+        return dbc.Modal([
+            dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
+            dbc.ModalBody([
+                html.Div([
+                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
+                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),], id = 'occupied_'+cp),
+                html.Br(),
+                html.H4('Simulation Parameters:', style = {"color" : "white"}),
+                html.Div('Carpark Status:', style = {"color" : "white"}),
+                html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
+                html.Div([
+                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : '#FF2800'}),
+                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
+                #html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'white'}),
+                #html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
+                html.Div(
+                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'#FF2800'}),
+                    html.Br(),
+                    ]
+                )
+                ])
+
+            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "#003d7c"}),
+            dbc.ModalFooter([
+                        dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+                        dbc.Button(
+                            "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
+                        )]
+                        , style = {"background-color" : "#003d7c"})
+        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+
 
 # Helper function for confirmation of simulation modal
 def simulate_modal():
@@ -524,46 +558,46 @@ def toggle_refine_modal(n1,n2):
 # Callback for carpark status - determines if users can adjust carpark params
 @callback(
     Output('slider_red_cp5b','disabled'),
-    Output('slider_white_cp5b','disabled'),
+    #Output('slider_white_cp5b','disabled'),
     Input('cp_status_cp5b','value')
 )
 def show_cp_params(status):
     if status == "Open":
-        return False, False
+        return False
     else:
-        return True,True 
+        return True
     
 # Callback for simulation numbers cp
 @callback(
     Output('to_simulate_red_cp5b','children'),
-    Output('to_simulate_white_cp5b','children'),
+    #Output('to_simulate_white_cp5b','children'),
     Input('cp_status_cp5b','value'),
     Input('slider_red_cp5b','value'),
-    Input('slider_white_cp5b','value'),
+    #Input('slider_white_cp5b','value'),
     State('slider_red_cp5b', 'max'),
-    State('slider_white_cp5b', 'max'),
+    #State('slider_white_cp5b', 'max'),
 )
-def params_to_simulate(status,red,white,red_max,white_max):
+def params_to_simulate(status,red,red_max):
     if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: 0 (100% Capacity)"]
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"]
 
 # Callback to reset simulation numbers
 @callback(
     Output('slider_red_cp5b','value'),
-    Output('slider_white_cp5b','value'),
+    #Output('slider_white_cp5b','value'),
     Output('cp_status_cp5b','value'),
     Input('reset-modal-cp5b','n_clicks'),
     State('slider_red_cp5b','max'),
-    State('slider_white_cp5b','max')
+    #State('slider_white_cp5b','max')
 )
-def reset_cp_params(clicks,max_red,max_white):
+def reset_cp_params(clicks,max_red):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp5b' in changed_id:
-        return max_red, max_white, "Open"
+        return max_red, "Open"
     else:
-        return dash.no_update, dash.no_update,dash.no_update
+        return dash.no_update,dash.no_update
 
 
 
@@ -975,6 +1009,13 @@ def open_simulation_modal(n1,n2,n3):
 # Callbacks for modal content
 @callback(
     Output(component_id='simulate-modal-contents',component_property='children', allow_duplicate=True),
+    Input('cp_status_cp3','value'),
+    Input('cp_status_cp3a','value'),
+    Input('cp_status_cp4','value'),
+    Input('cp_status_cp5','value'),
+    Input('cp_status_cp5b','value'),
+    Input('cp_status_cp6b','value'),
+    Input('cp_status_cp10','value'),
     Input(component_id='simulate-button', component_property='n_clicks'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value'),
@@ -996,8 +1037,8 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    Input('slider_white_cp5b','value'),
-    Input('slider_white_cp5b','max'),
+    #Input('slider_white_cp5b','value'),
+    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1033,11 +1074,11 @@ def open_simulation_modal(n1,n2,n3):
     prevent_initial_call = True
 )
 
-def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
     cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
-    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp5b_red_v, cp5b_red_max, 
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max,
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
@@ -1061,62 +1102,111 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
         
         d = dict(zip(range(24),args))
         graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulate_modal_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+
+        cp3_red_string = "0"
+        cp3_white_string = "0"
+        if cp3_status == "Open":
+            cp3_red_string = str(round(cp3_red_v * 100 / cp3_red_max))
+            cp3_white_string = str(round(cp3_white_v * 100 / cp3_white_max))
+
         cp3 = html.Div([
             html.Span('Carpark 3 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp3_red_v * 100 / cp3_red_max)) + '%, ',
+            ' - ' + cp3_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp3_white_v * 100 / cp3_white_max)) + '%'
+            ' - ' + cp3_white_string + '%'
         ])
+
+        cp3a_red_string = "0"
+        cp3a_white_string = "0"
+        if cp3a_status == "Open":
+            cp3a_red_string = str(round(cp3a_red_v * 100 / cp3a_red_max))
+            cp3a_white_string = str(round(cp3a_white_v * 100 / cp3a_white_max))
+
         cp3a = html.Div([
             html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp3a_red_v * 100 / cp3a_red_max)) + '%, ',
+            ' - ' + cp3a_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp3a_white_v * 100 / cp3a_white_max)) + '%'
+            ' - ' + cp3a_white_string + '%'
         ])
+
+        cp4_red_string = "0"
+        cp4_white_string = "0"
+        if cp4_status == "Open":
+            cp4_red_string = str(round(cp4_red_v * 100 / cp4_red_max))
+            cp4_white_string = str(round(cp4_white_v * 100 / cp4_white_max))
+
         cp4 = html.Div([
             html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp4_red_v * 100 / cp4_red_max)) + '%, ',
+            ' - ' + cp4_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp4_white_v * 100 / cp4_white_max)) + '%'
+            ' - ' + cp4_white_string + '%'
         ])
+
+        cp5_red_string = "0"
+        cp5_white_string = "0"
+        if cp5_status == "Open":
+            cp5_red_string = str(round(cp5_red_v * 100 / cp5_red_max))
+            cp5_white_string = str(round(cp5_white_v * 100 / cp5_white_max))
+
+
         cp5 = html.Div([
             html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp5_red_v * 100 / cp5_red_max)) + '%, ',
+            ' - ' + cp5_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp5_white_v * 100 / cp5_white_max)) + '%'
+            ' - ' + cp5_white_string + '%'
         ])
+
+        cp5b_red_string = "0"
+        if cp5b_status == "Open":
+            cp5b_red_string = str(round(cp5b_red_v * 100 / cp5b_red_max))
+
+
         cp5b = html.Div([ 
             html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp5b_red_v * 100 / cp5b_red_max)) + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + '100%'          ##bug??
+            ' - ' + cp5b_red_string + '%',
+            #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+            #' - ' + '100%'          ##bug??
         ])
+
+        cp6b_red_string = "0"
+        cp6b_white_string = "0"
+        if cp6b_status == "Open":
+            cp6b_red_string = str(round(cp6b_red_v * 100 / cp6b_red_max))
+            cp6b_white_string = str(round(cp6b_white_v * 100 / cp6b_white_max))
+
+
         cp6b = html.Div([
             html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp6b_red_v * 100 / cp6b_red_max)) + '%, ',
+            ' - ' + cp6b_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp6b_white_v * 100 / cp6b_white_max)) + '%'
+            ' - ' + cp6b_white_string + '%'
         ])
+
+        cp10_red_string = "0"
+        cp10_white_string = "0"
+        if cp10_status == "Open":
+            cp10_red_string = str(round(cp10_red_v * 100 / cp10_red_max))
+            cp10_white_string = str(round(cp10_white_v * 100 / cp10_white_max))
 
         cp10 = html.Div([
             html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp10_red_v * 100 / cp10_red_max)) + '%, ',
+            ' - ' + cp10_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + str(round(cp10_white_v * 100 / cp10_white_max)) + '%'
+            ' - ' + cp10_white_string + '%'
         ])
 
 
@@ -1148,6 +1238,13 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
 # Simulation Callbacks
 @callback(
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
+    Input('cp_status_cp3','value'),
+    Input('cp_status_cp3a','value'),
+    Input('cp_status_cp4','value'),
+    Input('cp_status_cp5','value'),
+    Input('cp_status_cp5b','value'),
+    Input('cp_status_cp6b','value'),
+    Input('cp_status_cp10','value'),
     Input(component_id='simulate-modal-yes', component_property='n_clicks'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value'),
@@ -1169,8 +1266,8 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    Input('slider_white_cp5b','value'),
-    Input('slider_white_cp5b','max'),
+    #Input('slider_white_cp5b','value'),
+    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1206,16 +1303,17 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
     prevent_initial_call = True
 )
 
-def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
     cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
-    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp5b_red_v, cp5b_red_max,
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
      changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
      if 'simulate-modal-yes' in changed_id:
+        cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status
         if event == "No Event" and month is None:
             if list(args) == list(default_arrivals.values()):
                 first = html.B("Empty Simulation")
@@ -1244,13 +1342,42 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
         # #                  style={'display':'flex', 'justify-content':'center', 'align-items': 'center', 'width':'100%'}
         # # )
         
-        cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%, White - ' + '100%'], style = {'margin-bottom':'1.5%'})
-        cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
-        cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + str(round(cp10_red_v*100/cp10_red_max)) + '%, White - ' + str(round(cp10_white_v*100/cp10_white_max)) + '%'])
+
+        if cp3_status == "Open":
+            cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        else:
+            cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        if cp3a_status == "Open":
+            cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        else:
+            cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        if cp4_status == "Open":
+            cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        else:
+            cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        if cp5_status == "Open":
+            cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        else:
+            cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        if cp5b_status == "Open":
+            cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        else:
+            cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        if cp6b_status == "Open":
+            cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
+        else:
+           cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        if cp10_status == "Open":
+            cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + str(round(cp10_red_v*100/cp10_red_max)) + '%, White - ' + str(round(cp10_white_v*100/cp10_white_max)) + '%'])
+        else:
+            cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
         cp3_div = html.Div(cp3, style={'border': '2px solid black', 'padding': '5px'})
         cp3a_div = html.Div(cp3a, style={'border': '2px solid black', 'padding': '5px'})
         cp4_div = html.Div(cp4, style={'border': '2px solid black', 'padding': '5px'})
@@ -1275,8 +1402,6 @@ def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3
                     'background-color':'white   ', 'color':'black',
                     'display': 'inline-block', 'justify-content':'center', 'align-items':'center'})]
      
-        
-        
      else:
          return dash.no_update
      
@@ -1317,6 +1442,13 @@ def open_loading(clicks):
     Output(component_id = 'cp10', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp10', component_property = 'children',allow_duplicate=True),
     Output(component_id='occupied_cp10',component_property='children', allow_duplicate=True),
+    Input('cp_status_cp3','value'),
+    Input('cp_status_cp3a','value'),
+    Input('cp_status_cp4','value'),
+    Input('cp_status_cp5','value'),
+    Input('cp_status_cp5b','value'),
+    Input('cp_status_cp6b','value'),
+    Input('cp_status_cp10','value'),
     Input(component_id='simulate-modal-yes', component_property='n_clicks'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value'),
@@ -1338,8 +1470,8 @@ def open_loading(clicks):
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    Input('slider_white_cp5b','value'),
-    Input('slider_white_cp5b','max'),
+    #Input('slider_white_cp5b','value'),
+    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1374,134 +1506,233 @@ def open_loading(clicks):
     Input('slider_23','value'),
     prevent_initial_call = True
 )
-def cp_simulation(clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
     cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
-    cp5b_red_v, cp5b_red_max, cp5b_white_v, cp5b_white_max,
+    cp5b_red_v, cp5b_red_max, 
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
-    lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
-    'cp5b':(cp5b_white_v,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),'cp10':(cp10_white_v,cp10_red_v)}
-    arrival_rates = args
-    outputs = simulate_des(arrival_rates,lots_d)
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'simulate-modal-yes' in changed_id:
+
+        lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
+        'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),'cp10':(cp10_white_v,cp10_red_v)}
+
+        lots_d_input = lots_d.copy()
+
+        list_carparks = list(lots_d.keys())
+
+        status_d = {'cp3':cp3_status, 'cp3a':cp3a_status, 'cp4':cp4_status,'cp5':cp5_status,'cp5b':cp5b_status,'cp6b':cp6b_status, 'cp10':cp10_status}
+
+        keys_to_remove = []
+
+        for key, value in status_d.items():
+            if value == "Closed":
+                lots_d[key] = (0,0)
+
+        for key, value in lots_d.items():
+            if value == (0,0):
+                keys_to_remove.append(key)
+        
+        for key in keys_to_remove:
+            del lots_d_input[key]
+        
+        non_empty_cps = list(lots_d_input.keys())
+
+        arrival_rates = args
+        outputs = simulate_des(arrival_rates,lots_d_input)
+
+        for key in list_carparks:
+            if key not in outputs.keys():
+                outputs[key] = [0 for i in range(6)]
+        
+        print("Statistics:",outputs)
+        print("Model Inputs:",lots_d_input)
+        print("CP capacity:", lots_d)
+        print()
+
         cp3_outputs = outputs['cp3']
-        cp3_ratio = round((cp3_outputs[4]+cp3_outputs[5])*100/(cp3_red_v+cp3_white_v))
+        cp3_ratio = 0
+        if lots_d['cp3'][1]+lots_d['cp3'][0] != 0:
+            cp3_ratio = round((cp3_outputs[4]+cp3_outputs[5])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
+
         cp3_style = dash.no_update
         
-        if cp3_ratio >= 60 and cp3_ratio < 70:
+        if 'cp3' not in non_empty_cps:
+            cp3_ratio = "-"
+            cp3_style = {'background-color':'gray', 'top':'16%', 'left':'27%'}
+        elif cp3_ratio >= 60 and cp3_ratio < 70:
             cp3_style = {'background-color':'orange', 'top':'16%', 'left':'27%'}
         elif cp3_ratio >= 70:
             cp3_style = {'background-color':'red', 'top':'16%', 'left':'27%'}
         else:
             cp3_style = {'background-color':'green', 'top':'16%', 'left':'27%'}
 
+        cp3_ratio_string = "-"
+        if 'cp3' in non_empty_cps:
+            cp3_ratio_string = str(cp3_outputs[4]+cp3_outputs[5]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
+
         occupied_cp3 =  html.Div([
-            html.B("Occupied Lots: " + str(cp3_outputs[4]+cp3_outputs[5]) + '/' + str(cp3_red_v+cp3_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3_outputs[5]) + '/' + str(cp3_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3_outputs[4]) + '/' + str(cp3_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3_outputs[5]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3_outputs[4]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
         
         cp3a_outputs = outputs['cp3a']
-        cp3a_ratio = round((cp3a_outputs[4]+cp3a_outputs[5])*100/(cp3a_red_v+cp3a_white_v))
+        cp3a_ratio = 0
+        if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
+            cp3a_ratio = round((cp3a_outputs[4]+cp3a_outputs[5])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
         cp3a_style = dash.no_update
         
-        if cp3a_ratio >= 60 and cp3a_ratio < 70:
+        if 'cp3a' not in non_empty_cps:
+            cp3a_ratio = "-"
+            cp3a_style = {'background-color':'gray', 'top':'17%', 'left':'32%'}
+        elif cp3a_ratio >= 60 and cp3a_ratio < 70:
             cp3a_style = {'background-color':'orange', 'top':'17%', 'left':'32%'}
         elif cp3a_ratio >= 70:
             cp3a_style = {'background-color':'red', 'top':'17%', 'left':'32%'}
         else:
             cp3a_style = {'background-color':'green', 'top':'17%', 'left':'32%'}
 
+        cp3a_ratio_string = "-"
+        if 'cp3a' in non_empty_cps:
+            cp3a_ratio_string = str(cp3a_outputs[4]+cp3a_outputs[5]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
+
         occupied_cp3a =  html.Div([
-            html.B("Occupied Lots: " + str(cp3a_outputs[4]+cp3a_outputs[5]) + '/' + str(cp3a_red_v+cp3a_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5]) + '/' + str(cp3a_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3a_outputs[4]) + '/' + str(cp3a_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[4]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
 
         cp4_outputs = outputs['cp4']
-        cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(cp4_red_v+cp4_white_v))
+        cp4_ratio = 0
+        if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
+            cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
         cp4_style = dash.no_update
         
-        if cp4_ratio >= 60 and cp4_ratio < 70:
+
+        if 'cp4' not in non_empty_cps:
+            cp4_ratio = "-"
+            cp4_style = {'background-color':'gray', 'top':'32%', 'left':'34%'}
+        elif cp4_ratio >= 60 and cp4_ratio < 70:
             cp4_style = {'background-color':'orange', 'top':'32%', 'left':'34%'}
         elif cp4_ratio >= 70:
             cp4_style = {'background-color':'red', 'top':'32%', 'left':'34%'}
         else:
             cp4_style = {'background-color':'green', 'top':'32%', 'left':'34%'}
 
+        cp4_ratio_string = "-"
+        if 'cp4' in non_empty_cps:
+            cp4_ratio_string = str(cp4_outputs[4]+cp4_outputs[5]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
+
         occupied_cp4 =  html.Div([
-            html.B("Occupied Lots: " + str(cp4_outputs[4]+cp4_outputs[5]) + '/' + str(cp4_red_v+cp4_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp4_outputs[5]) + '/' + str(cp4_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp4_outputs[4]) + '/' + str(cp4_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp4_outputs[5]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp4_outputs[4]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
 
         cp5_outputs = outputs['cp5']
-        cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(cp5_red_v+cp5_white_v))
+        cp5_ratio = 0
+        if lots_d['cp5'][1]+lots_d['cp5'][1] != 0:
+            cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(lots_d['cp5'][1]+lots_d['cp5'][1]))
         cp5_style = dash.no_update
         
-        if cp5_ratio >= 60 and cp5_ratio < 70:
+        if 'cp5' not in non_empty_cps:
+            cp5_ratio = "-"
+            cp5_style = {'background-color':'gray', 'top':'34%', 'left':'43%'}
+        elif cp5_ratio >= 60 and cp5_ratio < 70:
             cp5_style = {'background-color':'orange', 'top':'34%', 'left':'43%'}
         elif cp5_ratio >= 70:
             cp5_style = {'background-color':'red', 'top':'34%', 'left':'43%'}
         else:
             cp5_style = {'background-color':'green', 'top':'34%', 'left':'43%'}
 
+        cp5_ratio_string = "-"
+        if 'cp5' in non_empty_cps:
+            cp5_ratio_string = str(cp5_outputs[4]+cp5_outputs[5]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][1])
+
         occupied_cp5 =  html.Div([
-            html.B("Occupied Lots: " + str(cp5_outputs[4]+cp5_outputs[5]) + '/' + str(cp5_red_v+cp5_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5_outputs[5]) + '/' + str(cp5_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp5_outputs[4]) + '/' + str(cp5_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5_outputs[5]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5_outputs[4]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
 
         cp5b_outputs = outputs['cp5b']
-        cp5b_ratio = round((cp5b_outputs[4]+cp5b_outputs[5])*100/(cp5b_red_v+cp5b_white_v))
+        cp5b_ratio = 0
+        if lots_d['cp5b'][1] != 0:
+            cp5b_ratio = round((cp5b_outputs[5])*100/(lots_d['cp5b'][1]))
         cp5b_style = dash.no_update
         
-        if cp5b_ratio >= 60 and cp5b_ratio < 70:
+        if 'cp5b' not in non_empty_cps:
+            cp5b_ratio = "-"
+            cp5b_style = {'background-color':'gray', 'top':'25.5%', 'left':'42%'}
+        elif cp5b_ratio >= 60 and cp5b_ratio < 70:
             cp5b_style = {'background-color':'orange', 'top':'25.5%', 'left':'42%'}
         elif cp5b_ratio >= 70:
             cp5b_style = {'background-color':'red', 'top':'25.5%', 'left':'42%'}
         else:
             cp5b_style = {'background-color':'green', 'top':'25.5%', 'left':'42%'}
 
+        cp5b_ratio_string = "-"
+        if 'cp5b' in non_empty_cps:
+            cp5b_ratio_string = str(cp5b_outputs[5]) + "/" + str(lots_d['cp5b'][1])
+
         occupied_cp5b =  html.Div([
-            html.B("Occupied Lots: " + str(cp5b_outputs[4]+cp5b_outputs[5]) + '/' + str(cp5b_red_v+cp5b_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5]) + '/' + str(cp5b_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp5b_outputs[4]) + '/' + str(cp5b_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
+            #html.Div("Occupied White Lots: " + str(cp5b_outputs[4]) + '/' + str(0), style = {"color" : "white"})
+            ])
 
         cp6b_outputs = outputs['cp6b']
-        cp6b_ratio = round((cp6b_outputs[4]+cp6b_outputs[5])*100/(cp6b_red_v+cp6b_white_v))
+        cp6b_ratio = 0
+        if lots_d['cp6b'][1]+lots_d['cp6b'][0] != 0:
+            cp6b_ratio = round((cp6b_outputs[4]+cp6b_outputs[5])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
         cp6b_style = dash.no_update
         
-        if cp6b_ratio >= 60 and cp6b_ratio < 70:
+        if 'cp6b' not in non_empty_cps:
+            cp6b_ratio = "-"
+            cp6b_style = {'background-color':'gray', 'top':'62%', 'left':'62%'}
+        elif cp6b_ratio >= 60 and cp6b_ratio < 70:
             cp6b_style = {'background-color':'orange', 'top':'62%', 'left':'62%'}
         elif cp6b_ratio >= 70:
             cp6b_style = {'background-color':'red', 'top':'62%', 'left':'62%'}
         else:
             cp6b_style = {'background-color':'green', 'top':'62%', 'left':'62%'}
 
+        cp6b_ratio_string = "-"
+        if 'cp6b' in non_empty_cps:
+            cp6b_ratio_string = str(cp6b_outputs[4]+cp6b_outputs[5]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
+
         occupied_cp6b =  html.Div([
-            html.B("Occupied Lots: " + str(cp6b_outputs[4]+cp6b_outputs[5]) + '/' + str(cp6b_red_v+cp6b_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5]) + '/' + str(cp6b_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(cp6b_white_v), style = {"color" : "white"})])
+            html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(lots_d['cp6b'][1]), style = {"color" : "white"})])
 
         cp10_outputs = outputs['cp10']
-        cp10_ratio = round((cp10_outputs[4]+cp10_outputs[5])*100/(cp10_red_v+cp10_white_v))
+        cp10_ratio = 0
+        if lots_d['cp10'][1]+lots_d['cp10'][0] != 0:
+            cp10_ratio = round((cp10_outputs[4]+cp10_outputs[5])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
         cp10_style = dash.no_update
-        
-        if cp10_ratio >= 60 and cp10_ratio < 70:
+
+        if 'cp10' not in non_empty_cps:
+            cp10_ratio = "-"
+            cp10_style = {'background-color':'gray', 'top':'53%', 'left':'84%'}
+        elif cp10_ratio >= 60 and cp10_ratio < 70:
             cp10_style = {'background-color':'orange', 'top':'53%', 'left':'84%'}
         elif cp10_ratio >= 70:
             cp10_style = {'background-color':'red', 'top':'53%', 'left':'84%'}
         else:
             cp10_style = {'background-color':'green', 'top':'53%', 'left':'84%'}
 
-        occupied_cp10 =  html.Div([
-            html.B("Occupied Lots: " + str(cp10_outputs[4]+cp10_outputs[5]) + '/' + str(cp10_red_v+cp10_white_v), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(cp10_red_v), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(cp10_white_v), style = {"color" : "white"})])
+        cp10_ratio_string = "-"
+        if 'cp10' in non_empty_cps:
+            cp10_ratio_string = str(cp10_outputs[4]+cp10_outputs[5]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
 
-        time.sleep(10)
+        occupied_cp10 =  html.Div([
+            html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
+
+        #time.sleep(5)
         return False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:
