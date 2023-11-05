@@ -9,7 +9,6 @@ DATA_FPATH = path + r"\data\cleaned\all_carparks_cleaned.csv"
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
-## TODO: filter based on carparks with non-0 capacity
 def filter_cp(data : pd.DataFrame, cp : list):
     data = data.copy()
     data["carpark"] = data["carpark"].str.lower()
@@ -26,6 +25,7 @@ def get_month_arrival_rate(month : int):
     Returns:
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
     """
+    return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
     return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
 
 def get_day_arrival_rate(day : str, data=cp_data):
@@ -163,18 +163,11 @@ def get_arrival_rates(cp : list, data=cp_data):
     data['month'] = data['enter_dt'].dt.month
     data['year'] = data['enter_dt'].dt.year
 
-    users = data[["month", "year", "day","enter_hour"]]
-    users = users.groupby(["day","month", "year", "enter_hour"]).size().reset_index()
+    users = data[["day", "month", "year", "enter_hour"]]
+    users = users.groupby(["day", "month", "year", "enter_hour"]).size().reset_index()
     users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
-    d = users.to_dict()[0]
-    for key,value in d.items():
-        d[key] = round(value)
-
-    for key,value in d.items():
-        if value == 0:
-            d[key] = 1
-
-    return d
+    users[0] = users[0].apply(lambda x: int(x))
+    return users.to_dict()[0]
 
 def get_parking_duration_stats(cp : list, data=cp_data):
     """
