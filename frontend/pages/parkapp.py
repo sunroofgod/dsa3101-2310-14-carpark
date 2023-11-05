@@ -207,7 +207,7 @@ def simulate_modal():
 # Helper function to create results modal, input is results dict
 def generate_results_modal(results):
     if results == {}:
-        body = dbc.ModalBody(html.B('No Simulations have been run'), id = 'results-modal-contents', style = {'text-align':'center'})
+        body = dbc.ModalBody(html.H4('No Simulations have been run'), id = 'results-modal-contents', style = {'text-align':'center'})
     else:
         # Creating results data frame
         carparks = list(results.keys())
@@ -220,28 +220,35 @@ def generate_results_modal(results):
         df = df.iloc[1:].append(first_row,ignore_index=True)
         df['total_entered'] = df["red_entered"] + df["white_entered"]
         df['total_rej'] = df["red_rej"] + df["white_rej"]
-        
+        df['white_rej_percent'] = (df['white_rej'] / df['white_entered']).fillna(0) * 100
+        df['red_rej_percent'] = (df['red_rej'] / df['red_entered']).fillna(0) * 100
+        df['total_rej_percent'] = (df['total_rej'] / df['total_entered']).fillna(0) * 100
+
         # Enter Graph
         fig1 = px.bar(df, x = 'carpark', y = ['white_entered','red_entered','total_entered'],
-        title = 'Total Carpark Entries by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
+        title = 'Total Cars Entered by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
         fig1.update_traces(name='White', selector=dict(name='white_entered'))
         fig1.update_traces(name='Red', selector=dict(name='red_entered'))
         fig1.update_traces(name='Total', selector=dict(name='total_entered'))
-        fig1.update_traces(customdata=['White', 'Red', 'Total Entered'])
-        fig1.update_traces(hovertemplate='Entry Type = %{customdata}<br>Number Entries: %{y}')
-        fig1.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6,7], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig1.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
         fig1.update_layout(xaxis_title="Carpark")
 
         # Reject Graph
         fig2 = px.bar(df, x = 'carpark', y = ['white_rej','red_rej','total_rej'],
-        title = 'Total Carpark Rejected by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
+        title = 'Total Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Number Rejected','variable':'Entry Type'})
         fig2.update_traces(name='White', selector=dict(name='white_rej'))
         fig2.update_traces(name='Red', selector=dict(name='red_rej'))
         fig2.update_traces(name='Total', selector=dict(name='total_rej'))
-        fig2.update_traces(customdata=['White', 'Red', 'Total Rejected'])
-        fig2.update_traces(hovertemplate='Entry Type = %{customdata}<br>Number Rejected: %{y}')
-        fig2.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6,7], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig2.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
         fig2.update_layout(xaxis_title="Carpark")
+
+        fig3 = px.bar(df, x = 'carpark', y = ['white_rej_percent','red_rej_percent','total_rej_percent'],
+        title = 'Percent Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Percent Rejected','variable':'Entry Type'})
+        fig3.update_traces(name='White', selector=dict(name='white_rej_percent'))
+        fig3.update_traces(name='Red', selector=dict(name='red_rej_percent'))
+        fig3.update_traces(name='Total', selector=dict(name='total_rej_percent'))
+        fig3.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig3.update_layout(xaxis_title="Carpark")
 
         body = dbc.ModalBody(
             [
@@ -249,6 +256,13 @@ def generate_results_modal(results):
                     [
                         dbc.Col(dcc.Graph(figure=fig1), width=6),  
                         dbc.Col(dcc.Graph(figure=fig2), width=6), 
+                    ]
+                ),
+               dbc.Row(
+                    [
+                        dbc.Col(width=3),  
+                        dbc.Col(dcc.Graph(figure=fig3), width=6),
+                        dbc.Col(width=3), 
                     ]
                 )
             ]
@@ -1774,7 +1788,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         occupied_cp6b =  html.Div([
             html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
             html.Div("Occupied Red Lots: " + str(cp6b_outputs[5]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(lots_d['cp6b'][1]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
 
         cp10_outputs = outputs['cp10']
         cp10_ratio = 0
@@ -1801,7 +1815,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
             html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
 
-        time.sleep(5)
+        time.sleep(10)
         return generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:
