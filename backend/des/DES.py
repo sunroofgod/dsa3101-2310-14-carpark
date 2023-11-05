@@ -1,4 +1,3 @@
-from matplotlib.style import available
 import numpy as np
 import simpy
 from simpy import Environment
@@ -196,7 +195,8 @@ def stats_mean(dict1 : dict, dict2 : dict):
             dict1[key] = val
         else:
             for i in range(len(val)):
-                dict1[key][i] = (dict1[key][i] + dict2[key][i]) / 2
+                for j in range(len(val[i])):
+                    dict1[key][i][j] = (dict1[key][i][j] + dict2[key][i][j]) / 2
     
     return dict1
 
@@ -214,8 +214,16 @@ def print_stats(d : dict):
         None
     """
     for cp, stat in d.items():
-        print(f"{cp:<5}: {stat}")
+        val = [int(np.array(metric).mean()) for metric in stat]
+        # print(stat)
+        print(f"{cp:<5}: {val}")
     return
+
+def record_stats(env : simpy.Environment, carparks : list):
+    while True:
+        for cp in carparks:
+            cp.record()
+        yield env.timeout(60)
 
 def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     """
@@ -240,6 +248,7 @@ def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     ## Start process
     carparks = create_cp(campus, cap)
     campus.process(car_generator(campus, carparks, cp_prob, car_prob, month, lambdas))
+    campus.process(record_stats(campus, carparks))
 
     ## End
     campus.run(until=t)
@@ -265,8 +274,9 @@ def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={})
         print(f"--- Simulation {i + 1} completed in {time.time() - start:.2f} seconds ---\n")
 
     ## Round off overall output
-    for key, val in overall_stats.items():
-        overall_stats[key] = [int(x) for x in val]
+    for cp, val_list in overall_stats.items():
+        for i in range(len(val_list)):
+            overall_stats[cp][i] = [int(val) for val in val_list[i]]   
         
     duration = (time.time() - init_time) / 60 # convert to minutes
     print_stats(overall_stats)
