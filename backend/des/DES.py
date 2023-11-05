@@ -1,3 +1,4 @@
+from matplotlib.style import available
 import numpy as np
 import simpy
 from simpy import Environment
@@ -214,7 +215,7 @@ def print_stats(d : dict):
         print(f"{cp:<5}: {stat}")
     return
 
-def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME, month=None, lambdas=None):
+def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     """
     Run a car park simulation.
 
@@ -227,6 +228,9 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
     Returns:
         dict: A dictionary containing summary statistics for each car park.
     """
+    available_cp = list(cap.keys())
+    cp_prob = params.get_carpark_prob(available_cp)
+    car_prob = params.get_parking_type_prop(available_cp)
 
     ## init Environment
     campus = Environment()
@@ -242,7 +246,7 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
     stats = stats_summary(carparks)
     return stats
 
-def run_nsim(n=100, month=None, lambdas=None, overall_stats={}):
+def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={}):
     init_time = time.time()
 
     ## Run simulation for n times
@@ -251,7 +255,7 @@ def run_nsim(n=100, month=None, lambdas=None, overall_stats={}):
         start = time.time() 
 
         ## Run simulation
-        stats = sim(month=month, lambdas=lambdas)
+        stats = sim(cap_dict, month=month, lambdas=lambdas)
 
         ## Simulation output
         overall_stats = stats_mean(overall_stats, stats)
@@ -265,4 +269,4 @@ def run_nsim(n=100, month=None, lambdas=None, overall_stats={}):
 
 if __name__ == "__main__":
     n = 1 if len(sys.argv) == 1 else int(sys.argv[1])
-    overall_stats = run_nsim(n=n)
+    overall_stats = run_nsim(params.CP_CAPACITY, n=n)
