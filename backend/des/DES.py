@@ -264,6 +264,10 @@ def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={})
         print_stats(stats)
         print(f"--- Simulation {i + 1} completed in {time.time() - start:.2f} seconds ---\n")
 
+    ## Round off overall output
+    for key, val in overall_stats.items():
+        overall_stats[key] = [int(x) for x in val]
+        
     duration = (time.time() - init_time) / 60 # convert to minutes
     print_stats(overall_stats)
     print(f"--- Total running time {duration:.2f} minutes ---")
