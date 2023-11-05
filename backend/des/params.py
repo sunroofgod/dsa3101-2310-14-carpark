@@ -201,7 +201,7 @@ def get_parking_duration_stats(cp : list, data=cp_data):
     return du
 
 ## TODO: take input from user / database
-CP_LIST = ["cp3", "cp3a", "cp4", "cp5", "cp5b", "cp6b"]
+CP_LIST = ["cp3", "cp3a", "cp4", "cp5", "cp5b", "cp6b","cp10"]
 SIM_TIME = 24 * 60 # in minutes
 CP_CAPACITY = get_carpark_capacity(CP_LIST)
 CP_PROB = get_carpark_prob(CP_LIST)

@@ -1606,7 +1606,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         }
 
         lots_d_input = lots_d.copy()
-        del lots_d_input['cp10']
+        #del lots_d_input['cp10']
 
         list_carparks = list(lots_d.keys())
 
