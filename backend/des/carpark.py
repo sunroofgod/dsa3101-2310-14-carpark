@@ -69,6 +69,14 @@ class CarPark:
         self.whiteRejected = 0
         self.redRejected = 0 
 
+        ## Track metrics over 24 hours
+        self.whiteCars24 = []
+        self.redCars24 = []
+        self.whiteTotal24 = []
+        self.redTotal24 = []
+        self.whiteRejected24 = []
+        self.redRejected24 = []
+
         self.spots = Resource(env, capacity=self.capacity)
 
     def get_name(self):
@@ -189,6 +197,14 @@ class CarPark:
         else: 
             self.whiteRejected += 1
             return "white"
+        
+    def record(self):
+        self.whiteCars24.append(self.whiteCars)
+        self.redCars24.append(self.redCars)
+        self.whiteTotal24.append(self.totalWhite)
+        self.redTotal24.append(self.totalRed)
+        self.whiteRejected24.append(self.whiteRejected)
+        self.redRejected24.append(self.redRejected)
 
     def stats(self):
         """
@@ -202,12 +218,12 @@ class CarPark:
                 - Total number of red cars turned away (rejected).
                 - The current occupancy ratio of the car park.
         """
-        return [self.totalWhite, 
-                self.totalRed, 
-                self.whiteRejected, 
-                self.redRejected, 
-                self.whiteCars, 
-                self.redCars]
+        return [self.whiteTotal24, 
+                self.redTotal24, 
+                self.whiteRejected24, 
+                self.redRejected24, 
+                self.whiteCars24, 
+                self.redCars24]
 
     def park_car(self, car : Car):
         """
