@@ -1435,78 +1435,151 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
         
         d = dict(zip(range(24),args))
 
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),
-                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) #, 'border': '3px orange solid', 'margin':'0'})
-        
-        # graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulation_graph(d)),
+        # graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d)),
+        #                 style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) #, 'border': '3px orange solid', 'margin':'0'}) 
+        # graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d)),
         #                 # style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'})
-        #                 style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%', 'border': '3px orange solid'})
-        # # graph = html.Div(dcc.Graph(config={'staticPlot':True},figure = generate_simulation_graph(d), style={'width':'100%'}), 
-        # #                  style={'display':'flex', 'justify-content':'center', 'align-items': 'center', 'width':'100%'}
-        # # )
+        #                 style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%', 'width': '100%'}) 
         
+
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d), style={'width': '100%'}),
+                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}) 
+
+        # graph = html.Div(dcc.Graph(config={'staticPlot':True},figure = generate_simulation_graph(d), style={'width':'100%'}), 
+        #                  style={'display':'flex', 'justify-content':'center', 'align-items': 'center', 'width':'100%'}
+        # )
+        
+
+        # if cp3_status == "Open":
+        #     cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        # else:
+        #     cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        # if cp3a_status == "Open":
+        #     cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        # else:
+        #     cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        # if cp4_status == "Open":
+        #     cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        # else:
+        #     cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        # if cp5_status == "Open":
+        #     cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        # else:
+        #     cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        # if cp5b_status == "Open":
+        #     cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%'], style = {'margin-bottom':'1.5%'})
+        # else:
+        #     cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + '0%'], style = {'margin-bottom':'1.5%'})
+        
+        # if cp6b_status == "Open":
+        #     cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
+        # else:
+        #    cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        # if cp10_status == "Open":
+        #     cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + str(round(cp10_red_v*100/cp10_red_max)) + '%, White - ' + str(round(cp10_white_v*100/cp10_white_max)) + '%'])
+        # else:
+        #     cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+
+        # cp3_div = html.Div(cp3, style={'border': '2px solid black', 'padding': '5px'})
+        # cp3a_div = html.Div(cp3a, style={'border': '2px solid black', 'padding': '5px'})
+        # cp4_div = html.Div(cp4, style={'border': '2px solid black', 'padding': '5px'})
+        # cp5_div = html.Div(cp5, style={'border': '2px solid black', 'padding': '5px'})
+        # cp5b_div = html.Div(cp5b, style={'border': '2px solid black', 'padding': '5px'})
+        # cp6b_div = html.Div(cp6b, style={'border': '2px solid black', 'padding': '5px'})
+        # cp10_div = html.Div(cp10, style={'border': '2px solid black', 'padding': '5px'})
+
+        # return [first,
+        # html.Br(),
+        # graph,
+        # html.Br(),
+        # html.Div(
+        #     children=[
+        #         cp3_div, 
+        #         cp3a_div,
+        #         cp4_div,
+        #         cp5_div,
+        #         cp5b_div,
+        #         cp6b_div,
+        #         cp10_div,
+        #         ], 
+        #     style = {'font-size':'12px', 'font-family': 'Open Sans',
+        #             'background-color':'white   ', 'color':'black',
+        #             'display': 'inline-block', 'justify-content':'center', 'align-items':'center', 'margin-bottom':'1.5%'}),
+        # ]
+            
+        cp3_red_string = "0"
+        cp3_white_string = "0"
+        cp3a_red_string = "0"
+        cp3a_white_string = "0"
+        cp4_red_string = "0"
+        cp4_white_string = "0" 
+        cp5_red_string = "0"
+        cp5_white_string = "0"  
+        cp5b_red_string = "0"
+        cp6b_red_string = "0"
+        cp6b_white_string = "0" 
+        cp10_red_string = "0"
+        cp10_white_string = "0"
 
         if cp3_status == "Open":
-            cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + str(round(cp3_red_v*100/cp3_red_max)) + '%, White - ' + str(round(cp3_white_v*100/cp3_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        else:
-            cp3 = html.B(['Carpark 3 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
-        
-        if cp3a_status == "Open":
-            cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + str(round(cp3a_red_v*100/cp3a_red_max)) + '%, White - ' + str(round(cp3a_white_v*100/cp3a_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        else:
-            cp3a = html.B(['Carpark 3A Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+            cp3_red_string = str(round(cp3_red_v * 100 / cp3_red_max)) 
+            cp3_white_string = str(round(cp3_white_v * 100 / cp3_white_max)) 
 
+        if cp3a_status == "Open":
+            cp3a_red_string = str(round(cp3a_red_v * 100 / cp3a_red_max)) 
+            cp3a_white_string = str(round(cp3a_white_v * 100 / cp3a_white_max)) 
+    
         if cp4_status == "Open":
-            cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + str(round(cp4_red_v*100/cp4_red_max)) + '%, White - ' + str(round(cp4_white_v*100/cp4_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        else:
-            cp4 = html.B(['Carpark 4 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
-        
+            cp4_red_string = str(round(cp4_red_v * 100 / cp4_red_max)) 
+            cp4_white_string = str(round(cp4_white_v * 100 / cp4_white_max)) 
+
         if cp5_status == "Open":
-            cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + str(round(cp5_red_v*100/cp5_red_max)) + '%, White - ' + str(round(cp5_white_v*100/cp5_white_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        else:
-            cp5 = html.B(['Carpark 5 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
-        
+            cp5_red_string = str(round(cp5_red_v * 100 / cp5_red_max)) 
+            cp5_white_string = str(round(cp5_white_v * 100 / cp5_white_max))
+
         if cp5b_status == "Open":
-            cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + str(round(cp5b_red_v*100/cp5b_red_max)) + '%'], style = {'margin-bottom':'1.5%'})
-        else:
-            cp5b = html.B(['Carpark 5B Capacities:',html.Br(), 'Red - ' + '0%'], style = {'margin-bottom':'1.5%'})
+            cp5b_red_string = str(round(cp5b_red_v * 100 / cp5b_red_max))
         
         if cp6b_status == "Open":
-            cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + str(round(cp6b_red_v*100/cp6b_red_max)) + '%, White - ' + str(round(cp6b_white_v*100/cp6b_white_max)) + '%'])
-        else:
-           cp6b = html.B(['Carpark 6B Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
-
+            cp6b_red_string = str(round(cp6b_red_v * 100 / cp6b_red_max))
+            cp6b_white_string = str(round(cp6b_white_v * 100 / cp6b_white_max))
+        
         if cp10_status == "Open":
-            cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + str(round(cp10_red_v*100/cp10_red_max)) + '%, White - ' + str(round(cp10_white_v*100/cp10_white_max)) + '%'])
-        else:
-            cp10 = html.B(['Carpark 10 Capacities:',html.Br(), 'Red - ' + '0%, White - ' + '0%'], style = {'margin-bottom':'1.5%'})
+            cp10_red_string = str(round(cp10_red_v * 100 / cp10_red_max))
+            cp10_white_string = str(round(cp10_white_v * 100 / cp10_white_max))
 
-        cp3_div = html.Div(cp3, style={'border': '2px solid black', 'padding': '5px'})
-        cp3a_div = html.Div(cp3a, style={'border': '2px solid black', 'padding': '5px'})
-        cp4_div = html.Div(cp4, style={'border': '2px solid black', 'padding': '5px'})
-        cp5_div = html.Div(cp5, style={'border': '2px solid black', 'padding': '5px'})
-        cp5b_div = html.Div(cp5b, style={'border': '2px solid black', 'padding': '5px'})
-        cp6b_div = html.Div(cp6b, style={'border': '2px solid black', 'padding': '5px'})
-        cp10_div = html.Div(cp10, style={'border': '2px solid black', 'padding': '5px'})
-        return [first,
-        html.Br(),
-        graph,
-        html.Br(),
-        html.Div(
-            children=[
-                cp3_div, 
-                cp3a_div,
-                cp4_div,
-                cp5_div,
-                cp5b_div,
-                cp6b_div,
-                cp10_div,
-                ], 
-            style = {'font-size':'12px', 'font-family': 'Open Sans',
-                    'background-color':'white   ', 'color':'black',
-                    'display': 'inline-block', 'justify-content':'center', 'align-items':'center', 'margin-bottom':'1.5%'}),
-        ]
-     
+        data = {
+            'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
+            'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
+            'White Lot Capacity' : [cp3_white_string + "%", cp3a_white_string + "%", cp4_white_string + "%", cp5_white_string + "%", "No White Lots", cp6b_white_string + "%", cp10_white_string + "%"]
+            }
+        
+        df = pd.DataFrame(data)
+
+        table = dash_table.DataTable(
+            columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot', "id":'Red Lot Capacity'},{"name":'White Lot', "id":'White Lot Capacity'}],
+            data=df.to_dict('records'),
+            editable = False,
+            #sort_action = 'native',
+            #sort_mode="multi",
+            style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black', 'color':'black', 'back-ground-color':'white', 'font-size':'14px'},
+            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'}
+        )
+
+        layout = html.Div(
+            children = [first,
+                html.Br(),
+                graph,
+                html.Br(),
+                table])
+        
+        return layout    
+
      else:
          return dash.no_update
      
