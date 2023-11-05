@@ -215,9 +215,10 @@ def generate_results_modal(results):
         white_rej = list([result[2] for result in results.values()])
         red_rej = list([result[3] for result in results.values()])
         df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
-        first_row = df.iloc[0]
+        #first_row = df.iloc[0].to_frame()
 
-        df = pd.concat([df.iloc[1:], first_row], axis = 0, ignore_index=True)   #df.iloc[1:].append(first_row,ignore_index=True)
+        #df = pd.concat([df.iloc[1:], first_row], axis = 0, ignore_index=True)   #df.iloc[1:].append(first_row,ignore_index=True)
+        print(df)
 
         df['total_entered'] = df["red_entered"] + df["white_entered"]
         df['total_rej'] = df["red_rej"] + df["white_rej"]
@@ -289,7 +290,10 @@ layout = dbc.Container([
                 html.H4("Currently Simulating:", style={'font-weight':'bold'}),
                 html.Div("None",id = "simulation-contents"),
                 html.Br(),
-                dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'})
+                html.Div('Unavailable, run simulations first', id = 'hour-slider-show'),
+                dcc.Slider(min = 0, max = 23, step = 1,  value = 23, id = 'results-slider', disabled = True, marks = None),
+                html.Br(),
+                dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'})
             ]
             ),
             width={'size': 2, 'order': 1},
@@ -1484,14 +1488,29 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
                 cp5_div,
                 cp5b_div,
                 cp6b_div,
-                cp10_div], 
+                cp10_div,
+                ], 
             style = {'font-size':'12px', 'font-family': 'Open Sans',
                     'background-color':'white   ', 'color':'black',
-                    'display': 'inline-block', 'justify-content':'center', 'align-items':'center'})]
+                    'display': 'inline-block', 'justify-content':'center', 'align-items':'center', 'margin-bottom':'1.5%'}),
+        ]
      
      else:
          return dash.no_update
      
+@callback(
+    Output(component_id = 'hour-slider-show', component_property = 'children'),
+    Input(component_id = 'results-slider', component_property = 'value'),
+    State(component_id = 'results-slider',component_property = 'disabled')
+)
+def show_hour(hour,disabled):
+    if disabled:
+        return ["Unvailable, run simulation first"]
+    else:
+        hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
+        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm', None: 'Unavailable'}
+        return ["Displaying carpark occupancies at " + hour_dict[hour]]
+
 
 
 @callback(
@@ -1638,7 +1657,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
         #outputs = simulate_des(arrival_rates,lots_d_input)
-        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations
+        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 10) #adjust n for number of simulations
 
         for key in list_carparks:
             if key not in outputs.keys():
