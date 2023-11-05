@@ -210,14 +210,18 @@ def generate_results_modal(results):
     else:
         # Creating results data frame
         carparks = list(results.keys())
-        white_entered = list([result[0] for result in results.values()])
-        red_entered = list([result[1] for result in results.values()])
-        white_rej = list([result[2] for result in results.values()])
-        red_rej = list([result[3] for result in results.values()])
+        white_entered = list([result[0][-1] for result in results.values()])
+        red_entered = list([result[1][-1] for result in results.values()])
+        white_rej = list([result[2][-1] for result in results.values()])
+        red_rej = list([result[3][-1] for result in results.values()])
         df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
-        #first_row = df.iloc[0].to_frame()
 
+        #ts_data_frame = pd.DataFrame(columns = ['carpark','enter_hour','white_entered','red_entered','white_rejected','red_rejected'])
+
+        
+        #first_row = df.iloc[0].to_frame()
         #df = pd.concat([df.iloc[1:], first_row], axis = 0, ignore_index=True)   #df.iloc[1:].append(first_row,ignore_index=True)
+        
         print(df)
 
         df['total_entered'] = df["red_entered"] + df["white_entered"]
@@ -937,6 +941,8 @@ def reset_refine_modal(month,event, clicks):
 
 # Callback for reset all: revert to original settings and carpark state
 @callback(
+    Output(component_id = 'results-slider', component_property = 'disabled'),
+    Output(component_id = 'results-slider', component_property = 'value'),
     Output(component_id = 'results-div', component_property = 'children'),
     Output(component_id='cp3',component_property='style'),
     Output(component_id='cp3a',component_property='style'),
@@ -970,9 +976,9 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # Callback to close reset all modals:
@@ -1501,14 +1507,14 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
 @callback(
     Output(component_id = 'hour-slider-show', component_property = 'children'),
     Input(component_id = 'results-slider', component_property = 'value'),
-    State(component_id = 'results-slider',component_property = 'disabled')
+    Input(component_id = 'results-slider',component_property = 'disabled')
 )
 def show_hour(hour,disabled):
-    if disabled:
+    if disabled or hour is None:
         return ["Unvailable, run simulation first"]
     else:
         hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
-        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm', None: 'Unavailable'}
+        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
         return ["Displaying carpark occupancies at " + hour_dict[hour]]
 
 
@@ -1526,6 +1532,7 @@ def open_loading(clicks):
 
 # Callback to update contents of cp modals
 @callback(
+    Output('results-slider','disabled',allow_duplicate = True),
     Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
     Output(component_id = 'loading-modal',component_property='is_open',allow_duplicate=True),
     Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
@@ -1624,7 +1631,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'simulate-modal-yes' in changed_id:
-
+        global lots_d
         lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
         'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),
         'cp10':(cp10_white_v,cp10_red_v)
@@ -1650,6 +1657,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         for key in keys_to_remove:
             del lots_d_input[key]
         
+        global non_empty_cps
         non_empty_cps = list(lots_d_input.keys())
 
         arrival_rates = args
@@ -1657,22 +1665,22 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
         #outputs = simulate_des(arrival_rates,lots_d_input)
-        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 10) #adjust n for number of simulations
+        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 10) #adjust n for number of simulations, remove n after done
 
         for key in list_carparks:
             if key not in outputs.keys():
-                outputs[key] = [0 for i in range(6)]
+                outputs[key] = [[0 for i in range(24)] for j in range(6)]
         
-        print("Arrival rates", arrival_rates)
-        print("CP capacity:", lots_d)
-        print("Model Inputs:",lots_d_input)
+        #print("Arrival rates", arrival_rates)
+        #print("CP capacity:", lots_d)
+        #print("Model Inputs:",lots_d_input)
         print("Statistics:",outputs)
         print()
 
         cp3_outputs = outputs['cp3']
         cp3_ratio = 0
         if lots_d['cp3'][1]+lots_d['cp3'][0] != 0:
-            cp3_ratio = round((cp3_outputs[4]+cp3_outputs[5])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
+            cp3_ratio = round((cp3_outputs[4][-1]+cp3_outputs[5][-1])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
 
         cp3_style = dash.no_update
         
@@ -1688,17 +1696,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp3_ratio_string = "-"
         if 'cp3' in non_empty_cps:
-            cp3_ratio_string = str(cp3_outputs[4]+cp3_outputs[5]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
+            cp3_ratio_string = str(cp3_outputs[4][-1]+cp3_outputs[5][-1]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
 
         occupied_cp3 =  html.Div([
             html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3_outputs[5]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3_outputs[4]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp3_outputs[5][-1]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3_outputs[4][-1]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
         
         cp3a_outputs = outputs['cp3a']
         cp3a_ratio = 0
         if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
-            cp3a_ratio = round((cp3a_outputs[4]+cp3a_outputs[5])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
+            cp3a_ratio = round((cp3a_outputs[4][-1]+cp3a_outputs[5][-1])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
         cp3a_style = dash.no_update
         
         if 'cp3a' not in non_empty_cps:
@@ -1713,17 +1721,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp3a_ratio_string = "-"
         if 'cp3a' in non_empty_cps:
-            cp3a_ratio_string = str(cp3a_outputs[4]+cp3a_outputs[5]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
+            cp3a_ratio_string = str(cp3a_outputs[4][-1]+cp3a_outputs[5][-1]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
 
         occupied_cp3a =  html.Div([
             html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3a_outputs[4]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5][-1]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[4][-1]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
 
         cp4_outputs = outputs['cp4']
         cp4_ratio = 0
         if lots_d['cp4'][1]+lots_d['cp4'][0] != 0:
-            cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
+            cp4_ratio = round((cp4_outputs[4][-1]+cp4_outputs[5][-1])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
         cp4_style = dash.no_update
         
 
@@ -1739,17 +1747,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp4_ratio_string = "-"
         if 'cp4' in non_empty_cps:
-            cp4_ratio_string = str(cp4_outputs[4]+cp4_outputs[5]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
+            cp4_ratio_string = str(cp4_outputs[4][-1]+cp4_outputs[5][-1]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
 
         occupied_cp4 =  html.Div([
             html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp4_outputs[5]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp4_outputs[4]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp4_outputs[5][-1]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp4_outputs[4][-1]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
 
         cp5_outputs = outputs['cp5']
         cp5_ratio = 0
         if lots_d['cp5'][1]+lots_d['cp5'][1] != 0:
-            cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
+            cp5_ratio = round((cp5_outputs[4][-1]+cp5_outputs[5][-1])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
         cp5_style = dash.no_update
         
         if 'cp5' not in non_empty_cps:
@@ -1764,17 +1772,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp5_ratio_string = "-"
         if 'cp5' in non_empty_cps:
-            cp5_ratio_string = str(cp5_outputs[4]+cp5_outputs[5]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
+            cp5_ratio_string = str(cp5_outputs[4][-1] + cp5_outputs[5][-1]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
 
         occupied_cp5 =  html.Div([
             html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5_outputs[5]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp5_outputs[4]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp5_outputs[5][-1]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5_outputs[4][-1]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
 
         cp5b_outputs = outputs['cp5b']
         cp5b_ratio = 0
         if lots_d['cp5b'][1] != 0:
-            cp5b_ratio = round((cp5b_outputs[5])*100/(lots_d['cp5b'][1]))
+            cp5b_ratio = round((cp5b_outputs[5][-1])*100/(lots_d['cp5b'][1]))
         cp5b_style = dash.no_update
         
         if 'cp5b' not in non_empty_cps:
@@ -1789,18 +1797,18 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp5b_ratio_string = "-"
         if 'cp5b' in non_empty_cps:
-            cp5b_ratio_string = str(cp5b_outputs[5]) + "/" + str(lots_d['cp5b'][1])
+            cp5b_ratio_string = str(cp5b_outputs[5][-1]) + "/" + str(lots_d['cp5b'][1])
 
         occupied_cp5b =  html.Div([
             html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5][-1]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
             #html.Div("Occupied White Lots: " + str(cp5b_outputs[4]) + '/' + str(0), style = {"color" : "white"})
             ])
 
         cp6b_outputs = outputs['cp6b']
         cp6b_ratio = 0
         if lots_d['cp6b'][1]+lots_d['cp6b'][0] != 0:
-            cp6b_ratio = round((cp6b_outputs[4]+cp6b_outputs[5])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
+            cp6b_ratio = round((cp6b_outputs[4][-1]+cp6b_outputs[5][-1])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
         cp6b_style = dash.no_update
         
         if 'cp6b' not in non_empty_cps:
@@ -1815,17 +1823,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp6b_ratio_string = "-"
         if 'cp6b' in non_empty_cps:
-            cp6b_ratio_string = str(cp6b_outputs[4]+cp6b_outputs[5]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
+            cp6b_ratio_string = str(cp6b_outputs[4][-1]+cp6b_outputs[5][-1]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
 
         occupied_cp6b =  html.Div([
             html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp6b_outputs[4]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5][-1]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[4][-1]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
 
         cp10_outputs = outputs['cp10']
         cp10_ratio = 0
         if lots_d['cp10'][1]+lots_d['cp10'][0] != 0:
-            cp10_ratio = round((cp10_outputs[4]+cp10_outputs[5])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
+            cp10_ratio = round((cp10_outputs[4][-1]+cp10_outputs[5][-1])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
         cp10_style = dash.no_update
 
         if 'cp10' not in non_empty_cps:
@@ -1840,18 +1848,32 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp10_ratio_string = "-"
         if 'cp10' in non_empty_cps:
-            cp10_ratio_string = str(cp10_outputs[4]+cp10_outputs[5]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
+            cp10_ratio_string = str(cp10_outputs[4][-1]+cp10_outputs[5][-1]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
 
+        #print(cp10_outputs[5])
+        #print(lots_d)
         occupied_cp10 =  html.Div([
             html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp10_outputs[5][-1]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp10_outputs[4][-1]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
+
+        
+
+        global results_dict
+        results_dict = {}
+        for key, value in outputs.items():
+            white_info = value[4]
+            red_info = value[5]
+            results_dict[key] = [white_info, red_info]
+        
+        #print(results_dict)
+        
 
         #time.sleep(10)
-        return generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
+        return False,generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update     
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update     
 
 
 '''
@@ -1870,3 +1892,214 @@ def open_simulation_modal(n1,n2):
         return True
     else:
         return False
+
+# Callback to get carpark saturation for each hour
+@callback(
+    Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp3', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp3',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp3a', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp3a', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp3a',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp4', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp4', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp4',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp5', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp5', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp5',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp5b', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp5b', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp5b',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp6b', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp6b', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp6b',component_property='children', allow_duplicate=True),
+    Output(component_id = 'cp10', component_property = 'style',allow_duplicate=True),
+    Output(component_id = 'cp10', component_property = 'children',allow_duplicate=True),
+    Output(component_id='occupied_cp10',component_property='children', allow_duplicate=True),
+    Input('results-slider','value'),
+    prevent_initial_call = True
+)
+def change_saturation(hour):
+    if hour is not None:
+        outputs = results_dict
+        cp3_outputs = outputs['cp3']
+        cp3_ratio = 0
+        if lots_d['cp3'][1]+lots_d['cp3'][0] != 0:
+            cp3_ratio = round((cp3_outputs[0][hour]+cp3_outputs[1][hour])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
+
+        cp3_style = dash.no_update
+        
+        if 'cp3' not in non_empty_cps:
+            cp3_ratio = "-"
+            cp3_style = {'background-color':'gray', 'top':'16%', 'left':'27%'}
+        elif cp3_ratio >= 60 and cp3_ratio < 70:
+            cp3_style = {'background-color':'orange', 'top':'16%', 'left':'27%'}
+        elif cp3_ratio >= 70:
+            cp3_style = {'background-color':'red', 'top':'16%', 'left':'27%'}
+        else:
+            cp3_style = {'background-color':'green', 'top':'16%', 'left':'27%'}
+
+        cp3_ratio_string = "-"
+        if 'cp3' in non_empty_cps:
+            cp3_ratio_string = str(cp3_outputs[0][hour]+cp3_outputs[1][hour]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
+
+        occupied_cp3 =  html.Div([
+            html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3_outputs[1][hour]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3_outputs[0][hour]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
+        
+        cp3a_outputs = outputs['cp3a']
+        cp3a_ratio = 0
+        if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
+            cp3a_ratio = round((cp3a_outputs[0][hour]+cp3a_outputs[1][hour])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
+        cp3a_style = dash.no_update
+        
+        if 'cp3a' not in non_empty_cps:
+            cp3a_ratio = "-"
+            cp3a_style = {'background-color':'gray', 'top':'17%', 'left':'32%'}
+        elif cp3a_ratio >= 60 and cp3a_ratio < 70:
+            cp3a_style = {'background-color':'orange', 'top':'17%', 'left':'32%'}
+        elif cp3a_ratio >= 70:
+            cp3a_style = {'background-color':'red', 'top':'17%', 'left':'32%'}
+        else:
+            cp3a_style = {'background-color':'green', 'top':'17%', 'left':'32%'}
+
+        cp3a_ratio_string = "-"
+        if 'cp3a' in non_empty_cps:
+            cp3a_ratio_string = str(cp3a_outputs[0][hour]+cp3a_outputs[1][hour]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
+
+        occupied_cp3a =  html.Div([
+            html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp3a_outputs[1][hour]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[0][hour]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
+
+        cp4_outputs = outputs['cp4']
+        cp4_ratio = 0
+        if lots_d['cp4'][1]+lots_d['cp4'][0] != 0:
+            cp4_ratio = round((cp4_outputs[0][hour]+cp4_outputs[1][hour])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
+        cp4_style = dash.no_update
+        
+
+        if 'cp4' not in non_empty_cps:
+            cp4_ratio = "-"
+            cp4_style = {'background-color':'gray', 'top':'32%', 'left':'34%'}
+        elif cp4_ratio >= 60 and cp4_ratio < 70:
+            cp4_style = {'background-color':'orange', 'top':'32%', 'left':'34%'}
+        elif cp4_ratio >= 70:
+            cp4_style = {'background-color':'red', 'top':'32%', 'left':'34%'}
+        else:
+            cp4_style = {'background-color':'green', 'top':'32%', 'left':'34%'}
+
+        cp4_ratio_string = "-"
+        if 'cp4' in non_empty_cps:
+            cp4_ratio_string = str(cp4_outputs[0][hour]+cp4_outputs[1][hour]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
+
+        occupied_cp4 =  html.Div([
+            html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp4_outputs[1][hour]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp4_outputs[0][hour]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
+
+        cp5_outputs = outputs['cp5']
+        cp5_ratio = 0
+        if lots_d['cp5'][1]+lots_d['cp5'][1] != 0:
+            cp5_ratio = round((cp5_outputs[0][hour]+cp5_outputs[1][hour])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
+        cp5_style = dash.no_update
+        
+        if 'cp5' not in non_empty_cps:
+            cp5_ratio = "-"
+            cp5_style = {'background-color':'gray', 'top':'34%', 'left':'43%'}
+        elif cp5_ratio >= 60 and cp5_ratio < 70:
+            cp5_style = {'background-color':'orange', 'top':'34%', 'left':'43%'}
+        elif cp5_ratio >= 70:
+            cp5_style = {'background-color':'red', 'top':'34%', 'left':'43%'}
+        else:
+            cp5_style = {'background-color':'green', 'top':'34%', 'left':'43%'}
+
+        cp5_ratio_string = "-"
+        if 'cp5' in non_empty_cps:
+            cp5_ratio_string = str(cp5_outputs[0][hour] + cp5_outputs[1][hour]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
+
+        occupied_cp5 =  html.Div([
+            html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5_outputs[1][hour]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5_outputs[0][hour]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
+
+        cp5b_outputs = outputs['cp5b']
+        cp5b_ratio = 0
+        if lots_d['cp5b'][1] != 0:
+            cp5b_ratio = round((cp5b_outputs[1][hour])*100/(lots_d['cp5b'][1]))
+        cp5b_style = dash.no_update
+        
+        if 'cp5b' not in non_empty_cps:
+            cp5b_ratio = "-"
+            cp5b_style = {'background-color':'gray', 'top':'25.5%', 'left':'42%'}
+        elif cp5b_ratio >= 60 and cp5b_ratio < 70:
+            cp5b_style = {'background-color':'orange', 'top':'25.5%', 'left':'42%'}
+        elif cp5b_ratio >= 70:
+            cp5b_style = {'background-color':'red', 'top':'25.5%', 'left':'42%'}
+        else:
+            cp5b_style = {'background-color':'green', 'top':'25.5%', 'left':'42%'}
+
+        cp5b_ratio_string = "-"
+        if 'cp5b' in non_empty_cps:
+            cp5b_ratio_string = str(cp5b_outputs[1][hour]) + "/" + str(lots_d['cp5b'][1])
+
+        occupied_cp5b =  html.Div([
+            html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp5b_outputs[1][hour]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
+            #html.Div("Occupied White Lots: " + str(cp5b_outputs[0]) + '/' + str(0), style = {"color" : "white"})
+            ])
+
+        cp6b_outputs = outputs['cp6b']
+        cp6b_ratio = 0
+        if lots_d['cp6b'][1]+lots_d['cp6b'][0] != 0:
+            cp6b_ratio = round((cp6b_outputs[0][hour]+cp6b_outputs[1][hour])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
+        cp6b_style = dash.no_update
+        
+        if 'cp6b' not in non_empty_cps:
+            cp6b_ratio = "-"
+            cp6b_style = {'background-color':'gray', 'top':'62%', 'left':'62%'}
+        elif cp6b_ratio >= 60 and cp6b_ratio < 70:
+            cp6b_style = {'background-color':'orange', 'top':'62%', 'left':'62%'}
+        elif cp6b_ratio >= 70:
+            cp6b_style = {'background-color':'red', 'top':'62%', 'left':'62%'}
+        else:
+            cp6b_style = {'background-color':'green', 'top':'62%', 'left':'62%'}
+
+        cp6b_ratio_string = "-"
+        if 'cp6b' in non_empty_cps:
+            cp6b_ratio_string = str(cp6b_outputs[0][hour]+cp6b_outputs[1][hour]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
+
+        occupied_cp6b =  html.Div([
+            html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp6b_outputs[1][hour]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[0][hour]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
+
+        cp10_outputs = outputs['cp10']
+        cp10_ratio = 0
+        if lots_d['cp10'][1]+lots_d['cp10'][0] != 0:
+            cp10_ratio = round((cp10_outputs[0][hour]+cp10_outputs[1][hour])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
+        cp10_style = dash.no_update
+
+        if 'cp10' not in non_empty_cps:
+            cp10_ratio = "-"
+            cp10_style = {'background-color':'gray', 'top':'53%', 'left':'84%'}
+        elif cp10_ratio >= 60 and cp10_ratio < 70:
+            cp10_style = {'background-color':'orange', 'top':'53%', 'left':'84%'}
+        elif cp10_ratio >= 70:
+            cp10_style = {'background-color':'red', 'top':'53%', 'left':'84%'}
+        else:
+            cp10_style = {'background-color':'green', 'top':'53%', 'left':'84%'}
+
+        cp10_ratio_string = "-"
+        if 'cp10' in non_empty_cps:
+            cp10_ratio_string = str(cp10_outputs[0][hour]+cp10_outputs[1][hour]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
+
+        occupied_cp10 =  html.Div([
+            html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "white"}),
+            html.Div("Occupied Red Lots: " + str(cp10_outputs[1][hour]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp10_outputs[0][hour]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
+
+        return cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
+    else:
+        return dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update
