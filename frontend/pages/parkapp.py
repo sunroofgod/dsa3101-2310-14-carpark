@@ -101,7 +101,7 @@ def generate_simulation_graph(d):
 
 def vert_slider(hour, val):
     return dbc.Col([html.Div(html.Div(str(val), id = "value_" + str(hour)), style= {'font-size':'16px','text-align':'center', 'margin-right':'50%'}),
-                    html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 9999, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
+                    html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 999, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
                     html.Div(html.Div(str(hour)), style= {'text-align':'center', 'margin-right':'50%'})],style={'padding':'0px'})
 
 
@@ -193,13 +193,13 @@ def cp_modal(cp,a,b,c,d):
 # Helper function for confirmation of simulation modal
 def simulate_modal():
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False),
-         dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px'}),
-         dbc.ModalFooter([
+         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'black 3px solid', 'font-family' : 'Open Sans', 'font-size':'20px','font-weight' : 'bold'}),
+         dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px', 'border': ' black 3px solid'}),
+         dbc.ModalFooter(children = [
             html.H5("Confirm Simulation?"),
             dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
             dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
-         ])
+         ], style ={'border': 'black 3px solid'})
     ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
 
 
@@ -216,7 +216,9 @@ def generate_results_modal(results):
         red_rej = list([result[3] for result in results.values()])
         df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
         first_row = df.iloc[0]
-        df = df.iloc[1:].append(first_row,ignore_index=True)
+
+        df = pd.concat([df.iloc[1:], first_row], axis = 0, ignore_index=True)   #df.iloc[1:].append(first_row,ignore_index=True)
+
         df['total_entered'] = df["red_entered"] + df["white_entered"]
         df['total_rej'] = df["red_rej"] + df["white_rej"]
         df['white_rej_percent'] = (df['white_rej'] / df['white_entered']).fillna(0) * 100
@@ -242,7 +244,7 @@ def generate_results_modal(results):
         fig2.update_layout(xaxis_title="Carpark")
 
         fig3 = px.bar(df, x = 'carpark', y = ['white_rej_percent','red_rej_percent','total_rej_percent'],
-        title = 'Percent Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Percent Rejected','variable':'Entry Type'})
+        title = 'Percent Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Percent Rejected (%)','variable':'Entry Type'})
         fig3.update_traces(name='White', selector=dict(name='white_rej_percent'))
         fig3.update_traces(name='Red', selector=dict(name='red_rej_percent'))
         fig3.update_traces(name='Total', selector=dict(name='total_rej_percent'))
@@ -1191,7 +1193,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp3_white_string = str(round(cp3_white_v * 100 / cp3_white_max))
 
         cp3 = html.Div([
-            html.Span('Carpark 3 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+            html.Span('Carpark 3 Capacities:  ', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
             html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
             ' - ' + cp3_red_string + '%, ',
@@ -1212,7 +1214,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             ' - ' + cp3a_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
             ' - ' + cp3a_white_string + '%'
-        ])
+        ], style={'text-align':'center','position': 'relative','left': '1%'})
 
         cp4_red_string = "0"
         cp4_white_string = "0"
@@ -1257,7 +1259,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             ' - ' + cp5b_red_string + '%',
             #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
             #' - ' + '100%'          ##bug??
-        ])
+        ], style={'text-align':'center','position': 'relative','right': '10%'})
 
         cp6b_red_string = "0"
         cp6b_white_string = "0"
@@ -1273,7 +1275,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             ' - ' + cp6b_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
             ' - ' + cp6b_white_string + '%'
-        ])
+        ], style={'text-align':'center','position': 'relative','left': '1%'})
 
         cp10_red_string = "0"
         cp10_white_string = "0"
@@ -1284,29 +1286,33 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         cp10 = html.Div([
             html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
             ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+            html.Span('Red', style={'color': 'red', 'font-weight': 'bold', 'margin-right': '1%'}),
             ' - ' + cp10_red_string + '%, ',
             html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
             ' - ' + cp10_white_string + '%'
-        ])
+        ], style={'text-align':'center','position': 'relative','left': '1%'})
 
 
-        return [first,
-        html.Br(),
-        graph, 
-        cp3, 
-        html.Br(),
-        cp3a,
-        html.Br(),
-        cp4,
-        html.Br(),
-        cp5,
-        html.Br(),
-        cp5b,
-        html.Br(),
-        cp6b,
-        html.Br(),
-        cp10]
+        layout = html.Div(
+            children = [first,
+                html.Br(),
+                graph, 
+                cp3, 
+                html.Br(),
+                cp3a,
+                html.Br(),
+                cp4,
+                html.Br(),
+                cp5,
+                html.Br(),
+                cp5b,
+                html.Br(),
+                cp6b,
+                html.Br(),
+                cp10], 
+                style={'font-family':'Open Sans'})
+        
+        return layout
 
 
      else:
