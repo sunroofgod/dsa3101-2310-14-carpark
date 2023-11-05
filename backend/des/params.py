@@ -166,7 +166,15 @@ def get_arrival_rates(cp : list, data=cp_data):
     users = data[["month", "year", "day","enter_hour"]]
     users = users.groupby(["day","month", "year", "enter_hour"]).size().reset_index()
     users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
-    return users.to_dict()[0]
+    d = users.to_dict()[0]
+    for key,value in d.items():
+        d[key] = round(value)
+
+    for key,value in d.items():
+        if value == 0:
+            d[key] = 1
+
+    return d
 
 def get_parking_duration_stats(cp : list, data=cp_data):
     """
