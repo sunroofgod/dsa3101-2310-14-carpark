@@ -9,7 +9,7 @@ import sys
 
 ## time unit : minutes
 
-def get_lambda(month : int, hour : int):
+def get_lambda(hour : int, month=None, lambdas=None):
     """
     Get the number of arrivals lambda for a given month and hour from LAMBDAS.
 
@@ -20,7 +20,9 @@ def get_lambda(month : int, hour : int):
     Returns:
         float: The number of arrivala (lambda).
     """
-    return np.random.poisson(params.LAMBDAS[(month, hour)])
+    if month is None:
+        return np.random.poisson(params.LAMBDAS[(params.MONTH, hour)])
+    return np.random.poisson(lambdas[hour])
 
 def arrivals_to_rate(arrivals : int):
     """
@@ -34,7 +36,7 @@ def arrivals_to_rate(arrivals : int):
     """
     return 1 / (arrivals / 60)
 
-def get_arrival_interval(month : int, minutes : int):
+def get_arrival_interval(minutes : int, month=None, lambdas=None):
     """
     Calculate and return the time interval between arrivals based on a Poisson process.
 
@@ -45,7 +47,7 @@ def get_arrival_interval(month : int, minutes : int):
     Returns:
         float: The calculated time interval between arrivals (in minutes).
     """
-    return arrivals_to_rate(get_lambda(month, params.minutes_to_hours(minutes)))
+    return arrivals_to_rate(get_lambda(params.minutes_to_hours(minutes), month, lambdas))
 
 def custom_choice(items : list, prob : list):
     """
@@ -84,7 +86,7 @@ def create_cp(env : simpy.Environment, cp_dict : dict):
 #     return car
 
 ## Generate entire process of 1 car
-def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=params.MONTH):
+def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=None, lambdas=None):
     """
     Generate the entire process of car arrivals and parking.
 
@@ -125,7 +127,7 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         
         ## Car arrive at campus
         car = Car(car_id, tpe)
-        time = get_arrival_interval(month, env.now) # time before next car arrive
+        time = get_arrival_interval(env.now, month, lambdas) # time before next car arrive
         # assert time >= 0
         yield env.timeout(time)
         # car = car_arrival(env, car_id, tpe)
@@ -212,7 +214,7 @@ def print_stats(d : dict):
         print(f"{cp:<5}: {stat}")
     return
 
-def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME):
+def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB, t=params.SIM_TIME, month=None, lambdas=None):
     """
     Run a car park simulation.
 
@@ -231,7 +233,7 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
 
     ## Start process
     carparks = create_cp(campus, cap)
-    campus.process(car_generator(campus, carparks, cp_prob, car_prob))
+    campus.process(car_generator(campus, carparks, cp_prob, car_prob, month, lambdas))
 
     ## End
     campus.run(until=t)
@@ -240,7 +242,7 @@ def sim(cap=params.CP_CAPACITY, cp_prob=params.CP_PROB, car_prob=params.CAR_PROB
     stats = stats_summary(carparks)
     return stats
 
-def run_nsim(n=100, overall_stats={}):
+def run_nsim(n=100, month=None, lambdas=None, overall_stats={}):
     init_time = time.time()
 
     ## Run simulation for n times
@@ -249,7 +251,7 @@ def run_nsim(n=100, overall_stats={}):
         start = time.time() 
 
         ## Run simulation
-        stats = sim()
+        stats = sim(month=month, lambdas=lambdas)
 
         ## Simulation output
         overall_stats = stats_mean(overall_stats, stats)
