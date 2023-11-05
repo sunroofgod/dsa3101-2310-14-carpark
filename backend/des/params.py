@@ -7,7 +7,6 @@ DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
-## TODO: filter based on carparks with non-0 capacity
 def filter_cp(data : pd.DataFrame, cp : list):
     data = data.copy()
     data["carpark"] = data["carpark"].str.lower()
@@ -24,7 +23,7 @@ def get_month_arrival_rate(month : int):
     Returns:
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
     """
-    return {h : val for (m, h), val in get_arrival_rates().items() if m == month}
+    return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
 
 def get_day_arrival_rate(day : str, data=cp_data):
     """
