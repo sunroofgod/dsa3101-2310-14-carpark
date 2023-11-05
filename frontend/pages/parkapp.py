@@ -30,6 +30,7 @@ month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6:
 default_button = "0"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
+sample_results = {'cp3': [467, 44, 239, 75, 34, 16], 'cp3a': [309, 157, 229, 75, 45, 13], 'cp4': [331, 124, 167, 125, 39, 14], 'cp5': [422, 179, 58, 25, 35, 13], 'cp5b': [165, 60, 165, 126, 0, 16], 'cp6b': [422, 194, 245, 50, 38, 13], 'cp10': [335, 53, 229, 25, 39, 18]}
 
 # Sample Data for Months
 month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
@@ -203,13 +204,77 @@ def simulate_modal():
     ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
 
 
+# Helper function to create results modal, input is results dict
+def generate_results_modal(results):
+    if results == {}:
+        body = dbc.ModalBody(html.B('No Simulations have been run'), id = 'results-modal-contents', style = {'text-align':'center'})
+    else:
+        # Creating results data frame
+        carparks = list(results.keys())
+        white_entered = list([result[0] for result in results.values()])
+        red_entered = list([result[1] for result in results.values()])
+        white_rej = list([result[2] for result in results.values()])
+        red_rej = list([result[3] for result in results.values()])
+        df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
+        first_row = df.iloc[0]
+        df = df.iloc[1:].append(first_row,ignore_index=True)
+        df['total_entered'] = df["red_entered"] + df["white_entered"]
+        df['total_rej'] = df["red_rej"] + df["white_rej"]
+        
+        # Enter Graph
+        fig1 = px.bar(df, x = 'carpark', y = ['white_entered','red_entered','total_entered'],
+        title = 'Total Carpark Entries by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
+        fig1.update_traces(name='White', selector=dict(name='white_entered'))
+        fig1.update_traces(name='Red', selector=dict(name='red_entered'))
+        fig1.update_traces(name='Total', selector=dict(name='total_entered'))
+        fig1.update_traces(customdata=['White', 'Red', 'Total Entered'])
+        fig1.update_traces(hovertemplate='Entry Type = %{customdata}<br>Number Entries: %{y}')
+        fig1.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6,7], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig1.update_layout(xaxis_title="Carpark")
+
+        # Reject Graph
+        fig2 = px.bar(df, x = 'carpark', y = ['white_rej','red_rej','total_rej'],
+        title = 'Total Carpark Rejected by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
+        fig2.update_traces(name='White', selector=dict(name='white_rej'))
+        fig2.update_traces(name='Red', selector=dict(name='red_rej'))
+        fig2.update_traces(name='Total', selector=dict(name='total_rej'))
+        fig2.update_traces(customdata=['White', 'Red', 'Total Rejected'])
+        fig2.update_traces(hovertemplate='Entry Type = %{customdata}<br>Number Rejected: %{y}')
+        fig2.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6,7], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig2.update_layout(xaxis_title="Carpark")
+
+        body = dbc.ModalBody(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(dcc.Graph(figure=fig1), width=6),  
+                        dbc.Col(dcc.Graph(figure=fig2), width=6), 
+                    ]
+                )
+            ]
+        )
+
+        #body = dbc.ModalBody('No Simulations have been run', id = 'results-modal-contents', style = {'text-align':'center', 'font-size':'15px'})
+
+    return dbc.Modal([
+         dbc.ModalHeader(dbc.ModalTitle('Simulation Results:'), close_button= False),
+         body,
+         dbc.ModalFooter([
+            dbc.Button('Close', id = 'results-modal-close' ,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
+         ])
+    ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl')
+
+
+
 # layout
 layout = dbc.Container([
     dbc.Row([
         dbc.Col( # Left partition
             html.Div([
                 html.H4("Currently Simulating:", style={'font-weight':'bold'}),
-                html.Div("None",id = "simulation-contents")
+                html.Div("None",id = "simulation-contents"),
+                html.Br(),
+                dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'})
             ]
             ),
             width={'size': 2, 'order': 1},
@@ -294,6 +359,7 @@ layout = dbc.Container([
             html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
             html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False)),
             html.Div(simulate_modal()),
+            html.Div(generate_results_modal({}), id = 'results-div'),
             html.Div(dbc.Modal([
                 dbc.ModalBody([
                 html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
@@ -852,6 +918,7 @@ def reset_refine_modal(month,event, clicks):
 
 # Callback for reset all: revert to original settings and carpark state
 @callback(
+    Output(component_id = 'results-div', component_property = 'children'),
     Output(component_id='cp3',component_property='style'),
     Output(component_id='cp3a',component_property='style'),
     Output(component_id='cp4',component_property='style'),
@@ -884,9 +951,9 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return {'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # Callback to close reset all modals:
@@ -1421,6 +1488,7 @@ def open_loading(clicks):
 
 # Callback to update contents of cp modals
 @callback(
+    Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
     Output(component_id = 'loading-modal',component_property='is_open',allow_duplicate=True),
     Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp3', component_property = 'children',allow_duplicate=True),
@@ -1733,8 +1801,26 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
             html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
 
-        #time.sleep(5)
-        return False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
+        time.sleep(5)
+        return generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update     
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update     
+
+
+'''
+Results Modal
+'''
+#Toggling results modal
+# Toggle Simulation Confirmation Modal
+@callback(
+    Output('results-modal','is_open'),
+    Input('results-button','n_clicks'),
+    Input('results-modal-close','n_clicks')
+)
+def open_simulation_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'results-button' in changed_id:
+        return True
+    else:
+        return False
