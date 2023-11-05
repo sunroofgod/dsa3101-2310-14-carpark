@@ -35,6 +35,8 @@ def arrivals_to_rate(arrivals : int):
     Returns:
         float: The calculated arrival rate per hour.
     """
+    if arrivals == 0:
+        return 0
     return 1 / (arrivals / 60)
 
 def get_arrival_interval(minutes : int, month=None, lambdas=None):

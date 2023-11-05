@@ -157,12 +157,14 @@ def get_arrival_rates(cp : list, data=cp_data):
     data = filter_cp(data.copy(), cp)
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     data['enter_hour'] = data['enter_dt'].dt.hour
+    data['day'] = data['enter_dt'].dt.day
     data['month'] = data['enter_dt'].dt.month
     data['year'] = data['enter_dt'].dt.year
 
-    users = data[["month", "year", "enter_hour"]]
-    users = users.groupby(["month", "year", "enter_hour"]).size().reset_index()
+    users = data[["day", "month", "year", "enter_hour"]]
+    users = users.groupby(["day", "month", "year", "enter_hour"]).size().reset_index()
     users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
+    users[0] = users[0].apply(lambda x: int(x))
     return users.to_dict()[0]
 
 def get_parking_duration_stats(cp : list, data=cp_data):
