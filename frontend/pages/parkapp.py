@@ -296,9 +296,10 @@ layout = dbc.Container([
             html.Div(simulate_modal()),
             html.Div(dbc.Modal([
                 dbc.ModalBody([
-                html.B("Simulation in Progress! Please wait..."), 
-                html.Div(dbc.Spinner(color="primary", type="border"), style = {'float':'right'})
-                ]),
+                html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
+                                                                        'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), #hawyeah
+                html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
+                ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), #change this line after deciding color another day
                 ],id="loading-modal",is_open=False,backdrop = False,centered = True
         ))
 
