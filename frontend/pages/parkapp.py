@@ -1,6 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc, callback, Input, Output, State
+from dash import html, dcc, callback, Input, Output, State, dash_table
 import plotly.express as px
 import pandas as pd
 import random
@@ -193,13 +193,13 @@ def cp_modal(cp,a,b,c,d):
 # Helper function for confirmation of simulation modal
 def simulate_modal():
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'black 3px solid', 'font-family' : 'Open Sans', 'font-size':'20px','font-weight' : 'bold'}),
+         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'navy 3px solid', 'font-family' : 'Open Sans', 'font-size':'20px','font-weight' : 'bold', 'background-color':'navy','color' : 'white'}),
          dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px', 'border': ' black 3px solid'}),
          dbc.ModalFooter(children = [
-            html.H5("Confirm Simulation?"),
+            html.H5("Confirm Simulation?", style = {'color':'white'}),
             dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
             dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
-         ], style ={'border': 'black 3px solid'})
+         ], style ={'border': 'navy 3px solid','background-color':'navy'})
     ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
 
 
@@ -1175,6 +1175,8 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max,
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
+     
+
      changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
      if 'simulate-button' in changed_id:
         if event == "No Event" and month is None:
@@ -1202,14 +1204,14 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp3_red_string = str(round(cp3_red_v * 100 / cp3_red_max))
             cp3_white_string = str(round(cp3_white_v * 100 / cp3_white_max))
 
-        cp3 = html.Div([
-            html.Span('Carpark 3 Capacities:  ', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp3_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp3_white_string + '%'
-        ])
+        # cp3 = html.Div([
+        #     html.Span('Carpark 3 Capacities:  ', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp3_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp3_white_string + '%'
+        # ])
 
         cp3a_red_string = "0"
         cp3a_white_string = "0"
@@ -1217,14 +1219,14 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp3a_red_string = str(round(cp3a_red_v * 100 / cp3a_red_max))
             cp3a_white_string = str(round(cp3a_white_v * 100 / cp3a_white_max))
 
-        cp3a = html.Div([
-            html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp3a_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp3a_white_string + '%'
-        ], style={'text-align':'center','position': 'relative','left': '1%'})
+        # cp3a = html.Div([
+        #     html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp3a_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp3a_white_string + '%'
+        # ], style={'text-align':'center','position': 'relative','left': '1%'})
 
         cp4_red_string = "0"
         cp4_white_string = "0"
@@ -1232,14 +1234,14 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp4_red_string = str(round(cp4_red_v * 100 / cp4_red_max))
             cp4_white_string = str(round(cp4_white_v * 100 / cp4_white_max))
 
-        cp4 = html.Div([
-            html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp4_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp4_white_string + '%'
-        ])
+        # cp4 = html.Div([
+        #     html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp4_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp4_white_string + '%'
+        # ])
 
         cp5_red_string = "0"
         cp5_white_string = "0"
@@ -1248,28 +1250,28 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp5_white_string = str(round(cp5_white_v * 100 / cp5_white_max))
 
 
-        cp5 = html.Div([
-            html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp5_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp5_white_string + '%'
-        ])
+        # cp5 = html.Div([
+        #     html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp5_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp5_white_string + '%'
+        # ])
 
         cp5b_red_string = "0"
         if cp5b_status == "Open":
             cp5b_red_string = str(round(cp5b_red_v * 100 / cp5b_red_max))
 
 
-        cp5b = html.Div([ 
-            html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp5b_red_string + '%',
-            #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            #' - ' + '100%'          ##bug??
-        ], style={'text-align':'center','position': 'relative','right': '10%'})
+        # cp5b = html.Div([ 
+        #     html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp5b_red_string + '%',
+        #     #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     #' - ' + '100%'          ##bug??
+        # ], style={'text-align':'center','position': 'relative','right': '10%'})
 
         cp6b_red_string = "0"
         cp6b_white_string = "0"
@@ -1278,14 +1280,14 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp6b_white_string = str(round(cp6b_white_v * 100 / cp6b_white_max))
 
 
-        cp6b = html.Div([
-            html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-            ' - ' + cp6b_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp6b_white_string + '%'
-        ], style={'text-align':'center','position': 'relative','left': '1%'})
+        # cp6b = html.Div([
+        #     html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
+        #     ' - ' + cp6b_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp6b_white_string + '%'
+        # ], style={'text-align':'center','position': 'relative','left': '1%'})
 
         cp10_red_string = "0"
         cp10_white_string = "0"
@@ -1293,37 +1295,41 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp10_red_string = str(round(cp10_red_v * 100 / cp10_red_max))
             cp10_white_string = str(round(cp10_white_v * 100 / cp10_white_max))
 
-        cp10 = html.Div([
-            html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-            ' ',
-            html.Span('Red', style={'color': 'red', 'font-weight': 'bold', 'margin-right': '1%'}),
-            ' - ' + cp10_red_string + '%, ',
-            html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-            ' - ' + cp10_white_string + '%'
-        ], style={'text-align':'center','position': 'relative','left': '1%'})
+        # cp10 = html.Div([
+        #     html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
+        #     ' ',
+        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold', 'margin-right': '1%'}),
+        #     ' - ' + cp10_red_string + '%, ',
+        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
+        #     ' - ' + cp10_white_string + '%'
+        # ], style={'text-align':'center','position': 'relative','left': '1%'})
+        
+        data = {
+            'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
+            'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
+            'White Lot Capacity' : [cp3_white_string + "%", cp3a_white_string + "%", cp4_white_string + "%", cp5_white_string + "%", "No White Lots", cp6b_white_string + "%", cp10_white_string + "%"]
+            }
+        df = pd.DataFrame(data)
 
+        table = dash_table.DataTable(
+            columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot Capacity', "id":'Red Lot Capacity'},{"name":'White Lot Capacity', "id":'White Lot Capacity'}],
+            data=df.to_dict('records'),
+            editable = False,
+            #sort_action = 'native',
+            #sort_mode="multi",
+            style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black'},
+            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'20px'}
+        )
 
         layout = html.Div(
             children = [first,
                 html.Br(),
                 graph, 
-                cp3, 
                 html.Br(),
-                cp3a,
-                html.Br(),
-                cp4,
-                html.Br(),
-                cp5,
-                html.Br(),
-                cp5b,
-                html.Br(),
-                cp6b,
-                html.Br(),
-                cp10], 
+                table], 
                 style={'font-family':'Open Sans'})
         
         return layout
-
 
      else:
          return dash.no_update
