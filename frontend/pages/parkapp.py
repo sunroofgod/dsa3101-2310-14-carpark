@@ -13,10 +13,9 @@ import sys
 sys.path.append(path + r'\backend\des')
 
 from params import get_month_arrival_rate, get_day_arrival_rate
-
+from DES import run_nsim
 
 dash.register_page(__name__) #signifies homepage
-
 
 #sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
 
@@ -1602,9 +1601,12 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
     if 'simulate-modal-yes' in changed_id:
 
         lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
-        'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),'cp10':(cp10_white_v,cp10_red_v)}
+        'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),
+        'cp10':(cp10_white_v,cp10_red_v)
+        }
 
         lots_d_input = lots_d.copy()
+        del lots_d_input['cp10']
 
         list_carparks = list(lots_d.keys())
 
@@ -1626,15 +1628,20 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         non_empty_cps = list(lots_d_input.keys())
 
         arrival_rates = args
-        outputs = simulate_des(arrival_rates,lots_d_input)
+        
+        #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
+
+        #outputs = simulate_des(arrival_rates,lots_d_input)
+        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations
 
         for key in list_carparks:
             if key not in outputs.keys():
                 outputs[key] = [0 for i in range(6)]
         
-        print("Statistics:",outputs)
-        print("Model Inputs:",lots_d_input)
+        print("Arrival rates", arrival_rates)
         print("CP capacity:", lots_d)
+        print("Model Inputs:",lots_d_input)
+        print("Statistics:",outputs)
         print()
 
         cp3_outputs = outputs['cp3']
@@ -1690,8 +1697,8 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp4_outputs = outputs['cp4']
         cp4_ratio = 0
-        if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
-            cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
+        if lots_d['cp4'][1]+lots_d['cp4'][0] != 0:
+            cp4_ratio = round((cp4_outputs[4]+cp4_outputs[5])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
         cp4_style = dash.no_update
         
 
@@ -1717,7 +1724,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         cp5_outputs = outputs['cp5']
         cp5_ratio = 0
         if lots_d['cp5'][1]+lots_d['cp5'][1] != 0:
-            cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(lots_d['cp5'][1]+lots_d['cp5'][1]))
+            cp5_ratio = round((cp5_outputs[4]+cp5_outputs[5])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
         cp5_style = dash.no_update
         
         if 'cp5' not in non_empty_cps:
@@ -1732,7 +1739,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp5_ratio_string = "-"
         if 'cp5' in non_empty_cps:
-            cp5_ratio_string = str(cp5_outputs[4]+cp5_outputs[5]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][1])
+            cp5_ratio_string = str(cp5_outputs[4]+cp5_outputs[5]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
 
         occupied_cp5 =  html.Div([
             html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
@@ -1815,7 +1822,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             html.Div("Occupied Red Lots: " + str(cp10_outputs[5]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
             html.Div("Occupied White Lots: " + str(cp10_outputs[4]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
 
-        time.sleep(10)
+        #time.sleep(10)
         return generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:

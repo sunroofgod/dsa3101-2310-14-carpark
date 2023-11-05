@@ -26,7 +26,7 @@ def get_month_arrival_rate(month : int):
     Returns:
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
     """
-    return {h : val for (m, h), val in get_arrival_rates().items() if m == month}
+    return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
 
 def get_day_arrival_rate(day : str, data=cp_data):
     """
