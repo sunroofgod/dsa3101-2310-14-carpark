@@ -10,6 +10,11 @@ capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
 ## TODO: filter based on carparks with non-0 capacity
+def filter_cp(data : pd.DataFrame, cp : list):
+    data = data.copy()
+    data["carpark"] = data["carpark"].str.lower()
+    data = data[data["carpark"].isin(cp)]
+    return data
 
 def get_month_arrival_rate(month : int):
     """
@@ -34,6 +39,7 @@ def get_day_arrival_rate(day : str, data=cp_data):
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
     """
     day = pd.to_datetime(day)
+    data = data.copy()
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     filtered_data = data[data['enter_dt'].dt.date == day.date()]
     filtered_data['enter_hour'] = filtered_data['enter_dt'].dt.hour
@@ -41,7 +47,11 @@ def get_day_arrival_rate(day : str, data=cp_data):
     users = filtered_data[["year", "enter_hour"]]
     users = users.groupby(["year", "enter_hour"]).size().reset_index()
     users = users.groupby(["enter_hour"]).agg({0 : 'mean'})
-    return users.to_dict()[0]
+    users = users.to_dict()[0] 
+    
+    for h in range(24):
+        users[h] = users.get(h, 0)
+    return users
 
 
 def minutes_to_hours(minutes : int):
@@ -56,7 +66,7 @@ def minutes_to_hours(minutes : int):
     """
     return int(minutes / 60)
 
-def get_carpark_capacity(data=capacity_data):
+def get_carpark_capacity(cp : list, data=capacity_data):
     """
     Get the car park capacity (number of white and red lots) for each car park.
 
@@ -67,15 +77,18 @@ def get_carpark_capacity(data=capacity_data):
         dict: A dictionary where keys are car park names (in lowercase), and values are tuples containing the number of white and red lots.
     """
     d = {}
+    data = data.copy()
+    data["CP"] = data["CP"].apply(lambda x: f"cp{x}")
+    data = data[data["CP"].isin(cp)]
     data = data[["CP", "White", "Red"]].to_dict(orient="list")
 
     for i in range(len(data["CP"])):
-        cp = f"cp{data['CP'][i]}"
+        cp = data['CP'][i]
         d[cp] = (data["White"][i], data["Red"][i])
     
     return d
 
-def get_carpark_prob(data=cp_data):
+def get_carpark_prob(cp : list, data=cp_data):
     """
     Get the probability of car park utilization by user type for each car park.
 
@@ -87,6 +100,7 @@ def get_carpark_prob(data=cp_data):
              The values are the probabilities of car park utilization by that user type for the corresponding car park.
     """
     d = {}
+    data = filter_cp(data.copy(), cp)
 
     ## Calculate proportion of user type for each carpark
     cap = data.groupby(["carpark", "type"])["IU"].count().reset_index()
@@ -111,7 +125,7 @@ def get_carpark_prob(data=cp_data):
         
     return d
 
-def get_parking_type_prop(data=cp_data):
+def get_parking_type_prop(cp : list, data=cp_data):
     """
     Get the proportion of each parking type in the dataset.
 
@@ -121,6 +135,7 @@ def get_parking_type_prop(data=cp_data):
     Returns:
         dict: A dictionary where keys are parking types, and values are the proportions of each type in the dataset.
     """
+    data = filter_cp(data, cp)
     ## Calculate proportion of parking types
     users = data.groupby("type").agg({"IU" : 'count'})
     users["total"] = users["IU"].sum()
@@ -131,7 +146,7 @@ def get_parking_type_prop(data=cp_data):
 
     return users
 
-def get_arrival_rates(data=cp_data):
+def get_arrival_rates(cp : list, data=cp_data):
     """
     Calculate the mean arrival (lambda) of users for each month and hour.
 
@@ -141,6 +156,7 @@ def get_arrival_rates(data=cp_data):
     Returns:
         dict: A dictionary where keys are tuples of (month, hour) and values are the mean arrivals for each corresponding time interval.
     """
+    data = filter_cp(data.copy(), cp)
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     data['enter_hour'] = data['enter_dt'].dt.hour
     data['month'] = data['enter_dt'].dt.month
@@ -151,7 +167,7 @@ def get_arrival_rates(data=cp_data):
     users = users.groupby(["month", "enter_hour"]).agg({0 : 'mean'})
     return users.to_dict()[0]
 
-def get_parking_duration_stats(data=cp_data):
+def get_parking_duration_stats(cp : list, data=cp_data):
     """
     Get parking duration statistics (median and standard deviation) for each car park and user type.
 
@@ -161,6 +177,7 @@ def get_parking_duration_stats(data=cp_data):
     Returns:
         dict: A dictionary where keys are tuples of (car park name, user type), and values are tuples containing the median and standard deviation of parking durations.
     """
+    data = filter_cp(data.copy(), cp)
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
     data['hour'] = data['enter_dt'].dt.hour
 
@@ -184,11 +201,11 @@ def get_parking_duration_stats(data=cp_data):
     return du
 
 ## TODO: take input from user / database
+CP_LIST = ["cp3", "cp3a", "cp4", "cp5", "cp5b", "cp6b"]
 SIM_TIME = 24 * 60 # in minutes
-NSIM = 1
-CP_CAPACITY = get_carpark_capacity()
-CP_PROB = get_carpark_prob() 
-CAR_PROB = get_parking_type_prop()
-LAMBDAS = get_arrival_rates()
+CP_CAPACITY = get_carpark_capacity(CP_LIST)
+CP_PROB = get_carpark_prob(CP_LIST)
+CAR_PROB = get_parking_type_prop(CP_LIST)
+LAMBDAS = get_arrival_rates(CP_LIST)
 MONTH = datetime.date.today().month
 
