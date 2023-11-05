@@ -1317,8 +1317,16 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             editable = False,
             #sort_action = 'native',
             #sort_mode="multi",
+            style_header = {'background-color':'navy', 'color':'white', 'font-weght':'bold', 'font-size':'20px'},
             style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black'},
-            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'20px'}
+            style_data_conditional = [
+                {
+                    'if': {'row_index': 4, 'column_id': 'White Lot Capacity'},
+                    'color': 'white',
+                    'backgroundColor': 'red',
+                    'fontWeight': 'bold'
+                }
+            ],  
         )
 
         layout = html.Div(
@@ -1568,7 +1576,15 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
             #sort_action = 'native',
             #sort_mode="multi",
             style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black', 'color':'black', 'back-ground-color':'white', 'font-size':'14px'},
-            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'}
+            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'},
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 4 , 'column_id': 'White Lot Capacity'},
+                    'color':'white',
+                    'backgroundColor': 'red',
+                    'fontWeight': 'bold'
+                }
+            ]
         )
 
         layout = html.Div(
