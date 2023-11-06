@@ -1323,9 +1323,9 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                 {
                     'if': {'row_index': 4, 'column_id': 'White Lot Capacity'},
                     'color': 'white',
-                    'backgroundColor': 'red',
+                    'backgroundColor': 'black',
                     'fontWeight': 'bold'
-                }
+                    }
             ],  
         )
 
@@ -1581,7 +1581,7 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
                 {
                     'if': {'row_index': 4 , 'column_id': 'White Lot Capacity'},
                     'color':'white',
-                    'backgroundColor': 'red',
+                    'backgroundColor': 'black',
                     'fontWeight': 'bold'
                 }
             ]
