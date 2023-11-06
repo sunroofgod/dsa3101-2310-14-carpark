@@ -88,11 +88,11 @@ def generate_arrival_rate_graph(d,w,h): #w is width, h is height
     fig.update_yaxes(rangemode='nonnegative')
     return fig
 
-def generate_simulation_graph(d):
+def generate_simulation_graph(d): #w is width, h is height
     df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
-    fig = px.line(df, x = 'hour', y = 'arrivals',
-                  labels = {'hour':'Hour of Day', 'arrivals': ''},width=250, height=250)
-    fig.update_layout(margin = dict(l=0,r=0,b=0,t=0), font_family = "Open Sans")
+    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates</b>',
+                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width = 300 , height = 300)
+    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
     fig.update_yaxes(rangemode='nonnegative')
     return fig
 
@@ -274,18 +274,18 @@ def generate_results_modal(results):
             [
                 header,
                 dbc.Row(results_body) 
-            ]
+            ], style = {'border':'black 3px solid'}
         )
 
         #body = dbc.ModalBody('No Simulations have been run', id = 'results-modal-contents', style = {'text-align':'center', 'font-size':'15px'})
 
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle('Simulation Results:'), close_button= False),
+         dbc.ModalHeader(dbc.ModalTitle('Simulation Results:'), close_button= False, style = {'border': 'navy 3px solid', 'background-color':'navy','color' : 'white'}),
          body,
          dbc.ModalFooter([
             dbc.Button('Download Current Statistics', id = 'results-download-button', disabled = True, style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
             dbc.Button('Close', id = 'results-modal-close' ,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
-         ])
+         ], style = {'border': 'navy', 'background-color':'navy','color' : 'white', 'border':'navy 3px solid'})
     ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl')
 
 
@@ -305,7 +305,7 @@ layout = dbc.Container([
             ]
             ),
             width={'size': 2, 'order': 1},
-            style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF'}
+            style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF', 'align-items': 'center'}
             ),
         dbc.Col( # Center partition
             html.Div([
@@ -361,7 +361,7 @@ layout = dbc.Container([
             dbc.Button('Reset Events and Months', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
             html.Br(),
-            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_rate_graph(default_arrivals,300,300), style={'width': '100%'}),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
+            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_rate_graph(default_arrivals,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
@@ -1179,7 +1179,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                 first = html.B(event + ' - Custom')
         
         d = dict(zip(range(24),args))
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_arrival_rate_graph(d,300,300)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_arrival_rate_graph(d,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
 
         cp3_red_string = "0"
         cp3_white_string = "0"
@@ -1318,7 +1318,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                 graph, 
                 html.Br(),
                 table], 
-                style={'font-family':'Open Sans'})
+                style={'font-family':'Open Sans', 'align-items':'center', 'justify-content':'center', 'text-align':'center', 'width':'100%'})
         
         return layout
 
@@ -1428,8 +1428,8 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
         d = dict(zip(range(24),args))
         
 
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d), style={'width': '100%'}),
-                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}) 
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d)),
+                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) 
             
         cp3_red_string = "0"
         cp3_white_string = "0"
