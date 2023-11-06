@@ -125,26 +125,26 @@ def cp_modal(cp,a,b,c,d):
             dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
             dbc.ModalBody([
                 html.Div([
-                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
-                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),
-                html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "white"})], id = 'occupied_'+cp),
+                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "black"}),
+                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}),
+                html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "black"})], id = 'occupied_'+cp),
                 html.Br(),
-                html.H4('Simulation Parameters:', style = {"color" : "white"}),
-                html.Div('Carpark Status:', style = {"color" : "white"}),
+                html.H4('Simulation Parameters:', style = {"color" : "black"}),
+                html.Div('Carpark Status:', style = {"color" : "black"}),
                 html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
                 html.Div([
-                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : '#FF2800'}),
+                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
                 html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-                html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'white'}),
+                html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
                 html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
                 html.Div(
-                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'#FF2800'}),
+                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
                     html.Br(),
                     html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "white"})]
                 )
                 ])
 
-            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "#003d7c"}),
+            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "white"}),
             dbc.ModalFooter([
                         dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
                         dbc.Button(
@@ -158,25 +158,25 @@ def cp_modal(cp,a,b,c,d):
             dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
             dbc.ModalBody([
                 html.Div([
-                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "white"}),
-                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'#FF2800'}),], id = 'occupied_'+cp),
+                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "black"}),
+                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}),], id = 'occupied_'+cp),
                 html.Br(),
-                html.H4('Simulation Parameters:', style = {"color" : "white"}),
-                html.Div('Carpark Status:', style = {"color" : "white"}),
+                html.H4('Simulation Parameters:', style = {"color" : "black"}),
+                html.Div('Carpark Status:', style = {"color" : "black"}),
                 html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
                 html.Div([
-                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : '#FF2800'}),
+                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
                 html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-                #html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'white'}),
+                #html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
                 #html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
                 html.Div(
-                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'#FF2800'}),
+                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
                     html.Br(),
                     ]
                 )
                 ])
 
-            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "#003d7c"}),
+            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "white"}),
             dbc.ModalFooter([
                         dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
                         dbc.Button(
