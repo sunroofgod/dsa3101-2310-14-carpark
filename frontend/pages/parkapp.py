@@ -30,6 +30,9 @@ default_button = "0"
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
 sample_results = {'cp3': [467, 44, 239, 75, 34, 16], 'cp3a': [309, 157, 229, 75, 45, 13], 'cp4': [331, 124, 167, 125, 39, 14], 'cp5': [422, 179, 58, 25, 35, 13], 'cp5b': [165, 60, 165, 126, 0, 16], 'cp6b': [422, 194, 245, 50, 38, 13], 'cp10': [335, 53, 229, 25, 39, 18]}
+results_body = []
+
+
 
 # Sample Data for Months
 month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
@@ -75,18 +78,10 @@ def simulate_des(arrival_rates, lots_d):
 
 
 #Helper function to generate plots from dictionary representation
-def generate_arrival_graph(d):
+def generate_arrival_rate_graph(d,w,h): #w is width, h is height
     df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
     fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
-                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=300, height=300)
-    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
-    fig.update_yaxes(rangemode='nonnegative')
-    return fig
-
-def generate_simulate_modal_graph(d):
-    df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
-    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
-                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=300, height=300)
+                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=w, height=h)
     fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
     fig.update_yaxes(rangemode='nonnegative')
     return fig
@@ -101,9 +96,8 @@ def generate_simulation_graph(d):
 
 def vert_slider(hour, val):
     return dbc.Col([html.Div(html.Div(str(val), id = "value_" + str(hour)), style= {'font-size':'16px','text-align':'center', 'margin-right':'50%'}),
-                    html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 999, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
+                    html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 500, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
                     html.Div(html.Div(str(hour)), style= {'text-align':'center', 'margin-right':'50%'})],style={'padding':'0px'})
-
 
 
 #Helper function for refine graph modal
@@ -215,12 +209,8 @@ def generate_results_modal(results):
         white_rej = list([result[2][-1] for result in results.values()])
         red_rej = list([result[3][-1] for result in results.values()])
         df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
-
-        #ts_data_frame = pd.DataFrame(columns = ['carpark','enter_hour','white_entered','red_entered','white_rejected','red_rejected'])
-
-        
-        #first_row = df.iloc[0].to_frame()
-        #df = pd.concat([df.iloc[1:], first_row], axis = 0, ignore_index=True)   #df.iloc[1:].append(first_row,ignore_index=True)
+        df['order'] = [6,0,1,2,3,4,5]
+        df.sort_values('order',inplace = True)
         
         print(df)
 
@@ -256,21 +246,29 @@ def generate_results_modal(results):
         fig3.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
         fig3.update_layout(xaxis_title="Carpark")
 
+        
+        current_graphs = dbc.Col(
+            [dbc.Row(dcc.Graph(figure = fig1)),
+            dbc.Row(dcc.Graph(figure = fig2)),
+            dbc.Row(dcc.Graph(figure = fig3))],
+            )
+        
+        global results_body
+        results_body.append(current_graphs)
+
+        if len(results_body) > 2:
+            results_body.pop(0)
+
+        if len(results_body) == 1:
+            header = dbc.Row(dbc.Col(html.H4("Current Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'}))
+        else:
+            header = dbc.Row([dbc.Col(html.H4("Previous Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'}),
+            dbc.Col(html.H4("Current Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'})])
+
         body = dbc.ModalBody(
             [
-                dbc.Row(
-                    [
-                        dbc.Col(dcc.Graph(figure=fig1), width=6),  
-                        dbc.Col(dcc.Graph(figure=fig2), width=6), 
-                    ]
-                ),
-               dbc.Row(
-                    [
-                        dbc.Col(width=3),  
-                        dbc.Col(dcc.Graph(figure=fig3), width=6),
-                        dbc.Col(width=3), 
-                    ]
-                )
+                header,
+                dbc.Row(results_body) 
             ]
         )
 
@@ -357,7 +355,7 @@ layout = dbc.Container([
             dbc.Button('Reset Events and Months', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
             html.Br(),
-            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_graph(default_arrivals), style={'width': '100%'}),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
+            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_rate_graph(default_arrivals,300,300), style={'width': '100%'}),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
             html.Br(),
@@ -836,13 +834,13 @@ def disable_month(event):
 )
 def update_graph(month,event):
     if month is None and event == "No Event":
-        return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_graph(default_arrivals)
+        return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_rate_graph(default_arrivals,300,300)
     elif month is not None and event == "No Event":
         d = generate_arrival_rate_month(month)
-        return refine_modal(month_dict[month], d),generate_arrival_graph(d)
+        return refine_modal(month_dict[month], d),generate_arrival_rate_graph(d,300,300)
     else:
         d = generate_arrival_rate_event(event)
-        return refine_modal(event, d),generate_arrival_graph(d) 
+        return refine_modal(event, d),generate_arrival_rate_graph(d,300,300) 
 
     
 # Callback to toggle refine modal
@@ -913,7 +911,7 @@ def toggle_refine_modal(n1,n2):
 )
 def update_graph_after_refine(*args):
     d = dict(zip(range(24),args))
-    return generate_arrival_graph(d), *args
+    return generate_arrival_rate_graph(d,300,300), *args
 
 # Callback to reset refine modal
 @callback(
@@ -929,13 +927,13 @@ def reset_refine_modal(month,event, clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'refine-modal-reset' in changed_id:
         if month is None and event == "No Event":
-            return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_graph(default_arrivals)
+            return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_rate_graph(default_arrivals,300,300)
         elif month is not None and event == "No Event":
             d = generate_arrival_rate_month(month)
-            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_graph(d)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
         else:
             d = generate_arrival_rate_event(event)
-            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_graph(d)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
     else:
         return dash.no_update, dash.no_update
 
@@ -976,7 +974,7 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
-        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_graph(default_arrivals),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
         return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
@@ -1064,7 +1062,7 @@ def toggle_reset_cp_params_modal(n1):
 def reset_events(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-events-button' in changed_id:
-        return True,generate_arrival_graph(default_arrivals),None,"No Event"
+        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
     else:
         return False,dash.no_update,dash.no_update,dash.no_update
 
@@ -1196,7 +1194,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                 first = html.B(event + ' - Custom')
         
         d = dict(zip(range(24),args))
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_simulate_modal_graph(d)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_arrival_rate_graph(d,300,300)),style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
 
         cp3_red_string = "0"
         cp3_white_string = "0"
@@ -1323,7 +1321,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                 {
                     'if': {'row_index': 4, 'column_id': 'White Lot Capacity'},
                     'color': 'white',
-                    'backgroundColor': 'red',
+                    'backgroundColor': 'black',
                     'fontWeight': 'bold'
                 }
             ],  
@@ -1348,6 +1346,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
 # Simulation Callbacks
 @callback(
+    #Output('results-slider','value',allow_duplicate=True),
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
     Input('cp_status_cp3','value'),
     Input('cp_status_cp3a','value'),
@@ -1581,7 +1580,7 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
                 {
                     'if': {'row_index': 4 , 'column_id': 'White Lot Capacity'},
                     'color':'white',
-                    'backgroundColor': 'red',
+                    'backgroundColor': 'black',
                     'fontWeight': 'bold'
                 }
             ]
@@ -1606,7 +1605,7 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
 )
 def show_hour(hour,disabled):
     if disabled or hour is None:
-        return ["Unvailable, run simulation first"]
+        return ["Unavailable, run simulation first"]
     else:
         hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
         13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
@@ -1651,6 +1650,7 @@ def open_loading(clicks):
     Output(component_id = 'cp10', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp10', component_property = 'children',allow_duplicate=True),
     Output(component_id='occupied_cp10',component_property='children', allow_duplicate=True),
+    Input('results-slider','value'),
     Input('cp_status_cp3','value'),
     Input('cp_status_cp3a','value'),
     Input('cp_status_cp4','value'),
@@ -1715,7 +1715,7 @@ def open_loading(clicks):
     Input('slider_23','value'),
     prevent_initial_call = True
 )
-def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
     cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
@@ -1760,11 +1760,13 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
         #outputs = simulate_des(arrival_rates,lots_d_input)
-        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 10) #adjust n for number of simulations, remove n after done
+        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
 
         for key in list_carparks:
             if key not in outputs.keys():
                 outputs[key] = [[0 for i in range(24)] for j in range(6)]
+        
+
         
         #print("Arrival rates", arrival_rates)
         #print("CP capacity:", lots_d)
@@ -1775,7 +1777,7 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         cp3_outputs = outputs['cp3']
         cp3_ratio = 0
         if lots_d['cp3'][1]+lots_d['cp3'][0] != 0:
-            cp3_ratio = round((cp3_outputs[4][-1]+cp3_outputs[5][-1])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
+            cp3_ratio = round((cp3_outputs[4][hour]+cp3_outputs[5][hour])*100/(lots_d['cp3'][1]+lots_d['cp3'][0]))
 
         cp3_style = dash.no_update
         
@@ -1791,17 +1793,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp3_ratio_string = "-"
         if 'cp3' in non_empty_cps:
-            cp3_ratio_string = str(cp3_outputs[4][-1]+cp3_outputs[5][-1]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
+            cp3_ratio_string = str(cp3_outputs[4][hour]+cp3_outputs[5][hour]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
 
         occupied_cp3 =  html.Div([
             html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3_outputs[5][-1]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3_outputs[4][-1]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp3_outputs[5][hour]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3_outputs[4][hour]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
         
         cp3a_outputs = outputs['cp3a']
         cp3a_ratio = 0
         if lots_d['cp3a'][1]+lots_d['cp3a'][0] != 0:
-            cp3a_ratio = round((cp3a_outputs[4][-1]+cp3a_outputs[5][-1])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
+            cp3a_ratio = round((cp3a_outputs[4][hour]+cp3a_outputs[5][hour])*100/(lots_d['cp3a'][1]+lots_d['cp3a'][0]))
         cp3a_style = dash.no_update
         
         if 'cp3a' not in non_empty_cps:
@@ -1816,17 +1818,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp3a_ratio_string = "-"
         if 'cp3a' in non_empty_cps:
-            cp3a_ratio_string = str(cp3a_outputs[4][-1]+cp3a_outputs[5][-1]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
+            cp3a_ratio_string = str(cp3a_outputs[4][hour]+cp3a_outputs[5][hour]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
 
         occupied_cp3a =  html.Div([
             html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5][-1]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3a_outputs[4][-1]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp3a_outputs[5][hour]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[4][hour]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
 
         cp4_outputs = outputs['cp4']
         cp4_ratio = 0
         if lots_d['cp4'][1]+lots_d['cp4'][0] != 0:
-            cp4_ratio = round((cp4_outputs[4][-1]+cp4_outputs[5][-1])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
+            cp4_ratio = round((cp4_outputs[4][hour]+cp4_outputs[5][hour])*100/(lots_d['cp4'][1]+lots_d['cp4'][0]))
         cp4_style = dash.no_update
         
 
@@ -1842,17 +1844,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp4_ratio_string = "-"
         if 'cp4' in non_empty_cps:
-            cp4_ratio_string = str(cp4_outputs[4][-1]+cp4_outputs[5][-1]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
+            cp4_ratio_string = str(cp4_outputs[4][hour]+cp4_outputs[5][hour]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
 
         occupied_cp4 =  html.Div([
             html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp4_outputs[5][-1]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp4_outputs[4][-1]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp4_outputs[5][hour]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp4_outputs[4][hour]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
 
         cp5_outputs = outputs['cp5']
         cp5_ratio = 0
         if lots_d['cp5'][1]+lots_d['cp5'][1] != 0:
-            cp5_ratio = round((cp5_outputs[4][-1]+cp5_outputs[5][-1])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
+            cp5_ratio = round((cp5_outputs[4][hour]+cp5_outputs[5][hour])*100/(lots_d['cp5'][1]+lots_d['cp5'][0]))
         cp5_style = dash.no_update
         
         if 'cp5' not in non_empty_cps:
@@ -1867,17 +1869,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp5_ratio_string = "-"
         if 'cp5' in non_empty_cps:
-            cp5_ratio_string = str(cp5_outputs[4][-1] + cp5_outputs[5][-1]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
+            cp5_ratio_string = str(cp5_outputs[4][hour] + cp5_outputs[5][hour]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
 
         occupied_cp5 =  html.Div([
             html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5_outputs[5][-1]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp5_outputs[4][-1]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp5_outputs[5][hour]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp5_outputs[4][hour]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
 
         cp5b_outputs = outputs['cp5b']
         cp5b_ratio = 0
         if lots_d['cp5b'][1] != 0:
-            cp5b_ratio = round((cp5b_outputs[5][-1])*100/(lots_d['cp5b'][1]))
+            cp5b_ratio = round((cp5b_outputs[5][hour])*100/(lots_d['cp5b'][1]))
         cp5b_style = dash.no_update
         
         if 'cp5b' not in non_empty_cps:
@@ -1892,18 +1894,18 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp5b_ratio_string = "-"
         if 'cp5b' in non_empty_cps:
-            cp5b_ratio_string = str(cp5b_outputs[5][-1]) + "/" + str(lots_d['cp5b'][1])
+            cp5b_ratio_string = str(cp5b_outputs[5][hour]) + "/" + str(lots_d['cp5b'][1])
 
         occupied_cp5b =  html.Div([
             html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5][-1]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied Red Lots: " + str(cp5b_outputs[5][hour]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
             #html.Div("Occupied White Lots: " + str(cp5b_outputs[4]) + '/' + str(0), style = {"color" : "white"})
             ])
 
         cp6b_outputs = outputs['cp6b']
         cp6b_ratio = 0
         if lots_d['cp6b'][1]+lots_d['cp6b'][0] != 0:
-            cp6b_ratio = round((cp6b_outputs[4][-1]+cp6b_outputs[5][-1])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
+            cp6b_ratio = round((cp6b_outputs[4][hour]+cp6b_outputs[5][hour])*100/(lots_d['cp6b'][1]+lots_d['cp6b'][0]))
         cp6b_style = dash.no_update
         
         if 'cp6b' not in non_empty_cps:
@@ -1918,17 +1920,17 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp6b_ratio_string = "-"
         if 'cp6b' in non_empty_cps:
-            cp6b_ratio_string = str(cp6b_outputs[4][-1]+cp6b_outputs[5][-1]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
+            cp6b_ratio_string = str(cp6b_outputs[4][hour]+cp6b_outputs[5][hour]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
 
         occupied_cp6b =  html.Div([
             html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5][-1]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp6b_outputs[4][-1]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
+            html.Div("Occupied Red Lots: " + str(cp6b_outputs[5][hour]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[4][hour]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
 
         cp10_outputs = outputs['cp10']
         cp10_ratio = 0
         if lots_d['cp10'][1]+lots_d['cp10'][0] != 0:
-            cp10_ratio = round((cp10_outputs[4][-1]+cp10_outputs[5][-1])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
+            cp10_ratio = round((cp10_outputs[4][hour]+cp10_outputs[5][hour])*100/(lots_d['cp10'][1]+lots_d['cp10'][0]))
         cp10_style = dash.no_update
 
         if 'cp10' not in non_empty_cps:
@@ -1943,16 +1945,14 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
         cp10_ratio_string = "-"
         if 'cp10' in non_empty_cps:
-            cp10_ratio_string = str(cp10_outputs[4][-1]+cp10_outputs[5][-1]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
+            cp10_ratio_string = str(cp10_outputs[4][hour]+cp10_outputs[5][hour]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
 
         #print(cp10_outputs[5])
         #print(lots_d)
         occupied_cp10 =  html.Div([
             html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "white"}),
-            html.Div("Occupied Red Lots: " + str(cp10_outputs[5][-1]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp10_outputs[4][-1]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
-
-        
+            html.Div("Occupied Red Lots: " + str(cp10_outputs[5][hour]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
+            html.Div("Occupied White Lots: " + str(cp10_outputs[4][hour]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])  
 
         global results_dict
         results_dict = {}
@@ -1961,10 +1961,15 @@ def cp_simulation_model(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             red_info = value[5]
             results_dict[key] = [white_info, red_info]
         
-        #print(results_dict)
+        global stats_dict
+        stats_dict = {}
+        for key, value in outputs.items():
+            stats_dict[key] = [value[0],value[1],value[2],value[3]]
+        
+        print(stats_dict)
         
 
-        #time.sleep(10)
+        time.sleep(2)
         return False,generate_results_modal(outputs),False,cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     
     else:
@@ -2011,11 +2016,12 @@ def open_simulation_modal(n1,n2):
     Output(component_id = 'cp10', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp10', component_property = 'children',allow_duplicate=True),
     Output(component_id='occupied_cp10',component_property='children', allow_duplicate=True),
+    Input('results-slider','disabled'),
     Input('results-slider','value'),
     prevent_initial_call = True
 )
-def change_saturation(hour):
-    if hour is not None:
+def change_saturation(disabled,hour):
+    if disabled == False and hour is not None:
         outputs = results_dict
         cp3_outputs = outputs['cp3']
         cp3_ratio = 0
