@@ -238,6 +238,9 @@ def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     Returns:
         dict: A dictionary containing summary statistics for each car park.
     """
+    if cap == {} or not any(lambdas):
+        return {}
+
     available_cp = list(cap.keys())
     cp_prob = params.get_carpark_prob(available_cp)
     car_prob = params.get_parking_type_prop(available_cp)
