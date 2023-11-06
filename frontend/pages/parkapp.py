@@ -227,6 +227,7 @@ def generate_results_modal(results):
         fig1.update_traces(name='Red', selector=dict(name='red_entered'))
         fig1.update_traces(name='Total', selector=dict(name='total_entered'))
         fig1.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig1.update_yaxes(rangemode='nonnegative')
         fig1.update_layout(xaxis_title="Carpark")
 
         # Reject Graph
@@ -236,6 +237,7 @@ def generate_results_modal(results):
         fig2.update_traces(name='Red', selector=dict(name='red_rej'))
         fig2.update_traces(name='Total', selector=dict(name='total_rej'))
         fig2.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig2.update_yaxes(rangemode='nonnegative')
         fig2.update_layout(xaxis_title="Carpark")
 
         fig3 = px.bar(df, x = 'carpark', y = ['white_rej_percent','red_rej_percent','total_rej_percent'],
@@ -244,6 +246,7 @@ def generate_results_modal(results):
         fig3.update_traces(name='Red', selector=dict(name='red_rej_percent'))
         fig3.update_traces(name='Total', selector=dict(name='total_rej_percent'))
         fig3.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig3.update_yaxes(rangemode='nonnegative')
         fig3.update_layout(xaxis_title="Carpark")
 
         
@@ -974,6 +977,7 @@ def reset_refine_modal(month,event, clicks):
 def reset_state(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-button' in changed_id:
+        results_body.clear()
         return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
         return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
