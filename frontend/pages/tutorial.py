@@ -42,9 +42,9 @@ layout = html.Div([
                 html.Span("Red: 70-100%", style={'color': 'red'}),
             ]),
             html.Div([
-                html.Span("●", style={'color': 'green', 'font-size': '2.2em'}),
-                html.Span("●", style={'color': 'orange', 'font-size': '2.2em'}),
-                html.Span("●", style={'color': 'red', 'font-size': '2.2em'}),
+                html.Span("●", style={'color': 'green', 'font-size': '4em'}),
+                html.Span("●", style={'color': 'orange', 'font-size': '4em'}),
+                html.Span("●", style={'color': 'red', 'font-size': '4em'}),
             ], style={'text-align': 'center'}),
         ], style={'background-color': 'white', 'padding': '20px', 'text-align': 'center'}),
     ]),

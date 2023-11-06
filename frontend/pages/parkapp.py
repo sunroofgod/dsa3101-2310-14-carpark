@@ -310,36 +310,54 @@ layout = dbc.Container([
         dbc.Col( # Center partition
             html.Div([
             html.Div(html.Img(src=dash.get_asset_url('nus_map.png'), style={'width': '100%', 'height': 'auto'}), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
+
+            html.Div([
+                html.Div([
+                    html.H3('Occupancy Rate Legend:', style={'color': '#003D7C', 'font-weight':'bold'}),
+                    html.Div("● - Green: 0-60%", style={'color': 'green', 'font-size': '1em'}),
+                    html.Div("● - Orange: 60-70%", style={'color': 'orange', 'font-size': '1em'}),
+                    html.Div("● - Red: 70-100%", style={'color': 'red', 'font-size': '1em'}),
+                    html.Div("*Click on circles below Carparks to adjust carpark parameters and view occupancies*", style = {'color':'#003D7C', 'font-weight':'bold', 'font-style':'italic','font-size':'0.5em'})
+                ])
+            ], style = {'border' : '2px solid black', 'padding-left':'5px', 'border-radius':'5px', 'margin':'3px', 'align-text':'center', 'background-color':'#f3f3f3',
+                        'position':'absolute', 'top':'4%', 'left':'75%'}),
+
             html.Div([
                 html.Button(default_button, id='cp3', className = 'cp-button', style = {'top':'16%', 'left':'27%'}),
                 html.Div('CP3', style = {'position': 'absolute', 'top': '12%', 'left': '27.7%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp3a', className = 'cp-button', style = {'top':'17%', 'left':'32%'}),
                 html.Div('CP3A', style = {'position': 'absolute', 'top': '13%', 'left': '32.3%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp4', className = 'cp-button', style = {'top':'32%', 'left':'34%'}),
                 html.Div('CP4', style = {'position': 'absolute', 'top': '39%', 'left': '34.8%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp5', className = 'cp-button',style = {'top':'34%', 'left':'43%'}),
                 html.Div('CP5', style = {'position': 'absolute', 'top': '41%', 'left': '43.8%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp5b', className = 'cp-button', style = {'top':'25.5%', 'left':'42%'}),
                 html.Div('CP5B', style = {'position': 'absolute', 'top': '21.5%', 'left': '42.3%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp6b', className = 'cp-button', style = {'top':'62%', 'left':'62%'}),
                 html.Div('CP6B', style = {'position': 'absolute', 'top': '69%', 'left': '62.3%', 'font-weight': 'bold'})
                 ]
                 ),
+
             html.Div([
                 html.Button(default_button, id='cp10', className = 'cp-button', style = {'top':'53%', 'left':'84%'}),
                 html.Div('CP10', style = {'position': 'absolute', 'top': '60%', 'left': '84.3%', 'font-weight': 'bold'})
