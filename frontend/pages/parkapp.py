@@ -1308,7 +1308,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
                     'color': 'white',
                     'backgroundColor': 'black',
                     'fontWeight': 'bold'
-                }
+                    }
             ],  
         )
 
