@@ -1678,7 +1678,7 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
         #outputs = simulate_des(arrival_rates,lots_d_input)
         global outputs
         outputs = {}
-        n = 100
+        n = 10
         for i in range(n):
             current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
             outputs = stats_mean(outputs, current)

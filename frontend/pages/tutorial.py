@@ -23,7 +23,7 @@ layout = html.Div([
             html.Video(
                 src="https://www.youtube.com/embed/GsLsBs4oW30",
                 controls=True,
-                poster="https://images.unsplash.com/photo-1554080353-a576cf803bda?auto=format&fit=crop&q=80&w=1000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cGhvdG98ZW58MHx8MHx8fDA%3D",
+                poster="assets/tutorial_pic.png",
                 style={'max-width': '100%', 'height': '500px', 'width': '75%', 'display': 'block', 'margin': '0 auto'}
             ),
             href="https://www.youtube.com/watch?v=GsLsBs4oW30",  # Add the actual YouTube video URL
