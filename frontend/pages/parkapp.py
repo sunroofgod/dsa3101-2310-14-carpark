@@ -143,7 +143,7 @@ def cp_modal(cp,a,b,c,d):
                 html.Div(
                     [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
                     html.Br(),
-                    html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "white"})]
+                    html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "black"})]
                 )
                 ])
 
