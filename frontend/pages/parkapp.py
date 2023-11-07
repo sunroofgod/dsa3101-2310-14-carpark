@@ -133,12 +133,12 @@ def cp_modal(cp,a,b,c,d):
                 html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "black"})], id = 'occupied_'+cp),
                 html.Br(),
                 html.H4('Simulation Parameters:', style = {"color" : "black"}),
-                html.Div('Carpark Status:', style = {"color" : "black"}),
+                html.B('Carpark Status:', style = {"color" : "black"}),
                 html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
                 html.Div([
-                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
+                html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
                 html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-                html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
+                html.Div(html.B('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
                 html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
                 html.Div(
                     [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
@@ -165,10 +165,10 @@ def cp_modal(cp,a,b,c,d):
                 html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}),], id = 'occupied_'+cp),
                 html.Br(),
                 html.H4('Simulation Parameters:', style = {"color" : "black"}),
-                html.Div('Carpark Status:', style = {"color" : "black"}),
+                html.B('Carpark Status:', style = {"color" : "black"}),
                 html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
                 html.Div([
-                html.Div(html.Div('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
+                html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
                 html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
                 #html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
                 #html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
@@ -1787,9 +1787,9 @@ def change_saturation(disabled,hour):
             cp3_ratio_string = str(cp3_outputs[0][hour]+cp3_outputs[1][hour]) + "/" + str(lots_d['cp3'][1]+lots_d['cp3'][0])
 
         occupied_cp3 =  html.Div([
-            html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp3_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp3_outputs[1][hour]) + '/' + str(lots_d['cp3'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3_outputs[0][hour]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp3_outputs[0][hour]) + '/' + str(lots_d['cp3'][0]), style = {"color" : "black"})])
         
         cp3a_outputs = outputs['cp3a']
         cp3a_ratio = 0
@@ -1812,9 +1812,9 @@ def change_saturation(disabled,hour):
             cp3a_ratio_string = str(cp3a_outputs[0][hour]+cp3a_outputs[1][hour]) + "/" + str(lots_d['cp3a'][1]+lots_d['cp3a'][0])
 
         occupied_cp3a =  html.Div([
-            html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp3a_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp3a_outputs[1][hour]) + '/' + str(lots_d['cp3a'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp3a_outputs[0][hour]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp3a_outputs[0][hour]) + '/' + str(lots_d['cp3a'][0]), style = {"color" : "black"})])
 
         cp4_outputs = outputs['cp4']
         cp4_ratio = 0
@@ -1838,9 +1838,9 @@ def change_saturation(disabled,hour):
             cp4_ratio_string = str(cp4_outputs[0][hour]+cp4_outputs[1][hour]) + "/" + str(lots_d['cp4'][1]+lots_d['cp4'][0])
 
         occupied_cp4 =  html.Div([
-            html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp4_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp4_outputs[1][hour]) + '/' + str(lots_d['cp4'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp4_outputs[0][hour]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp4_outputs[0][hour]) + '/' + str(lots_d['cp4'][0]), style = {"color" : "black"})])
 
         cp5_outputs = outputs['cp5']
         cp5_ratio = 0
@@ -1863,9 +1863,9 @@ def change_saturation(disabled,hour):
             cp5_ratio_string = str(cp5_outputs[0][hour] + cp5_outputs[1][hour]) + "/" + str(lots_d['cp5'][1]+lots_d['cp5'][0])
 
         occupied_cp5 =  html.Div([
-            html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp5_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp5_outputs[1][hour]) + '/' + str(lots_d['cp5'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp5_outputs[0][hour]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp5_outputs[0][hour]) + '/' + str(lots_d['cp5'][0]), style = {"color" : "black"})])
 
         cp5b_outputs = outputs['cp5b']
         cp5b_ratio = 0
@@ -1888,7 +1888,7 @@ def change_saturation(disabled,hour):
             cp5b_ratio_string = str(cp5b_outputs[1][hour]) + "/" + str(lots_d['cp5b'][1])
 
         occupied_cp5b =  html.Div([
-            html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp5b_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp5b_outputs[1][hour]) + '/' + str(lots_d['cp5b'][1]), style = {'color':'#FF2800'}),
             #html.Div("Occupied White Lots: " + str(cp5b_outputs[0]) + '/' + str(0), style = {"color" : "white"})
             ])
@@ -1914,9 +1914,9 @@ def change_saturation(disabled,hour):
             cp6b_ratio_string = str(cp6b_outputs[0][hour]+cp6b_outputs[1][hour]) + "/" + str(lots_d['cp6b'][1]+lots_d['cp6b'][0])
 
         occupied_cp6b =  html.Div([
-            html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp6b_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp6b_outputs[1][hour]) + '/' + str(lots_d['cp6b'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp6b_outputs[0][hour]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp6b_outputs[0][hour]) + '/' + str(lots_d['cp6b'][0]), style = {"color" : "black"})])
 
         cp10_outputs = outputs['cp10']
         cp10_ratio = 0
@@ -1939,9 +1939,9 @@ def change_saturation(disabled,hour):
             cp10_ratio_string = str(cp10_outputs[0][hour]+cp10_outputs[1][hour]) + "/" + str(lots_d['cp10'][1]+lots_d['cp10'][0])
 
         occupied_cp10 =  html.Div([
-            html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "white"}),
+            html.B("Occupied Lots: " + str(cp10_ratio_string), style = {"color" : "black"}),
             html.Div("Occupied Red Lots: " + str(cp10_outputs[1][hour]) + '/' + str(lots_d['cp10'][1]), style = {'color':'#FF2800'}),
-            html.Div("Occupied White Lots: " + str(cp10_outputs[0][hour]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "white"})])
+            html.Div("Occupied White Lots: " + str(cp10_outputs[0][hour]) + '/' + str(lots_d['cp10'][0]), style = {"color" : "black"})])
 
         return cp3_style,cp3_ratio,occupied_cp3,cp3a_style,cp3a_ratio,occupied_cp3a,cp4_style,cp4_ratio,occupied_cp4,cp5_style,cp5_ratio,occupied_cp5,cp5b_style,cp5b_ratio,occupied_cp5b,cp6b_style,cp6b_ratio,occupied_cp6b, cp10_style,cp10_ratio,occupied_cp10
     else:
