@@ -414,7 +414,7 @@ layout = dbc.Container([
                 html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
                                                                         'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), 
                 html.Br(),
-                html.Div([dbc.Progress(value = 0, id = 'progress-bar'),dcc.Interval(id="interval", interval=500)]),
+                html.Div([dbc.Progress(value = 0, id = 'progress-bar', color = 'success', label = '🚙 🚙 🚙'),dcc.Interval(id="interval", interval=500)]),
                 html.Br(),
                 html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
                 ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), #change this line after deciding color another day
