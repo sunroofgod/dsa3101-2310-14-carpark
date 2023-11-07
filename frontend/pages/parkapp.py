@@ -6,6 +6,7 @@ import pandas as pd
 import random
 import time
 import io
+from dash_extensions.enrich import FileSystemCache, Trigger
 
 import os
 path = os.getcwd()
@@ -14,7 +15,7 @@ import sys
 sys.path.append(path + r'\backend\des')
 
 from params import get_month_arrival_rate, get_day_arrival_rate
-from DES import run_nsim
+from DES import run_nsim, stats_mean
 
 dash.register_page(__name__) #signifies homepage
 
@@ -35,6 +36,8 @@ results_body = []
 
 count = 0
 
+fsc = FileSystemCache("cache_dir")
+fsc.set("progress", 0)
 
 # Sample Data for Months
 month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
@@ -409,7 +412,10 @@ layout = dbc.Container([
             html.Div(dbc.Modal([
                 dbc.ModalBody([
                 html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
-                                                                        'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), #hawyeah
+                                                                        'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), 
+                html.Br(),
+                html.Div([dbc.Progress(value = 0, id = 'progress-bar'),dcc.Interval(id="interval", interval=500)]),
+                html.Br(),
                 html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
                 ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), #change this line after deciding color another day
                 ],id="loading-modal",is_open=False,backdrop = False,centered = True
@@ -1666,14 +1672,30 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
         
         #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
+        init_time = time.time()
+
         #outputs = simulate_des(arrival_rates,lots_d_input)
         global outputs
-        outputs = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
+        outputs = {}
+        n = 10
+        for i in range(n):
+            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
+            outputs = stats_mean(outputs, current)
+            global fsc
+            fsc.set('progress',(i+1)*100/n)
 
         for key in list_carparks:
             if key not in outputs.keys():
                 outputs[key] = [[0 for i in range(24)] for j in range(6)]
+
         
+        ## Round off overall output
+        for cp, val_list in outputs.items():
+            for i in range(len(val_list)):
+                outputs[cp][i] = [int(val) for val in val_list[i]]
+        
+        duration = (time.time() - init_time) / 60 # convert to minutes
+        print(f"--- Total running time {duration:.2f} minutes ---")
 
         
         #print("Arrival rates", arrival_rates)
@@ -2015,3 +2037,21 @@ def download_data(clicks):
         return dcc.send_file(excel_writer,"simulation_statistics.xlsx")
     else:
         return None
+
+@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
+def update_progress(trig):
+    global fsc
+    value = fsc.get("progress")  # get progress
+    return value
+
+@callback(
+    Output("progress-bar","value", allow_duplicate=True),
+    Input("loading-modal","is_open"),
+    prevent_initial_call=True
+)
+def reset_progress(is_open):
+    if not is_open:
+        fsc.set('progress',0)
+        return 0
+    else:
+        return dash.no_update

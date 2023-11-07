@@ -7,6 +7,7 @@ import time
 import params
 import sys
 
+
 ## time unit : minutes
 
 def get_lambda(hour : int, month=None, lambdas=None):
@@ -261,7 +262,7 @@ def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     return stats
 
 def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={}):
-    init_time = time.time()
+    #init_time = time.time()
 
     ## Run simulation for n times
     for i in range(n):
@@ -281,9 +282,9 @@ def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={})
         for i in range(len(val_list)):
             overall_stats[cp][i] = [int(val) for val in val_list[i]]   
         
-    duration = (time.time() - init_time) / 60 # convert to minutes
-    print_stats(overall_stats)
-    print(f"--- Total running time {duration:.2f} minutes ---")
+    #duration = (time.time() - init_time) / 60 # convert to minutes
+    #print_stats(overall_stats)
+    #print(f"--- Total running time {duration:.2f} minutes ---")
     return overall_stats
 
 if __name__ == "__main__":
