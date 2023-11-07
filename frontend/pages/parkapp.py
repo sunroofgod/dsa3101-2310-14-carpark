@@ -320,7 +320,8 @@ layout = dbc.Container([
                     html.Div("● - Green: 0-60%", style={'color': 'green', 'font-size': '1em'}),
                     html.Div("● - Orange: 60-70%", style={'color': 'orange', 'font-size': '1em'}),
                     html.Div("● - Red: 70-100%", style={'color': 'red', 'font-size': '1em'}),
-                    html.Div("*Click on circles below Carparks to adjust carpark parameters and view occupancies*", style = {'color':'#003D7C', 'font-weight':'bold', 'font-style':'italic','font-size':'0.5em'})
+                    html.Br(),
+                    html.Div("*Click on the circles on the map to adjust carpark parameters and view occupancy*", style = {'color':'#003D7C', 'font-weight':'bold', 'font-style':'italic','font-size':'0.6em'})
                 ])
             ], style = {'border' : '2px solid black', 'padding-left':'5px', 'border-radius':'5px', 'margin':'3px', 'align-text':'center', 'background-color':'#f3f3f3',
                         'position':'absolute', 'top':'4%', 'left':'75%'}),

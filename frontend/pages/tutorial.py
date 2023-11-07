@@ -32,22 +32,6 @@ layout = html.Div([
     ], style={'border': '1px solid #003D7C', 'padding': '10px', 'border-radius': '5px'})
 ], style={'background-color': 'white', 'padding': '20px'}),
 
-    # Simulation Legend (Centered)
-    html.Div([
-        html.Div([
-            html.H2("Occupancy Rate Legend", style={'color': '#003D7C'}),
-            html.Div([
-                html.Span("Green: 0-60%: ", style={'color': 'green'}),
-                html.Span("Orange: 60-70%: ", style={'color': 'orange'}),
-                html.Span("Red: 70-100%", style={'color': 'red'}),
-            ]),
-            html.Div([
-                html.Span("●", style={'color': 'green', 'font-size': '4em'}),
-                html.Span("●", style={'color': 'orange', 'font-size': '4em'}),
-                html.Span("●", style={'color': 'red', 'font-size': '4em'}),
-            ], style={'text-align': 'center'}),
-        ], style={'background-color': 'white', 'padding': '20px', 'text-align': 'center'}),
-    ]),
     
     # Additional Content (Centered)
     html.Div([
