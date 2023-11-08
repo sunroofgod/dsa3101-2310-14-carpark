@@ -33,6 +33,7 @@ default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
 sample_results = {'cp3': [467, 44, 239, 75, 34, 16], 'cp3a': [309, 157, 229, 75, 45, 13], 'cp4': [331, 124, 167, 125, 39, 14], 'cp5': [422, 179, 58, 25, 35, 13], 'cp5b': [165, 60, 165, 126, 0, 16], 'cp6b': [422, 194, 245, 50, 38, 13], 'cp10': [335, 53, 229, 25, 39, 18]}
 results_body = []
+carpark_cap = {'cp3':(31,212), 'cp3a':(14,53),'cp4':(21,95),'cp5':(17,53),'cp5b':(32,0),'cp6b':(130,43),'cp10':(211,164)}
 
 count = 0
 
@@ -136,6 +137,8 @@ def cp_modal(cp,a,b,c,d):
                 html.B('Carpark Status:', style = {"color" : "black"}),
                 html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
                 html.Div([
+                html.Div(html.B('Adjust Ratio of White:Red Lots:'),style= {'text-align':'center', 'color' : 'navy'}),
+                html.Div(dcc.Slider(id = "slider_ratio_"+cp,min = 0, max = b+d, step = 1, value = d, marks = None)),
                 html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
                 html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
                 html.Div(html.B('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
@@ -460,30 +463,75 @@ def show_cp_params(status):
     Input('cp_status_cp3','value'),
     Input('slider_red_cp3','value'),
     Input('slider_white_cp3','value'),
-    State('slider_red_cp3', 'max'),
-    State('slider_white_cp3', 'max'),
+    #State('slider_red_cp3', 'max'),
+    #State('slider_white_cp3', 'max'),
 )
-def params_to_simulate(status,red,white,red_max,white_max):
+def params_to_simulate(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/red_max)) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/white_max)) + "% Capacity)"]
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp3'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp3'][1])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp3','value',allow_duplicate = True),
+    Output('slider_white_cp3','value',allow_duplicate = True),
+    Output('slider_red_cp3','max'),
+    Output('slider_white_cp3','max'),
+    Input('slider_ratio_cp3','value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_white_cp3','value'),
+    prevent_initial_call = True
+)
+def change_ratio(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp3'][1]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp3'][0] - to_add_white
+    if red_val == carpark_cap['cp3'][0]:
+        new_red = red_val-to_add_white
+    else:
+        new_red = dash.no_update 
+    
+    if white_val == carpark_cap['cp3'][1]:
+        new_white = white_val + to_add_white
+    else:
+        new_white = dash.no_update 
+
+
+    return new_red,new_white,new_max_red, new_max_white
+
+@callback(
+    Output('slider_red_cp3','value', allow_duplicate = True),
+    Output('slider_white_cp3', 'value', allow_duplicate = True),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3','value'),
+    Input('slider_white_cp3','value'),
+    prevent_initial_call = True
+)
+def adjust_max(red_max,white_max,red_val,white_val):
+    new_red = red_val
+    new_white = white_val
+    if red_val > red_max:
+        new_red = red_max
+    if white_val > white_max:
+        new_white = white_max
+    return new_red, new_white
 
 # Callback to reset simulation numbers
 @callback(
+    Output('slider_ratio_cp3','value'),
     Output('slider_red_cp3','value'),
     Output('slider_white_cp3','value'),
     Output('cp_status_cp3','value'),
     Input('reset-modal-cp3','n_clicks'),
-    State('slider_red_cp3','max'),
-    State('slider_white_cp3','max')
 )
-def reset_cp_params(clicks,max_red,max_white):
+def reset_cp_params(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp3' in changed_id:
-        return max_red, max_white, "Open"
+        return carpark_cap['cp3'][1],carpark_cap['cp3'][0], carpark_cap['cp3'][1], "Open"
     else:
-        return dash.no_update, dash.no_update,dash.no_update
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
 
 
 # Callback to toggle cp modal
