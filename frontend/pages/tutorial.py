@@ -44,6 +44,6 @@ layout = html.Div([
     
     # Footer
     html.Div([
-        html.P("For any questions or feedback, please contact us at hanehneh@gmail.com", style={'color': 'white'}),
+        html.P("For any questions or feedback, please contact us at parkitectnus@gmail.com", style={'color': 'white'}),
     ], style={'background-color': '#003D7C', 'padding': '20px', 'text-align': 'center'}),
 ])
