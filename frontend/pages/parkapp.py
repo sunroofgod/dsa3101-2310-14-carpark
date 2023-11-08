@@ -567,6 +567,21 @@ def change_ratio(ratio,red_val,white_val):
 
     return new_max_red,new_max_white,new_max_red, new_max_white
 
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp3a','value'),
+    Output('slider_red_cp3a','value'),
+    Output('slider_white_cp3a','value'),
+    Output('cp_status_cp3a','value'),
+    Input('reset-modal-cp3a','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp3a' in changed_id:
+        return carpark_cap['cp3a'][1],carpark_cap['cp3a'][0], carpark_cap['cp3a'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
 # Callback to toggle cp modal
 @callback(
         Output('modal-cp4','is_open'),
@@ -626,6 +641,21 @@ def change_ratio(ratio,red_val,white_val):
     new_max_red = carpark_cap['cp4'][0] - to_add_white
 
     return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp4','value'),
+    Output('slider_red_cp4','value'),
+    Output('slider_white_cp4','value'),
+    Output('cp_status_cp4','value'),
+    Input('reset-modal-cp4','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp4' in changed_id:
+        return carpark_cap['cp4'][1],carpark_cap['cp4'][0], carpark_cap['cp4'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
 
 # Callback to toggle cp modal
 @callback(
@@ -687,6 +717,21 @@ def change_ratio(ratio,red_val,white_val):
 
     return new_max_red,new_max_white,new_max_red, new_max_white
 
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp5','value'),
+    Output('slider_red_cp5','value'),
+    Output('slider_white_cp5','value'),
+    Output('cp_status_cp5','value'),
+    Input('reset-modal-cp5','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp5' in changed_id:
+        return carpark_cap['cp5'][1],carpark_cap['cp5'][0], carpark_cap['cp5'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
 # Callback to toggle cp modal
 @callback(
         Output('modal-cp5b','is_open'),
@@ -724,6 +769,18 @@ def params_to_simulate(status,red):
     else:
         return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp5b'][0])) + "% Capacity)"]
 
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_red_cp5b','value'),
+    Output('cp_status_cp5b','value'),
+    Input('reset-modal-cp5b','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp5b' in changed_id:
+        return carpark_cap['cp5b'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update
 
 # Callback to toggle cp modal
 @callback(
@@ -785,6 +842,22 @@ def change_ratio(ratio,red_val,white_val):
 
     return new_max_red,new_max_white,new_max_red, new_max_white
 
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp6b','value'),
+    Output('slider_red_cp6b','value'),
+    Output('slider_white_cp6b','value'),
+    Output('cp_status_cp6b','value'),
+    Input('reset-modal-cp6b','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp6b' in changed_id:
+        return carpark_cap['cp6b'][1],carpark_cap['cp6b'][0], carpark_cap['cp6b'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+
 # Callback to toggle cp modal
 @callback(
         Output('modal-cp10','is_open'),
@@ -845,6 +918,20 @@ def change_ratio(ratio,red_val,white_val):
 
     return new_max_red,new_max_white,new_max_red, new_max_white
 
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp10','value'),
+    Output('slider_red_cp10','value'),
+    Output('slider_white_cp10','value'),
+    Output('cp_status_cp10','value'),
+    Input('reset-modal-cp10','n_clicks'),
+)
+def reset_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp3' in changed_id:
+        return carpark_cap['cp10'][1],carpark_cap['cp10'][0], carpark_cap['cp10'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
 
 
 '''
