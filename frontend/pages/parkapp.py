@@ -304,7 +304,7 @@ layout = dbc.Container([
                 html.H4("Currently Simulating:", style={'font-weight':'bold'}),
                 html.Div("None",id = "simulation-contents"),
                 html.Br(),
-                html.Div('Unavailable, run simulations first', id = 'hour-slider-show'),
+                html.Div('Unavailable, run simulations first', id = 'hour-slider-show', style = {'font-size':'15px'}),
                 dcc.Slider(min = 0, max = 23, step = 1,  value = 23, id = 'results-slider', disabled = True, marks = None),
                 #html.Br(),
                 dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'})
@@ -1773,7 +1773,7 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
         #outputs = simulate_des(arrival_rates,lots_d_input)
         global outputs
         outputs = {}
-        n = 10
+        n = 3
         for i in range(n):
             current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
             outputs = stats_mean(outputs, current)
@@ -1807,7 +1807,7 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
             red_info = value[5]
             results_dict[key] = [white_info, red_info]
         
-        time.sleep(2)
+        time.sleep(1)
         return False,generate_results_modal(outputs),False
     
     else:
