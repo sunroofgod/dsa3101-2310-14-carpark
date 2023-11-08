@@ -2127,7 +2127,7 @@ def download_data(clicks):
             df.to_excel(excel_writer, sheet_name=sheet_name, index=False)
 
         # Save and close the Excel file
-        excel_writer.save()
+        excel_writer.close()
 
 
         return dcc.send_file(excel_writer,"simulation_statistics.xlsx")
