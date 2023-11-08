@@ -306,7 +306,7 @@ layout = dbc.Container([
                 html.Br(),
                 html.Div('Unavailable, run simulations first', id = 'hour-slider-show'),
                 dcc.Slider(min = 0, max = 23, step = 1,  value = 23, id = 'results-slider', disabled = True, marks = None),
-                html.Br(),
+                #html.Br(),
                 dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'})
             ]
             ),
