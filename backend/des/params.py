@@ -1,7 +1,13 @@
 import pandas as pd
 import datetime
+import os
+
+path = os.getcwd()
+CAP_FPATH = os.path.join(path, "data", "CP Lots NUS.xlsx")
+DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv")
+
 from database.mysql_connector import get_table
-CAP_FPATH = "../../data/CP Lots NUS.xlsx"
+#CAP_FPATH = "../../data/CP Lots NUS.xlsx"
 #DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 
 capacity_data = pd.read_excel(CAP_FPATH)
@@ -42,7 +48,6 @@ def get_day_arrival_rate(day : str, data=cp_data):
     filtered_data = data[data['enter_dt'].dt.date == day.date()]
     filtered_data['enter_hour'] = filtered_data['enter_dt'].dt.hour
     filtered_data['year'] = filtered_data['enter_dt'].dt.year
-
     users = filtered_data[["year", "enter_hour"]]
     users = users.groupby(["year", "enter_hour"]).size().reset_index()
     users = users.groupby(["enter_hour"]).agg({0 : 'mean'})
@@ -202,7 +207,7 @@ def get_parking_duration_stats(cp : list, data=cp_data):
     return du
 
 ## TODO: take input from user / database
-CP_LIST = ["cp3", "cp3a", "cp4", "cp5", "cp5b", "cp6b"]
+CP_LIST = ["cp3", "cp3a", "cp4", "cp5", "cp5b", "cp6b","cp10"]
 SIM_TIME = 24 * 60 # in minutes
 CP_CAPACITY = get_carpark_capacity(CP_LIST)
 CP_PROB = get_carpark_prob(CP_LIST)

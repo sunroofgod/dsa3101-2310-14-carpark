@@ -1,9 +1,9 @@
+
 import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, Input, Output
 import plotly.express as px
 import pandas as pd
-
 
 app = Dash(__name__, use_pages=True, external_stylesheets=['https://fonts.googleapis.com/css?family=Open+Sans:400,600',dbc.themes.BOOTSTRAP])
 

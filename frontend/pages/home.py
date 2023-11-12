@@ -5,8 +5,8 @@ dash.register_page(__name__, path = '/') #signifies homepage
 
 container = html.Div(
     [
-        html.H1("PARKitect:", style={'font-weight': 'bold', 'color': 'blue', 'display': 'inline'}),
-        html.H1(" Designing Smart Parking Solutions", style={'font-weight': 'bold', 'color': 'orange', 'display': 'inline'}),
+        html.H1("PARKitect:", style={'font-weight': 'bold', 'color': '#003d7c', 'display': 'inline'}),
+        html.H1(" Designing Smart Parking Solutions", style={'font-weight': 'bold', 'color': '#ef7c00', 'display': 'inline'}),
         html.H2("Your one-stop NUS parking simulation system", style={'font-weight': 'bold'}),
         html.Br(),
         html.P("*Red Lots - Strictly for staff only", style={'margin-bottom': '0px', "color": "red"}),
