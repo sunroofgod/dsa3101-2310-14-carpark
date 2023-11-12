@@ -1,11 +1,12 @@
 import pandas as pd
 import datetime
-
+from database.mysql_connector import get_table
 CAP_FPATH = "../../data/CP Lots NUS.xlsx"
-DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
+#DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 
 capacity_data = pd.read_excel(CAP_FPATH)
-cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
+#cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
+cp_data = cp_data = get_table("visitors")
 
 def filter_cp(data : pd.DataFrame, cp : list):
     data = data.copy()
