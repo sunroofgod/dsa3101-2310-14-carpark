@@ -208,3 +208,4 @@ CP_PROB = get_carpark_prob(CP_LIST)
 CAR_PROB = get_parking_type_prop(CP_LIST)
 LAMBDAS = get_arrival_rates(CP_LIST)
 MONTH = datetime.date.today().month
+
