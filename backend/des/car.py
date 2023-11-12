@@ -1,7 +1,7 @@
 import numpy as np
-from params import get_parking_duration_stats
+from params import CP_LIST, get_parking_duration_stats
 
-park_du = get_parking_duration_stats()
+park_du = get_parking_duration_stats(CP_LIST)
 class Car:
     """
     Represents a car in a parking simulation.
