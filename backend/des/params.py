@@ -3,9 +3,8 @@ import datetime
 import os
 
 path = os.getcwd()
-CAP_FPATH = path + r"\data\CP Lots NUS.xlsx"
-DATA_FPATH = path + r"\data\cleaned\all_carparks_cleaned.csv"
-
+CAP_FPATH = os.path.join(path, "data", "CP Lots NUS.xlsx")
+DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv")
 capacity_data = pd.read_excel(CAP_FPATH)
 cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
 
@@ -26,7 +25,7 @@ def get_month_arrival_rate(month : int):
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
     """
     return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
-    return {h : val for (m, h), val in get_arrival_rates(CP_LIST).items() if m == month}
+   
 
 def get_day_arrival_rate(day : str, data=cp_data):
     """

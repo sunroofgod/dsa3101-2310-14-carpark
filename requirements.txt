@@ -9,6 +9,3 @@ pymysql==1.1.0
 dash
 dash_bootstrap_components
 plotly.express
-openpyxl
-matplotlibgi
-dash_extensions

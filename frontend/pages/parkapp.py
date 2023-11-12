@@ -12,7 +12,7 @@ import os
 path = os.getcwd()
 
 import sys
-sys.path.append(path + r'\backend\des')
+sys.path.append(os.path.join(path, "backend", "des"))
 
 from params import get_month_arrival_rate, get_day_arrival_rate
 from DES import run_nsim, stats_mean
