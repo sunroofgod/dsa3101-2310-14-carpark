@@ -120,7 +120,7 @@ def refine_modal(base, d):
                     dbc.Button(
                         "Save and Exit", id="close-refine-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
                     )])
-    ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
+    ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl', style = {'zoom':'75%'})
 
 # Helper function for carpark modal
 def cp_modal(cp,a,b,c,d):
@@ -157,7 +157,7 @@ def cp_modal(cp,a,b,c,d):
                             "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
                         )]
                         , style = {"background-color" : "#003d7c"})
-        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True,style = {'zoom':'75%'})
     
     else:
         return dbc.Modal([
@@ -189,7 +189,7 @@ def cp_modal(cp,a,b,c,d):
                             "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
                         )]
                         , style = {"background-color" : "#003d7c"})
-        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True,style = {'zoom':'75%'})
 
 
 # Helper function for confirmation of simulation modal
@@ -202,7 +202,7 @@ def simulate_modal():
             dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
             dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
          ], style ={'border': 'navy 3px solid','background-color':'navy'})
-    ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
+    ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True,style = {'zoom':'75%'})
 
 
 # Helper function to create results modal, input is results dict
@@ -216,9 +216,18 @@ def generate_results_modal(results):
         red_entered = list([result[1][-1] for result in results.values()])
         white_rej = list([result[2][-1] for result in results.values()])
         red_rej = list([result[3][-1] for result in results.values()])
-        df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
+        max_white = list([max(result[4]) for result in results.values()])
+        max_red = list([max(result[5]) for result in results.values()])
+        white_cap = list([lots[0] for lots in lots_d.values()])
+        red_cap = list([lots[1] for lots in lots_d.values()])
+
+        df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej, 'max_white':max_white, 'max_red':max_red}).sort_values('carpark')
         df['order'] = [6,0,1,2,3,4,5]
         df.sort_values('order',inplace = True)
+        df['white_cap'] = white_cap
+        df['red_cap'] = red_cap
+        df['max_white'] = round(df['max_white']/df['white_cap'] * 100)
+        df['max_red'] = round(df['max_red']/df['red_cap'] * 100)
         
         print(df)
 
@@ -257,11 +266,21 @@ def generate_results_modal(results):
         fig3.update_yaxes(rangemode='nonnegative')
         fig3.update_layout(xaxis_title="Carpark")
 
+        fig4 = px.bar(df, x = 'carpark', y = ['max_white','max_red'],
+        title = 'Maximum Percentage Occupancy by Carpark', barmode = 'group', labels = {'value':'Percent Occupied (%)','variable':'Entry Type'})
+        fig4.update_traces(name='White', selector=dict(name='max_white'))
+        fig4.update_traces(name='Red', selector=dict(name='max_red'))
+        #fig3.update_traces(name='Total', selector=dict(name='total_rej_percent'))
+        fig4.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig4.update_yaxes(rangemode='nonnegative')
+        fig4.update_layout(xaxis_title="Carpark")
+
         
         current_graphs = dbc.Col(
             [dbc.Row(dcc.Graph(figure = fig1)),
             dbc.Row(dcc.Graph(figure = fig2)),
-            dbc.Row(dcc.Graph(figure = fig3))],
+            dbc.Row(dcc.Graph(figure = fig3)),
+            dbc.Row(dcc.Graph(figure = fig4))],
             )
         
         global results_body
@@ -292,7 +311,7 @@ def generate_results_modal(results):
             dbc.Button('Download Current Statistics', id = 'results-download-button', disabled = True, style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
             dbc.Button('Close', id = 'results-modal-close' ,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
          ], style = {'border': 'navy', 'background-color':'navy','color' : 'white', 'border':'navy 3px solid'})
-    ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl')
+    ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl', style = {'zoom':'75%'})
 
 
 
@@ -407,9 +426,9 @@ layout = dbc.Container([
             html.Div(cp_modal("cp5b",0,32,0,0), id = 'cp5b_modal'),
             html.Div(cp_modal("cp6b",0,130,0,43), id = 'cp6b_modal'),
             html.Div(cp_modal("cp10",0,211,0,164), id = 'cp10_modal'),
-            html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False)),
-            html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
-            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False)),
+            html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False, style = {'zoom':'75%'})),
+            html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False, style = {'zoom':'75%'})),
+            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been resetted!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False, style = {'zoom':'75%'})),
             html.Div(simulate_modal()),
             html.Div(generate_results_modal({}), id = 'results-div'),
             html.Div(dcc.Download(id="download-results")),
@@ -422,7 +441,7 @@ layout = dbc.Container([
                 html.Br(),
                 html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
                 ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), #change this line after deciding color another day
-                ],id="loading-modal",is_open=False,backdrop = False,centered = True
+                ],id="loading-modal",is_open=False,backdrop = False,centered = True, style = {'zoom':'75%'}
         ))
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
@@ -1204,7 +1223,7 @@ def open_simulation_modal(n1,n2,n3):
 
 # Callbacks for modal content
 @callback(
-    Output(component_id='simulate-modal-contents',component_property='children', allow_duplicate=True),
+    Output(component_id='simulate-modal-contents',component_property='children'),
     Input('cp_status_cp3','value'),
     Input('cp_status_cp3a','value'),
     Input('cp_status_cp4','value'),
@@ -1267,7 +1286,7 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_21','value'),
     Input('slider_22','value'),
     Input('slider_23','value'),
-    prevent_initial_call = True
+    #prevent_initial_call = True
 )
 
 def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
