@@ -67,8 +67,8 @@ navbar = dbc.Navbar(
 app.layout = html.Div(children=[
     dcc.Location(id = "url"),
     navbar,
-    dash.page_container
-])
+    dash.page_container,
+], style = {'zoom':'75%'})
 
 
 if __name__ == '__main__':
