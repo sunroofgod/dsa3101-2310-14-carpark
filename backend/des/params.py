@@ -1,8 +1,10 @@
 import pandas as pd
 import datetime
-import os, sys
-# append backend path to sys to properly import database module
-sys.path.insert(0, os.path.dirname(__file__).rsplit(os.sep, maxsplit=1)[0])
+import os
+import sys
+# append backend path to sys to import database module
+path = os.getcwd()
+sys.path.append(os.path.join(path, "backend"))
 from database.mysql_connector import get_table
 
 # get carpark visitor data
