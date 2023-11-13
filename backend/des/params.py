@@ -1,18 +1,19 @@
 import pandas as pd
 import datetime
-import os
-
-path = os.getcwd()
-CAP_FPATH = os.path.join(path, "data", "CP Lots NUS.xlsx")
-DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv")
-
+import os, sys
+# append backend path to sys to properly import database module
+sys.path.insert(0, os.path.dirname(__file__).rsplit(os.sep, maxsplit=1)[0])
 from database.mysql_connector import get_table
-#CAP_FPATH = "../../data/CP Lots NUS.xlsx"
-#DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
 
-capacity_data = pd.read_excel(CAP_FPATH)
+# get carpark visitor data
+#DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv") # "../../data/Cleaned/all_carparks_cleaned.csv"
 #cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
-cp_data = cp_data = get_table("visitors")
+cp_data = get_table("visitors")
+
+# get carpark capacity data
+CAP_FPATH = os.path.join(os.getcwd(), "data", "CP Lots NUS.xlsx") # "../../data/CP Lots NUS.xlsx"
+capacity_data = pd.read_excel(CAP_FPATH)
+
 
 def filter_cp(data : pd.DataFrame, cp : list):
     data = data.copy()
