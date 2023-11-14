@@ -3,9 +3,19 @@ import sqlalchemy
 from database.mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
 
+## connect to database
 db = connect_db()
 
 def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
+    """
+    Drop all tables in the database.
+    
+    Args:
+        db (sqlalchemy.engine.Connection): Connection object to the database.
+        
+    Returns:
+        None
+    """
     db.execute(text(
         '''
         DROP TABLE IF EXISTS visitors;
@@ -13,6 +23,15 @@ def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
     ))
 
 def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
+    """
+    Create all tables in the database.
+    
+    Args:
+        db (sqlalchemy.engine.Connection): Connection object to the database.
+    
+    Returns:
+        None
+    """
     db.execute(text(
         '''CREATE TABLE IF NOT EXISTS visitors(
             IU VARCHAR(8) NOT NULL,
@@ -31,7 +50,15 @@ def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
     print("ALL TABLES CREATED SUCCESSFULLY")
 
 def load_local_data(db: sqlalchemy.engine.Connection) -> None:
-    '''run data-preprocessing functions to obtain pd.Dataframe and upload into database'''
+    """
+    Run data-preprocessing functions to obtain pd.Dataframe and upload into database
+
+    Args:
+        db (sqlalchemy.engine.Connection): Connection object to the database.
+
+    Returns:
+        None
+    """
     file_paths = {'Cp5': '../data/raw_Cp5_a.csv',
                 'Cp_multiple': '../data/raw_Cp33a45b6b_a.csv',
                 'Cp10': '../data/Sample raw data format - duration_cp10_Apr2023_a.csv'}
@@ -48,6 +75,15 @@ def load_local_data(db: sqlalchemy.engine.Connection) -> None:
     print("ALL DATA POPULATED")
 
 def setup_database(db: sqlalchemy.engine.Connection) -> None:
+    """
+    Drop all tables, create all tables, and load data into database.
+    
+    Args:
+        db (sqlalchemy.engine.Connection): Connection object to the database.
+        
+    Returns:
+        None
+    """
     drop_all_tables(db)
     create_all_tables(db)
     load_local_data(db)
