@@ -30,7 +30,7 @@ layout = html.Div([
             target="_blank",  # Open the link in a new tab
         )
     ], style={'border': '1px solid #003D7C', 'padding': '10px', 'border-radius': '5px'})
-], style={'background-color': 'white', 'padding': '20px'}),
+    ], style={'background-color': 'white', 'padding': '20px'}),
 
     
     # Additional Content (Centered)
