@@ -4,13 +4,23 @@ services:
   mysql:
     image: mysql:latest
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: NUS-carpark-data
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root_password
+      DATABASE_NAME: NUS-carpark-data
+    build:
+      context: .
+      dockerfile: mysql_dockerfile.txt
+    env_file:
+      - .env
     ports:
-      - "3306:3306"
+      - "3307:3306"
   
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: dash_dockerfile.txt
+    env_file:
+      - .env
     depends_on:
       - mysql
     ports:
