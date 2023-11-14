@@ -2,11 +2,17 @@ import os
 import pandas as pd
 import numpy as np
 
-def load_and_clean_data(carpark_data: dict):
-    '''
-    function takes in a dictionary of file paths and returns an aggregated dataframe 
+def load_and_clean_data(carpark_data : dict):
+    """
+    Function takes in a dictionary of file paths and returns an aggregated dataframe 
     if __name__ == "__main__": individual carpark datasets and final dataframe will also be saved to a csv file
-    '''
+
+    Args:
+        carpark_data (dict): dictionary of carpark name and file path
+
+    Returns:
+        pd.DataFrame: aggregated dataframe of all carpark data
+    """
     aggregate_df = pd.DataFrame()
     for carpark in carpark_data:
         file_path = carpark_data[carpark]
@@ -35,18 +41,18 @@ def load_and_clean_data(carpark_data: dict):
         filterd_df.to_csv(os.path.join('../../data/cleaned', 'all_carparks_cleaned' + '.csv'), index=False)
     return filterd_df
 
-def clean_carpark_data(path:str):
-    ''' 
-    function takes in path and exit_id (optional) and returns a cleaned dataframe
+def clean_carpark_data(path : str):
+    """
+    Function takes in path and exit_id (optional) and returns a cleaned dataframe
 
-    Parameters:
-    csv file path, assumes that csv
-        - contains columns 'hourly_du', 'staff_du', 'student_du', 'esp_du'
-        - and columns enter_dt and exit_dt are all non-null
+    Args:
+        csv file path, assumes that csv
+            - contains columns 'hourly_du', 'staff_du', 'student_du', 'esp_du'
+            - and columns enter_dt and exit_dt are all non-null
 
     Returns:
     cleaned dataframe with columns 'IU', 'carpark', 'exit_id', 'enter_dt', 'exit_dt', 'type'
-    '''
+    """
     df = pd.read_csv(path)
     print(f"loaded {path} with shape {df.shape}")
 
@@ -101,11 +107,17 @@ def clean_carpark_data(path:str):
 
     return df 
 
-def generate_duration(df):
-    '''
-    function to generate duration between exit and enter datetime
+def generate_duration(df : pd.DataFrame):
+    """
+    Function to generate duration between exit and enter datetime
     adds columns 'parked_min', 'parked_hrs', 'parked_days' to df
-    '''
+
+    Args:
+        df (pd.DataFrame): dataframe with columns 'enter_dt' and 'exit_dt'
+
+    Returns:
+        df (pd.DataFrame): dataframe with columns 'parked_min', 'parked_hrs', 'parked_days'
+    """
     # gets minute, hours and days spent in carpark between Enter and Exit Time
     df[['parked_min', 'parked_hrs', 'parked_days']] = list(map(lambda dt: \
         # total_seconds() gives +ve and -ve values # use int() to round negative numbers to 0 instead of -1                                                                      
@@ -113,10 +125,16 @@ def generate_duration(df):
     
     return df
 
-def generate_dow(df):
-    '''
-    function adds parked_dow column specifying day of the week for enter_timing
-    '''
+def generate_dow(df : pd.DataFrame):
+    """
+    Function adds parked_dow column specifying day of the week for enter_timing
+
+    Args:
+        df (pd.DataFrame): dataframe with column 'enter_dt'
+
+    Returns:
+        df (pd.DataFrame): dataframe with column 'parked_dow'
+    """
     df['parked_dow'] = list(map(lambda dt: dt.strftime('%A'), df['enter_dt']))
     
     return df

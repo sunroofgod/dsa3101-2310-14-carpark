@@ -12,14 +12,12 @@ import sys
 
 def get_lambda(hour : int, month=None, lambdas=None):
     """
-    Get the number of arrivals lambda for a given month and hour from LAMBDAS.
+    Get the arrival rate (lambda) for a given hour.
 
     Args:
-        month (int): The month (1-12).
-        hour (int): The hour of the day (0-23).
-
-    Returns:
-        float: The number of arrivala (lambda).
+        hour (int): The hour (0-23).
+        month (int, optional): The current month for the simulation.
+        lamdas (list, optional): A list of arrival rates for each hour of the day.
     """
     if month is None:
         return np.random.poisson(params.LAMBDAS[(params.MONTH, hour)])
@@ -44,8 +42,9 @@ def get_arrival_interval(minutes : int, month=None, lambdas=None):
     Calculate and return the time interval between arrivals based on a Poisson process.
 
     Args:
-        month (int): The month (1-12).
-        minutes (int): The time in minutes.
+        minutes (int): The number of minutes since the start of the simulation.
+        month (int, optional): The current month for the simulation.
+        lamdas (list, optional): A list of arrival rates for each hour of the day.
 
     Returns:
         float: The calculated time interval between arrivals (in minutes).
@@ -82,12 +81,6 @@ def create_cp(env : simpy.Environment, cp_dict : dict):
         carparks.append(CarPark(name=name, whiteLots=lots[0], redLots=lots[1], env=env))
     return carparks
 
-# def car_arrival(env, id, type):
-#     time = np.random.exponential(ARRIVAL_RATE) # time before next car arrive
-#     yield env.timeout(time)
-#     car = Car(id, type)
-#     return car
-
 ## Generate entire process of 1 car
 def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict, car_dict : dict, month=None, lambdas=None):
     """
@@ -95,10 +88,11 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
 
     Args:
         env (simpy.Environment): The SimPy environment in which the simulation runs.
-        carparks (list): A list of car parks available for parking.
-        cp_prob_dict (dict): A dictionary specifying the probability of choosing each car park.
-        car_dict (dict): A dictionary specifying the probability of parking types.
-        month (int, optional): The current month for the simulation. Default is MONTH.
+        carparks (list): A list of CarPark instances to park cars in.
+        cp_prob_dict (dict): A dictionary containing car park choice probabilities for each car type.
+        car_dict (dict): A dictionary containing car type probabilities.
+        month (int, optional): The current month for the simulation.
+        lambdas (list, optional): A list of arrival rates for each hour of the day.
     Yields:
         SimPy events: Yields events representing car arrivals, parking, and departures.
 
@@ -109,12 +103,10 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
 
     Example Usage:
     ```
-    sim_env = simpy.Environment()
-    car_parks = create_carparks()
-    car_probabilities = get_car_probabilities()
-    month = 5  # Example month
-    car_generator(sim_env, car_parks, car_probabilities, car_probabilities, month=month)
-    sim_env.run(until=SIMULATION_TIME)
+    env = simpy.Environment()
+    carparks = create_cp(env, params.CP_CAPACITY)
+    env.process(car_generator(env, carparks, params.CP_PROB, params.CAR_PROB))
+    env.run(until=params.SIM_TIME)
     ```
     """
     car_id = 1
@@ -139,8 +131,6 @@ def car_generator(env : simpy.Environment, carparks : list, cp_prob_dict : dict,
         cp_dict = cp_prob_dict[tpe]
         cp_prob = [cp_dict[cp.get_name()] for cp in carparks]
         # assert sum(cp_prob) == 1.0
-
-        ## TODO: car should only be able to choose from cp with given parking type
         
         cp = custom_choice(carparks, cp_prob)
         print(f"{env.now:<7.2f}: Car {car_id} arrived at {cp.get_name()}")
@@ -231,10 +221,10 @@ def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     Run a car park simulation.
 
     Args:
-        cap (dict): A dictionary specifying car park capacities.
-        cp_prob (dict): A dictionary specifying car park choice probabilities.
-        car_prob (dict): A dictionary specifying car type probabilities.
-        t (int): The simulation time in minutes.
+        cap (dict, optional): A dictionary containing car park names and white/red lots.
+        t (int, optional): The simulation time (in minutes).
+        month (int, optional): The current month for the simulation.
+        lambdas (list, optional): A list of arrival rates for each hour of the day.
 
     Returns:
         dict: A dictionary containing summary statistics for each car park.
@@ -262,8 +252,20 @@ def sim(cap=params.CP_CAPACITY, t=params.SIM_TIME, month=None, lambdas=None):
     return stats
 
 def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={}):
-    init_time = time.time()
+    """
+    Run a car park simulation n times.
+    
+    Args:
+        cap_dict (dict): A dictionary containing car park names and white/red lots.
+        n (int, optional): The number of times to run the simulation.
+        month (int, optional): The current month for the simulation.
+        lambdas (list, optional): A list of arrival rates for each hour of the day.
+        overall_stats (dict, optional): A dictionary containing summary statistics for each car park.
 
+    Returns:
+        dict: A dictionary containing summary statistics for each car park.
+    """
+    init_time = time.time()
 
     ## Run simulation for n times
     for i in range(n):
@@ -289,6 +291,8 @@ def run_nsim(cap_dict : dict, n=100, month=None, lambdas=None, overall_stats={})
 
     return overall_stats
 
+## Run simulation on command line with arguments (optional) for number of simulations
+## Example: python DES.py 10 (run simulation 10 times)
 if __name__ == "__main__":
     n = 1 if len(sys.argv) == 1 else int(sys.argv[1])
     overall_stats = run_nsim(params.CP_CAPACITY, n=n)
