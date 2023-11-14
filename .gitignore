@@ -160,7 +160,6 @@ cython_debug/
 #.idea/
 
 # Cache
-cache_dir/*
 cache_dir/
 
 # Data
