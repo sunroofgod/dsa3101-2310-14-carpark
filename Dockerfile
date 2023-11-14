@@ -8,7 +8,6 @@ COPY requirements.txt requirements.txt
 
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
-RUN python database/__init__.py
 
 # Expose port which Dash will work on
 EXPOSE 8050 
