@@ -8,47 +8,63 @@ import time
 import io
 from dash_extensions.enrich import FileSystemCache, Trigger
 
+
 import os
 path = os.getcwd()
-
 import sys
 sys.path.append(os.path.join(path, "backend", "des"))
 
-from params import get_month_arrival_rate, get_day_arrival_rate
+# Importing Helper Functions from Backend
+from params import get_month_arrival_rate, get_day_arrival_rate, get_carpark_capacity
 from DES import run_nsim, stats_mean
 
-dash.register_page(__name__) #signifies homepage
+dash.register_page(__name__) 
 
-#sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
+'''
+Section 1: Global Variables
+'''
 
-# Variables
+'''Inputs'''
+# Campus Events and Corresponding Dates
 campus_events = ['No Event','Week 0 New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
+events_date_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
+event_dates = dict(zip(campus_events,events_date_values)) #Key is event, value is date of event
+
+# Options for Select Month Dropdown
 months = [{'label':'January','value':1},{'label':'February','value':2},{'label':'March','value':3},{'label':'April','value':4},
           {'label':'May','value':5},{'label':'June','value':6},{'label':'July','value':7},{'label':'August','value':8},
           {'label':'September','value':9},{'label':'October','value':10},{'label':'November','value':11},{'label':'December','value':12}]
+
+# Recover alphabetical representation of Month from month number
 month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 
                       8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' }
-default_button = "0"
+
+# Initial Arrival Rates (Clean State)
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
-cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
-sample_results = {'cp3': [467, 44, 239, 75, 34, 16], 'cp3a': [309, 157, 229, 75, 45, 13], 'cp4': [331, 124, 167, 125, 39, 14], 'cp5': [422, 179, 58, 25, 35, 13], 'cp5b': [165, 60, 165, 126, 0, 16], 'cp6b': [422, 194, 245, 50, 38, 13], 'cp10': [335, 53, 229, 25, 39, 18]}
+
+# Initial Carpark Capacities
+#carpark_cap = {'cp3':(31,212), 'cp3a':(14,53),'cp4':(21,95),'cp5':(17,53),'cp5b':(32,0),'cp6b':(130,43),'cp10':(211,164)}
+carpark_cap = get_carpark_capacity(['cp3','cp3a','cp4','cp5','cp5b','cp6b','cp10'])
+print(carpark_cap)
+
+# Full Name of Carparks
+cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'} 
+
+'''Outputs'''
+# Initial Display for Carpark Occupancies
+default_button = "0"
+
+# Children for the results modal to store up to two recent student simulations, initialized as empty list
 results_body = []
-carpark_cap = {'cp3':(31,212), 'cp3a':(14,53),'cp4':(21,95),'cp5':(17,53),'cp5b':(32,0),'cp6b':(130,43),'cp10':(211,164)}
 
-count = 0
-
+"""Misc"""
+# Object to store progress bar Percentage
 fsc = FileSystemCache("cache_dir")
 fsc.set("progress", 0)
 
-# Sample Data for Months
-month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
-month_data_keys = range(1,13)
-month_data = dict(zip(month_data_keys,month_data_values))
-
-# Sample Data Events
-events_data_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
-events_data = dict(zip(campus_events,events_data_values))
-
+'''
+Section 2: Helper functions to generate html/dash components
+'''
 #Helper function to generate arrival rates given month
 def generate_arrival_rate_month(x):
     #keys = range(0,24)
@@ -59,7 +75,7 @@ def generate_arrival_rate_month(x):
     return get_month_arrival_rate(x)
 
 def generate_arrival_rate_event(x):
-    date = events_data[x]
+    date = event_dates[x]
     d = get_day_arrival_rate(date)
     nd = {}
 
