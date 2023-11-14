@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: NUS-carpark-data
+    ports:
+      - "3306:3306"
+  
+  app:
+    build: .
+    depends_on:
+      - mysql
+    ports:
+      - "8050:8050"
