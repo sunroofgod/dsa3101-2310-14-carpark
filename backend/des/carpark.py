@@ -13,24 +13,33 @@ class CarPark:
         whiteLots (int): The total number of white parking lots available.
         redLots (int): The total number of red parking lots available.
         env (simpy.Environment): The SimPy environment in which the simulation runs.
-        gracePeriod (int): The maximum period for waiting in a carpark for a parking lot.
-        whiteCars (int): The number of cars parked at a white lot currently in the car park.
-        redCars (int): The number of cars parked at a red lot currently in the car park.
-        totalWhite (int): The total number of white cars served.
-        totalRed (int): The total number of red cars served.
-        spots (simpy.Resource): The resource representing available parking spots.
+        gracePeriod (int): The maximum period for waiting in car park.
+        whiteCars (int): The number of white cars currently in the car park.
+        redCars (int): The number of red cars currently in the car park.
+        totalWhite (int): The total number of white cars served throughout the simulation.
+        totalRed (int): The total number of red cars served throughout the simulation.
+        whiteRejected (int): The total number of white cars turned away throughout the simulation.
+        redRejected (int): The total number of red cars turned away throughout the simulation.
+        whiteCars24 (list): The number of white cars in the car park at each hour.
+        redCars24 (list): The number of red cars in the car park at each hour.
+        whiteTotal24 (list): The total number of white cars served at each hour.
+        redTotal24 (list): The total number of red cars served at each hour.
+        whiteRejected24 (list): The total number of white cars turned away at each hour.
+        redRejected24 (list): The total number of red cars turned away at each hour.
+        spots (simpy.Resource): A SimPy resource representing the parking lots in the car park.
 
     Methods:
-        get_name(self): Get the name of the car park.
-        grace_period(self): Get the maximum period for waiting.
-        white_available(self, ratio=False): Get the availability of white parking lots.
-        red_available(self, ratio=False): Get the availability of red parking lots.
-        occupied(self, ratio=False): Get the overall parking lot occupancy.
-        enter(self, car): Simulate a car entering the car park.
-        exit(self, car): Simulate a car leaving the car park.
-        stats(self): Get statistics about the car park.
-        park_car(self, car): Simulate a car parking in the car park.
-
+        get_name(): Get the name of the car park.
+        grace_period(): Get the grace period for waiting to enter the car park.
+        white_available(): Get the availability of white parking lots.
+        red_available(): Get the availability of red parking lots.
+        occupied(): Get the overall parking lot occupancy.
+        enter(): Simulate a car entering the car park.
+        exit(): Simulate a car leaving the car park.
+        turn_away(): Simulate a car being turned away from the car park.
+        record(): Record metrics for the current hour.
+        stats(): Get statistics related to the car park.
+        park_car(): Simulate a car parking in the car park.
     """
 
     def __init__(self, 
@@ -40,14 +49,17 @@ class CarPark:
                  env : simpy.Environment,
                  gracePeriod = 10):
         """
-        Initializes a new car park.
-
+        Initialize a CarPark object.
+        
         Args:
             name (str): The name or identifier of the car park.
             whiteLots (int): The total number of white parking lots available.
             redLots (int): The total number of red parking lots available.
             env (simpy.Environment): The SimPy environment in which the simulation runs.
             gracePeriod (int, optional): The maximum period for waiting in car park (default is 10).
+        
+        Returns:
+            None
         """
         
         self.name = name # name of carpark
@@ -199,12 +211,25 @@ class CarPark:
             return "white"
         
     def record(self):
+        """
+        Record metrics for the current hour.
+        
+        Returns:
+            list: A list of metrics containing the following values:
+                - The number of white cars in the car park.
+                - The number of red cars in the car park.
+                - The total number of white cars served.
+                - The total number of red cars served.
+                - The total number of white cars turned away (rejected).
+                - The total number of red cars turned away (rejected).
+        """
         self.whiteCars24.append(self.whiteCars)
         self.redCars24.append(self.redCars)
         self.whiteTotal24.append(self.totalWhite)
         self.redTotal24.append(self.totalRed)
         self.whiteRejected24.append(self.whiteRejected)
         self.redRejected24.append(self.redRejected)
+        return self.stats()
 
     def stats(self):
         """
@@ -212,11 +237,12 @@ class CarPark:
 
         Returns:
             list: A list of statistics containing the following values:
-                - Total number of white cars entered.
-                - Total number of red cars entered.
-                - Total number of white cars turned away (rejected).
-                - Total number of red cars turned away (rejected).
-                - The current occupancy ratio of the car park.
+                - The total number of white cars served.
+                - The total number of red cars served.
+                - The total number of white cars turned away (rejected).
+                - The total number of red cars turned away (rejected).
+                - The number of white cars in the car park at each hour.
+                - The number of red cars in the car park at each hour.
         """
         return [self.whiteTotal24, 
                 self.redTotal24, 
