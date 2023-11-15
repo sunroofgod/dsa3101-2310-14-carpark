@@ -1,6 +1,6 @@
 from sqlalchemy import text
 import sqlalchemy
-from database.mysql_connector import connect_db
+from .mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
 
 ## connect to database
