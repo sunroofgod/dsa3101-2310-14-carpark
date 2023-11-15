@@ -10,10 +10,11 @@ services:
       MYSQL_PASSWORD: root_password
     expose:
       - 3306
-  app:
+
+  user:
     build:
       context: .
-      dockerfile: app_dockerfile
+      dockerfile: user_dockerfile
     volumes:
       - type: bind
         source: data/
