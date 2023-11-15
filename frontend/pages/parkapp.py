@@ -970,7 +970,7 @@ def toggle_refine_modal_cp5b(n1,n2):
     Output('slider_red_cp5b','disabled'),
     Input('cp_status_cp5b','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp5b(status):
     if status == "Open":
         return False
     else:
@@ -982,7 +982,7 @@ def show_cp_params(status):
     Input('cp_status_cp5b','value'),
     Input('slider_red_cp5b','value'),
 )
-def params_to_simulate(status,red):
+def params_to_simulate_cp5b(status,red):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -994,7 +994,7 @@ def params_to_simulate(status,red):
     Output('cp_status_cp5b','value'),
     Input('reset-modal-cp5b','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp5b(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp5b' in changed_id:
         return carpark_cap['cp5b'][1], "Open"
@@ -1008,7 +1008,7 @@ def reset_cp_params(clicks):
         Input('cp6b','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp6b(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp6b" in changed_id:
         return True
@@ -1021,7 +1021,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp6b','disabled'),
     Input('cp_status_cp6b','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp6b(status):
     if status == "Open":
         return False, False
     else:
@@ -1037,7 +1037,7 @@ def show_cp_params(status):
     #State('slider_red_cp6b', 'max'),
     #State('slider_white_cp6b', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp6b(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -1054,7 +1054,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp6b','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp6b(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp6b'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp6b'][1] - to_add_white
@@ -1069,7 +1069,7 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp6b','value'),
     Input('reset-modal-cp6b','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp6b(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp6b' in changed_id:
         return carpark_cap['cp6b'][0],carpark_cap['cp6b'][1], carpark_cap['cp6b'][0], "Open"
@@ -1084,7 +1084,7 @@ def reset_cp_params(clicks):
         Input('cp10','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp10(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp10" in changed_id:
         return True
@@ -1097,7 +1097,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp10','disabled'),
     Input('cp_status_cp10','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp10(status):
     if status == "Open":
         return False, False
     else:
@@ -1113,7 +1113,7 @@ def show_cp_params(status):
     #State('slider_red_cp10', 'max'),
     #State('slider_white_cp10', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp10(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -1130,7 +1130,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp10','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp10(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp10'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp10'][1] - to_add_white
@@ -1145,139 +1145,14 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp10','value'),
     Input('reset-modal-cp10','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp10(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp3' in changed_id:
         return carpark_cap['cp10'][0],carpark_cap['cp10'][1], carpark_cap['cp10'][0], "Open"
     else:
         return dash.no_update,dash.no_update, dash.no_update,dash.no_update
 
-
-
-# Callback for reset all: revert to original settings and carpark state
-@callback(
-    Output(component_id = 'results-slider', component_property = 'disabled'),
-    Output(component_id = 'results-slider', component_property = 'value'),
-    Output(component_id = 'results-div', component_property = 'children'),
-    Output(component_id='cp3',component_property='style'),
-    Output(component_id='cp3a',component_property='style'),
-    Output(component_id='cp4',component_property='style'),
-    Output(component_id='cp5',component_property='style'),
-    Output(component_id='cp5b',component_property='style'),
-    Output(component_id='cp6b',component_property='style'),
-    Output(component_id='cp10',component_property='style'),
-    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
-    Output(component_id='cp3_modal',component_property='children'),
-    Output(component_id='cp3a_modal',component_property='children'),
-    Output(component_id='cp4_modal',component_property='children'),
-    Output(component_id='cp5_modal',component_property='children'),
-    Output(component_id='cp5b_modal',component_property='children'),
-    Output(component_id='cp6b_modal',component_property='children'),
-    Output(component_id='cp10_modal',component_property='children'),
-    Output(component_id='simulation-contents',component_property='children'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='cp3',component_property='children'),
-    Output(component_id='cp3a',component_property='children'),
-    Output(component_id='cp4',component_property='children'),
-    Output(component_id='cp5',component_property='children'),
-    Output(component_id='cp5b',component_property='children'),
-    Output(component_id='cp6b',component_property='children'),
-    Output(component_id='cp10',component_property='children'),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value'),
-    Input(component_id='reset-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_state(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-button' in changed_id:
-        results_body.clear()
-        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10"),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
-    else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
-
-
-# Callback to close reset all modals:
-@callback(
-        Output('reset-all-modal','is_open',allow_duplicate = True),
-        Input("close-reset-all-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_all_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-all-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-# Callback for reset cp params: reset params for all callparks only
-@callback(
-    Output(component_id='reset-cp-modal', component_property='is_open'),
-    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
-    Input(component_id='reset-cp-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_all_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-cp-button' in changed_id:
-        return True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10")
-    else:
-        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
-
-# Callback to close reset cp modals:
-@callback(
-        Output('reset-cp-modal','is_open',allow_duplicate = True),
-        Input("close-reset-cp-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_cp_params_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-cp-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-# Callback for reset events: reset event and month selection only
-@callback(
-    Output(component_id='reset-events-modal', component_property='is_open'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
-    Input(component_id='reset-events-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_events(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-events-button' in changed_id:
-        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
-    else:
-        return False,dash.no_update,dash.no_update,dash.no_update
-
-# Callback to close reset events modals:
-@callback(
-        Output('reset-events-modal','is_open',allow_duplicate = True),
-        Input("close-reset-events-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_events_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-events-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-'''
-Simulation CALLBACKS
-'''
+'''4.2 Simulate'''
 # Toggle Simulation Confirmation Modal
 @callback(
     Output('simulate-modal','is_open'),
@@ -1539,7 +1414,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
 
 
-# Simulation Callbacks
+#  Callback to display simulation parameters
 @callback(
     #Output('results-slider','value',allow_duplicate=True),
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
@@ -1746,7 +1621,7 @@ def open_loading(clicks):
     else:
         return False
 
-# Callback to update contents of cp modals
+# Callback to run simulation given user inputs
 @callback(
     Output('results-slider','disabled',allow_duplicate = True),
     Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
@@ -1902,6 +1777,135 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
     
     else:
         return dash.no_update,dash.no_update,dash.no_update
+
+
+'''4.3 Outputs'''
+
+'''4.4 Reset'''
+# Callback for reset all: revert to original settings and carpark state
+@callback(
+    Output(component_id = 'results-slider', component_property = 'disabled'),
+    Output(component_id = 'results-slider', component_property = 'value'),
+    Output(component_id = 'results-div', component_property = 'children'),
+    Output(component_id='cp3',component_property='style'),
+    Output(component_id='cp3a',component_property='style'),
+    Output(component_id='cp4',component_property='style'),
+    Output(component_id='cp5',component_property='style'),
+    Output(component_id='cp5b',component_property='style'),
+    Output(component_id='cp6b',component_property='style'),
+    Output(component_id='cp10',component_property='style'),
+    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
+    Output(component_id='cp3_modal',component_property='children'),
+    Output(component_id='cp3a_modal',component_property='children'),
+    Output(component_id='cp4_modal',component_property='children'),
+    Output(component_id='cp5_modal',component_property='children'),
+    Output(component_id='cp5b_modal',component_property='children'),
+    Output(component_id='cp6b_modal',component_property='children'),
+    Output(component_id='cp10_modal',component_property='children'),
+    Output(component_id='simulation-contents',component_property='children'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='cp3',component_property='children'),
+    Output(component_id='cp3a',component_property='children'),
+    Output(component_id='cp4',component_property='children'),
+    Output(component_id='cp5',component_property='children'),
+    Output(component_id='cp5b',component_property='children'),
+    Output(component_id='cp6b',component_property='children'),
+    Output(component_id='cp10',component_property='children'),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value'),
+    Input(component_id='reset-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_state(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-button' in changed_id:
+        results_body.clear()
+        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10"),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+    else:
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
+# Callback to close reset all modals:
+@callback(
+        Output('reset-all-modal','is_open',allow_duplicate = True),
+        Input("close-reset-all-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_all_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-all-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset cp params: reset params for all callparks only
+@callback(
+    Output(component_id='reset-cp-modal', component_property='is_open'),
+    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
+    Input(component_id='reset-cp-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_all_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-cp-button' in changed_id:
+        return True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10")
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
+
+# Callback to close reset cp modals:
+@callback(
+        Output('reset-cp-modal','is_open',allow_duplicate = True),
+        Input("close-reset-cp-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_cp_params_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-cp-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset events: reset event and month selection only
+@callback(
+    Output(component_id='reset-events-modal', component_property='is_open'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
+    Input(component_id='reset-events-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_events(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-events-button' in changed_id:
+        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update
+
+# Callback to close reset events modals:
+@callback(
+        Output('reset-events-modal','is_open',allow_duplicate = True),
+        Input("close-reset-events-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_events_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-events-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+'''
+Simulation CALLBACKS
+'''
 
 '''
 Results Modal
