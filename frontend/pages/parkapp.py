@@ -1167,7 +1167,7 @@ def open_simulation_modal(n1,n2,n3):
     else:
         return False
 
-# Callbacks for modal content
+# Callbacks for Simulation Modal Content, Display Arrival Rate Graph for simulation and also the carpark capacities to simulate in percentage
 @callback(
     Output(component_id='simulate-modal-contents',component_property='children'),
     Input('cp_status_cp3','value'),
@@ -1247,6 +1247,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
      changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
      if 'simulate-button' in changed_id:
+        # Change Header
         if event == "No Event" and month is None:
             if list(args) == list(default_arrivals.values()):
                 first = html.B("Empty Simulation")
@@ -1266,20 +1267,13 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         d = dict(zip(range(24),args))
         graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_arrival_rate_graph(d,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
 
+
+        # Compute Capacities for Simulation
         cp3_red_string = "0"
         cp3_white_string = "0"
         if cp3_status == "Open":
             cp3_red_string = str(round(cp3_red_v * 100 / carpark_cap['cp3'][1]))
             cp3_white_string = str(round(cp3_white_v * 100 / carpark_cap['cp3'][0]))
-
-        # cp3 = html.Div([
-        #     html.Span('Carpark 3 Capacities:  ', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp3_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp3_white_string + '%'
-        # ])
 
         cp3a_red_string = "0"
         cp3a_white_string = "0"
@@ -1287,29 +1281,11 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp3a_red_string = str(round(cp3a_red_v * 100 / carpark_cap['cp3a'][1]))
             cp3a_white_string = str(round(cp3a_white_v * 100 / carpark_cap['cp3a'][0]))
 
-        # cp3a = html.Div([
-        #     html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp3a_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp3a_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
-
         cp4_red_string = "0"
         cp4_white_string = "0"
         if cp4_status == "Open":
             cp4_red_string = str(round(cp4_red_v * 100 / carpark_cap['cp4'][1]))
             cp4_white_string = str(round(cp4_white_v * 100 / carpark_cap['cp4'][0]))
-
-        # cp4 = html.Div([
-        #     html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp4_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp4_white_string + '%'
-        # ])
 
         cp5_red_string = "0"
         cp5_white_string = "0"
@@ -1317,29 +1293,10 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp5_red_string = str(round(cp5_red_v * 100 / carpark_cap['cp5'][1]))
             cp5_white_string = str(round(cp5_white_v * 100 / carpark_cap['cp5'][0]))
 
-
-        # cp5 = html.Div([
-        #     html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp5_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp5_white_string + '%'
-        # ])
-
         cp5b_red_string = "0"
         if cp5b_status == "Open":
             cp5b_red_string = str(round(cp5b_red_v * 100 / carpark_cap['cp5b'][1]))
 
-
-        # cp5b = html.Div([ 
-        #     html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp5b_red_string + '%',
-        #     #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     #' - ' + '100%'          ##bug??
-        # ], style={'text-align':'center','position': 'relative','right': '10%'})
 
         cp6b_red_string = "0"
         cp6b_white_string = "0"
@@ -1347,31 +1304,14 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             cp6b_red_string = str(round(cp6b_red_v * 100 / carpark_cap['cp6b'][1]))
             cp6b_white_string = str(round(cp6b_white_v * 100 / carpark_cap['cp6b'][0]))
 
-
-        # cp6b = html.Div([
-        #     html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp6b_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp6b_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
-
         cp10_red_string = "0"
         cp10_white_string = "0"
         if cp10_status == "Open":
             cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][1]))
             cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][0]))
 
-        # cp10 = html.Div([
-        #     html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold', 'margin-right': '1%'}),
-        #     ' - ' + cp10_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp10_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
         
+        # Creating dataframe for carpark capacities and dash table
         data = {
             'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
             'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
@@ -1383,8 +1323,6 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot Capacity', "id":'Red Lot Capacity'},{"name":'White Lot Capacity', "id":'White Lot Capacity'}],
             data=df.to_dict('records'),
             editable = False,
-            #sort_action = 'native',
-            #sort_mode="multi",
             style_header = {'background-color':'navy', 'color':'white', 'font-weght':'bold', 'font-size':'20px'},
             style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black'},
             style_data_conditional = [
@@ -1412,9 +1350,7 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
 
 
 
-
-
-#  Callback to display simulation parameters
+#  Callback to display simulation parameters on the left partition after simulation has been completed
 @callback(
     #Output('results-slider','value',allow_duplicate=True),
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
@@ -1446,8 +1382,6 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    #Input('slider_white_cp5b','value'),
-    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1493,7 +1427,8 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
     *args):
      changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
      if 'simulate-modal-yes' in changed_id:
-        cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status
+
+        # Header
         if event == "No Event" and month is None:
             if list(args) == list(default_arrivals.values()):
                 first = html.B("Empty Simulation")
@@ -1512,10 +1447,12 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
         
         d = dict(zip(range(24),args))
         
-
+        # Arrival Rate Graph
         graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_arrival_rate_graph(d,300,300)),
                         style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) 
             
+        
+        # Computing capacities to display on table
         cp3_red_string = "0"
         cp3_white_string = "0"
         cp3a_red_string = "0"
@@ -1557,6 +1494,7 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
             cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][1]))
             cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][0]))
 
+        # Creating dataframe and capacities table
         data = {
             'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
             'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
@@ -1569,8 +1507,6 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
             columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot', "id":'Red Lot Capacity'},{"name":'White Lot', "id":'White Lot Capacity'}],
             data=df.to_dict('records'),
             editable = False,
-            #sort_action = 'native',
-            #sort_mode="multi",
             style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black', 'color':'black', 'back-ground-color':'white', 'font-size':'14px'},
             style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'},
             style_data_conditional=[
@@ -1594,22 +1530,8 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
 
      else:
          return dash.no_update
-     
-@callback(
-    Output(component_id = 'hour-slider-show', component_property = 'children'),
-    Input(component_id = 'results-slider', component_property = 'value'),
-    Input(component_id = 'results-slider',component_property = 'disabled')
-)
-def show_hour(hour,disabled):
-    if disabled or hour is None:
-        return ["Unavailable, run simulation first"]
-    else:
-        hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
-        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
-        return ["Displaying carpark occupancies at " + hour_dict[hour]]
 
-
-
+# Callback to open the loading modal
 @callback(
     Output(component_id = 'loading-modal',component_property='is_open'),
     Input(component_id='simulate-modal-yes', component_property='n_clicks')
@@ -1621,7 +1543,26 @@ def open_loading(clicks):
     else:
         return False
 
-# Callback to run simulation given user inputs
+# Callback that updates progress-bar during the simulation based on which simulation number the simulation is currently on
+@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
+def update_progress(trig):
+    global fsc
+    value = fsc.get("progress")  # get progress
+    return value
+
+@callback(
+    Output("progress-bar","value", allow_duplicate=True),
+    Input("loading-modal","is_open"),
+    prevent_initial_call=True
+)
+def reset_progress(is_open):
+    if not is_open:
+        fsc.set('progress',0)
+        return 0
+    else:
+        return dash.no_update
+
+# Callback to run simulation given user inputs, updating the necessary output values for each carpark and also statistics for the simulation run
 @callback(
     Output('results-slider','disabled',allow_duplicate = True),
     Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
@@ -1780,151 +1721,22 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
 
 
 '''4.3 Outputs'''
-
-'''4.4 Reset'''
-# Callback for reset all: revert to original settings and carpark state
+# Callback to show user what time they are simulating under the adjustment slider for time
 @callback(
-    Output(component_id = 'results-slider', component_property = 'disabled'),
-    Output(component_id = 'results-slider', component_property = 'value'),
-    Output(component_id = 'results-div', component_property = 'children'),
-    Output(component_id='cp3',component_property='style'),
-    Output(component_id='cp3a',component_property='style'),
-    Output(component_id='cp4',component_property='style'),
-    Output(component_id='cp5',component_property='style'),
-    Output(component_id='cp5b',component_property='style'),
-    Output(component_id='cp6b',component_property='style'),
-    Output(component_id='cp10',component_property='style'),
-    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
-    Output(component_id='cp3_modal',component_property='children'),
-    Output(component_id='cp3a_modal',component_property='children'),
-    Output(component_id='cp4_modal',component_property='children'),
-    Output(component_id='cp5_modal',component_property='children'),
-    Output(component_id='cp5b_modal',component_property='children'),
-    Output(component_id='cp6b_modal',component_property='children'),
-    Output(component_id='cp10_modal',component_property='children'),
-    Output(component_id='simulation-contents',component_property='children'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='cp3',component_property='children'),
-    Output(component_id='cp3a',component_property='children'),
-    Output(component_id='cp4',component_property='children'),
-    Output(component_id='cp5',component_property='children'),
-    Output(component_id='cp5b',component_property='children'),
-    Output(component_id='cp6b',component_property='children'),
-    Output(component_id='cp10',component_property='children'),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value'),
-    Input(component_id='reset-button', component_property='n_clicks'),
-    prevent_initial_call=True
+    Output(component_id = 'hour-slider-show', component_property = 'children'),
+    Input(component_id = 'results-slider', component_property = 'value'),
+    Input(component_id = 'results-slider',component_property = 'disabled')
 )
-def reset_state(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-button' in changed_id:
-        results_body.clear()
-        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10"),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+def show_hour(hour,disabled):
+    if disabled or hour is None:
+        return ["Unavailable, run simulation first"]
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
+        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
+        return ["Displaying carpark occupancies at " + hour_dict[hour]]
 
 
-# Callback to close reset all modals:
-@callback(
-        Output('reset-all-modal','is_open',allow_duplicate = True),
-        Input("close-reset-all-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_all_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-all-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-# Callback for reset cp params: reset params for all callparks only
-@callback(
-    Output(component_id='reset-cp-modal', component_property='is_open'),
-    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
-    Input(component_id='reset-cp-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_all_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-cp-button' in changed_id:
-        return True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10")
-    else:
-        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
-
-# Callback to close reset cp modals:
-@callback(
-        Output('reset-cp-modal','is_open',allow_duplicate = True),
-        Input("close-reset-cp-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_cp_params_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-cp-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-# Callback for reset events: reset event and month selection only
-@callback(
-    Output(component_id='reset-events-modal', component_property='is_open'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
-    Input(component_id='reset-events-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_events(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-events-button' in changed_id:
-        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
-    else:
-        return False,dash.no_update,dash.no_update,dash.no_update
-
-# Callback to close reset events modals:
-@callback(
-        Output('reset-events-modal','is_open',allow_duplicate = True),
-        Input("close-reset-events-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_events_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-events-modal" in changed_id:
-        return False
-    else:
-        return True
-
-
-'''
-Simulation CALLBACKS
-'''
-
-'''
-Results Modal
-'''
-#Toggling results modal
-# Toggle Simulation Confirmation Modal
-@callback(
-    Output('results-modal','is_open'),
-    Input('results-button','n_clicks'),
-    Input('results-modal-close','n_clicks')
-)
-def open_simulation_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'results-button' in changed_id:
-        return True
-    else:
-        return False
-
-# Callback to get carpark saturation for each hour
+# Callback to get carpark saturation for each hour when user adjusts the slider bars, occupancy levels will change for each carpark
 @callback(
     Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp3', component_property = 'children',allow_duplicate=True),
@@ -2136,6 +1948,22 @@ def change_saturation(disabled,hour):
     else:
         return dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update
 
+
+
+# Toggling results modal
+@callback(
+    Output('results-modal','is_open'),
+    Input('results-button','n_clicks'),
+    Input('results-modal-close','n_clicks')
+)
+def open_simulation_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'results-button' in changed_id:
+        return True
+    else:
+        return False
+
+# Disables the option to download results when no simulation has been run
 @callback(
     Output('results-download-button','disabled'),
     Input('results-slider','disabled')
@@ -2143,7 +1971,7 @@ def change_saturation(disabled,hour):
 def allow_downloads(disabled):
     return disabled
 
-
+# Prepares Excel containing simulation results when user clicks on the download button
 @callback(
     Output("download-results","data"),
     Input('results-download-button', 'n_clicks'),
@@ -2228,20 +2056,128 @@ def download_data(clicks):
     else:
         return None
 
-@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
-def update_progress(trig):
-    global fsc
-    value = fsc.get("progress")  # get progress
-    return value
 
+
+'''4.4 Reset'''
+# Callback for reset all: revert to original settings and carpark state, all simulation results will be wiped, everything will be in clean state
 @callback(
-    Output("progress-bar","value", allow_duplicate=True),
-    Input("loading-modal","is_open"),
+    Output(component_id = 'results-slider', component_property = 'disabled'),
+    Output(component_id = 'results-slider', component_property = 'value'),
+    Output(component_id = 'results-div', component_property = 'children'),
+    Output(component_id='cp3',component_property='style'),
+    Output(component_id='cp3a',component_property='style'),
+    Output(component_id='cp4',component_property='style'),
+    Output(component_id='cp5',component_property='style'),
+    Output(component_id='cp5b',component_property='style'),
+    Output(component_id='cp6b',component_property='style'),
+    Output(component_id='cp10',component_property='style'),
+    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
+    Output(component_id='cp3_modal',component_property='children'),
+    Output(component_id='cp3a_modal',component_property='children'),
+    Output(component_id='cp4_modal',component_property='children'),
+    Output(component_id='cp5_modal',component_property='children'),
+    Output(component_id='cp5b_modal',component_property='children'),
+    Output(component_id='cp6b_modal',component_property='children'),
+    Output(component_id='cp10_modal',component_property='children'),
+    Output(component_id='simulation-contents',component_property='children'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='cp3',component_property='children'),
+    Output(component_id='cp3a',component_property='children'),
+    Output(component_id='cp4',component_property='children'),
+    Output(component_id='cp5',component_property='children'),
+    Output(component_id='cp5b',component_property='children'),
+    Output(component_id='cp6b',component_property='children'),
+    Output(component_id='cp10',component_property='children'),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value'),
+    Input(component_id='reset-button', component_property='n_clicks'),
     prevent_initial_call=True
 )
-def reset_progress(is_open):
-    if not is_open:
-        fsc.set('progress',0)
-        return 0
+def reset_state(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-button' in changed_id:
+        results_body.clear()
+        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10"),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return dash.no_update
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
+# Callback to close reset all modals:
+@callback(
+        Output('reset-all-modal','is_open',allow_duplicate = True),
+        Input("close-reset-all-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_all_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-all-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset cp params: reset params for all callparks only
+@callback(
+    Output(component_id='reset-cp-modal', component_property='is_open'),
+    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
+    Input(component_id='reset-cp-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_all_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-cp-button' in changed_id:
+        return True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10")
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
+
+# Callback to close reset cp modals:
+@callback(
+        Output('reset-cp-modal','is_open',allow_duplicate = True),
+        Input("close-reset-cp-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_cp_params_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-cp-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset events: reset event and month selection only
+@callback(
+    Output(component_id='reset-events-modal', component_property='is_open'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
+    Input(component_id='reset-events-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_events(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-events-button' in changed_id:
+        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update
+
+# Callback to close reset events modals:
+@callback(
+        Output('reset-events-modal','is_open',allow_duplicate = True),
+        Input("close-reset-events-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_events_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-events-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+
