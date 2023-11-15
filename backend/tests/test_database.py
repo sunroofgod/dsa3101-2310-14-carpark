@@ -1,36 +1,38 @@
-from database import connect_db
+from database import db, create_all_tables, drop_all_tables
 from sqlalchemy import text
 import unittest
 
-class TestDatabase(unittest.TestCase):
+class TestDatabaseSetUp(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.db = connect_db()
-        print(f"Successfully connected with DB.")
+        self.db = db 
 
     def test_creating_tables(self) -> None:
-        self.db.execute(text(
-            '''CREATE TABLE IF NOT EXISTS visitors(
-                IU VARCHAR(8) NOT NULL,
-                carpark VARCHAR(10) NOT NULL,
-                exit_id VARCHAR(4) NOT NULL,
-                enter_dt DATETIME NOT NULL,
-                exit_dt DATETIME NOT NULL,
-                type VARCHAR(10) NOT NULL,
-                parked_min INT NOT NULL,
-                parked_hrs INT NOT NULL,
-                parked_days INT NOT NULL,
-                CONSTRAINT pk_visitors PRIMARY KEY (IU, carpark, enter_dt)
-                );'''
-            ))
+        create_all_tables(self.db)
+        self.db.commit()
         print(f"Successfully CREATE visitors TABLE.")
         self.db.execute(text(
-            '''INSERT INTO visitors
+            """INSERT INTO visitors
             VALUES ('0001', 'cp0', '0001', '2022-12-25 12:00:00', '2022-12-25 13:01:00', 'staff', 61, 1.02, 0)
-            '''
+            """
             ))
-        print(f"Successfully INSERT INTO visitors TABLE.")
         self.db.commit()
+        print(f"Successfully INSERT INTO visitors TABLE.")
+
+    def test_deleting_from_table(self) -> None:
+        self.db.execute(text(
+            """
+            DELETE FROM visitors 
+            WHERE IU='0001'
+            """
+            ))
+        self.db.commit()
+        print(f"Successfully DELETED ROW from visitors TABLE.")
+
+    def test_dropping_tables(self) -> None:
+        drop_all_tables(self.db)
+        print(f"Successfully DROPPED visitors TABLE.")
+
 
 if __name__ == "__main__":
     unittest.main()
