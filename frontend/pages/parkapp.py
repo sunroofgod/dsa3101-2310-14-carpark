@@ -23,8 +23,7 @@ dash.register_page(__name__)
 '''
 Section 1: Global Variables
 '''
-
-'''Inputs'''
+'''1.1 Inputs'''
 # Campus Events and Corresponding Dates
 campus_events = ['No Event','Week 0 New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
 events_date_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
@@ -43,12 +42,14 @@ month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6:
 # Format for all arrival rate dictionaries {int:int} where key is hour and value is arrival rate for hour
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
 
+# Available Carparks
+all_carparks = ['cp3','cp3a','cp4','cp5','cp5b','cp6b','cp10']
+
 # Initial Carpark Capacities
-carpark_cap = get_carpark_capacity(['cp3','cp3a','cp4','cp5','cp5b','cp6b','cp10'])
-print(carpark_cap)
+carpark_cap = get_carpark_capacity(all_carparks)
 
 # Current setting of capark capacity, initialized to be default carpark capacities
-lots_d = get_carpark_capacity(['cp3','cp3a','cp4','cp5','cp5b','cp6b','cp10'])
+lots_d = get_carpark_capacity(all_carparks)
 
 # Settings for carpark button position
 # settings list: [button_top, button_left, text_top, text_left], CSS style settings in percentage
@@ -66,7 +67,7 @@ button_settings = {
 # Full Name of Carparks
 cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'} 
 
-'''Outputs'''
+'''1.2 Outputs'''
 # Initial Display for Carpark Occupancies
 default_button = "0"
 
@@ -76,12 +77,12 @@ results = {}
 # Children for the results modal to store up to two recent student simulations, initialized as empty list
 results_body = []
 
-"""Misc"""
+"""1.3 Misc"""
 # Object to store progress bar Percentage
 fsc = FileSystemCache("cache_dir")
 fsc.set("progress", 0)
 
-'''CSS Styles"'''
+'''1.4 CSS Styles"'''
 # Styling Options for Non-Carpark Buttons, buggy results when implmenting this through .css
 grey_buttons_left = style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' 
 ,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'}
@@ -94,7 +95,7 @@ black_button_right = {'margin-bottom':'2%','display':'inline-block', 'background
 
 
 '''
-Section 2: Helper functions to generate html/dash components
+Section 2: Frontend Helper Functions
 '''
 
 '''2.1 Inputs'''
@@ -244,12 +245,16 @@ def cp_modal(cp):
         ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True,style = {'zoom':'75%'})
     return modal
 
+
+
+'''2.2 Simulate'''
 # Helper function for confirmation of simulation modal, i.e. when user clicks on the simulate button
 # Output:
 # dash modal showing the input parameters with id 'simulate-modal'
 def simulate_modal():
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'navy 3px solid', 'font-family' : 'Open Sans', 'font-size':'20px','font-weight' : 'bold', 'background-color':'navy','color' : 'white'}),
+         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'navy 3px solid', 'font-family' : 'Open Sans', 
+         'font-size':'20px','font-weight' : 'bold', 'background-color':'navy','color' : 'white'}),
          dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px', 'border': ' black 3px solid'}),
          dbc.ModalFooter(children = [
             html.H5("Confirm Simulation?", style = {'color':'white'}),
@@ -258,7 +263,7 @@ def simulate_modal():
          ], style ={'border': 'navy 3px solid','background-color':'navy'})
     ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True,style = {'zoom':'75%'})
 
-
+'''2.3 Output'''
 # Helper function to create results modal
 # Inputs:
 # results: dictionary
@@ -394,7 +399,7 @@ def generate_results_modal(results):
 
 
 '''
-Section 3: App Layout
+Section 3: Page Layout
 '''
 layout = dbc.Container([
     dbc.Row([
@@ -456,7 +461,8 @@ layout = dbc.Container([
             dbc.Button('Reset Events and Months', id='reset-events-button', style=grey_buttons_right),
             html.Br(),
             html.Br(),
-            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_rate_graph(default_arrivals,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
+            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},
+            figure = generate_arrival_rate_graph(default_arrivals,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
             html.Br(),
             dbc.Button('Refine Arrival Rate', id='refine-button', style = grey_buttons_right),
             html.Br(),
@@ -470,7 +476,7 @@ layout = dbc.Container([
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
             ]),
         
-        ### Hidden Objects
+        ### Hidden Components
 
         # Arrival Rate Modal
         html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block'), 
@@ -517,9 +523,138 @@ layout = dbc.Container([
 '''
 Section 4: Callbacks
 '''
-'''
-CALLBACKS FOR CARPARKS
-'''
+'''4.1 Inputs'''
+'''4.1.1 Arrival Rates'''
+# Callback for select event interactions with select month
+# Can only select month when value of select event is No Event
+@callback(
+    Output(component_id = "month-picker", component_property='value'),
+    Output(component_id = "month-picker", component_property = 'placeholder'),
+    Output(component_id = "month-picker", component_property = 'disabled'),
+    Input(component_id='event-picker', component_property='value')
+)
+def disable_month(event):
+    if event == "No Event":
+        return dash.no_update,"Select Month...",False
+    else:
+        return None, "Cannot Select Month", True
+
+
+# Callback to display graph of arrival rates on right partition
+@callback(
+    Output('refine-modal-block','children'),
+    Output(component_id = 'arrival-graph', component_property = 'figure'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value')
+)
+def update_graph(month,event):
+    if month is None and event == "No Event":
+        return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_rate_graph(default_arrivals,300,300)
+    elif month is not None and event == "No Event":
+        d = get_month_arrival_rate(month)
+        return refine_modal(month_dict[month], d),generate_arrival_rate_graph(d,300,300)
+    else:
+        d = get_event_arrival_rate(event)
+        return refine_modal(event, d),generate_arrival_rate_graph(d,300,300) 
+
+    
+# Callback to toggle refine modal
+@callback(
+        Output('refine-modal','is_open'),
+        Input('refine-button','n_clicks'),
+        Input("close-refine-modal",'n_clicks')
+)
+def toggle_refine_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "refine-button" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback to use refine modal to adjust graph arrival rates
+@callback(
+    Output('arrival-graph','figure', allow_duplicate=True),
+    Output('value_0','children'),
+    Output('value_1','children'),
+    Output('value_2','children'),
+    Output('value_3','children'),
+    Output('value_4','children'),
+    Output('value_5','children'),
+    Output('value_6','children'),
+    Output('value_7','children'),
+    Output('value_8','children'),
+    Output('value_9','children'),
+    Output('value_10','children'),
+    Output('value_11','children'),
+    Output('value_12','children'),
+    Output('value_13','children'),
+    Output('value_14','children'),
+    Output('value_15','children'),
+    Output('value_16','children'),
+    Output('value_17','children'),
+    Output('value_18','children'),
+    Output('value_19','children'),
+    Output('value_20','children'),
+    Output('value_21','children'),
+    Output('value_22','children'),
+    Output('value_23','children'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call=True
+)
+def update_graph_after_refine(*args):
+    d = dict(zip(range(24),args))
+    return generate_arrival_rate_graph(d,300,300), *args
+
+# Callback to reset refine modal to the base arrival rates of the user's event/month choice
+@callback(
+    Output('row_slider','children'),
+    Output(component_id = 'arrival-graph', component_property = 'figure', allow_duplicate=True),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input(component_id='refine-modal-reset', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+
+def reset_refine_modal(month,event, clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'refine-modal-reset' in changed_id:
+        if month is None and event == "No Event":
+            return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_rate_graph(default_arrivals,300,300)
+        elif month is not None and event == "No Event":
+            d = get_month_arrival_rate(month)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
+        else:
+            d = get_event_arrival_rate(event)
+            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
+    else:
+        return dash.no_update, dash.no_update
+
+
+
+'''4.1.2 Carpark Parameters'''
 # Callback to toggle cp modal
 @callback(
         Output('modal-cp3','is_open'),
@@ -527,7 +662,7 @@ CALLBACKS FOR CARPARKS
         Input('cp3','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp3(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp3" in changed_id:
         return True
@@ -540,7 +675,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp3','disabled'),
     Input('cp_status_cp3','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp3(status):
     if status == "Open":
         return False, False
     else:
@@ -553,10 +688,8 @@ def show_cp_params(status):
     Input('cp_status_cp3','value'),
     Input('slider_red_cp3','value'),
     Input('slider_white_cp3','value'),
-    #State('slider_red_cp3', 'max'),
-    #State('slider_white_cp3', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp3(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -573,7 +706,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp3','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp3(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp3'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp3'][1] - to_add_white
@@ -589,7 +722,7 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp3','value'),
     Input('reset-modal-cp3','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp3(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp3' in changed_id:
         return carpark_cap['cp3'][0],carpark_cap['cp3'][1], carpark_cap['cp3'][0], "Open"
@@ -604,7 +737,7 @@ def reset_cp_params(clicks):
         Input('cp3a','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp3a(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp3a" in changed_id:
         return True
@@ -617,7 +750,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp3a','disabled'),
     Input('cp_status_cp3a','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp3a(status):
     if status == "Open":
         return False, False
     else:
@@ -630,10 +763,8 @@ def show_cp_params(status):
     Input('cp_status_cp3a','value'),
     Input('slider_red_cp3a','value'),
     Input('slider_white_cp3a','value'),
-    #State('slider_red_cp3a', 'max'),
-    #State('slider_white_cp3a', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp3a(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -650,7 +781,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp3a','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp3a(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp3a'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp3a'][1] - to_add_white
@@ -665,7 +796,7 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp3a','value'),
     Input('reset-modal-cp3a','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp3a(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp3a' in changed_id:
         return carpark_cap['cp3a'][0],carpark_cap['cp3a'][1], carpark_cap['cp3a'][0], "Open"
@@ -679,7 +810,7 @@ def reset_cp_params(clicks):
         Input('cp4','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp4(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp4" in changed_id:
         return True
@@ -692,7 +823,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp4','disabled'),
     Input('cp_status_cp4','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp4(status):
     if status == "Open":
         return False, False
     else:
@@ -705,10 +836,8 @@ def show_cp_params(status):
     Input('cp_status_cp4','value'),
     Input('slider_red_cp4','value'),
     Input('slider_white_cp4','value'),
-    #State('slider_red_cp4', 'max'),
-    #State('slider_white_cp4', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp4(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -725,7 +854,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp4','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp4(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp4'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp4'][1] - to_add_white
@@ -740,7 +869,7 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp4','value'),
     Input('reset-modal-cp4','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp4(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp4' in changed_id:
         return carpark_cap['cp4'][0],carpark_cap['cp4'][1], carpark_cap['cp4'][0], "Open"
@@ -754,7 +883,7 @@ def reset_cp_params(clicks):
         Input('cp5','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp5(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp5" in changed_id:
         return True
@@ -767,7 +896,7 @@ def toggle_refine_modal(n1,n2):
     Output('slider_white_cp5','disabled'),
     Input('cp_status_cp5','value')
 )
-def show_cp_params(status):
+def show_cp_params_cp5(status):
     if status == "Open":
         return False, False
     else:
@@ -783,7 +912,7 @@ def show_cp_params(status):
     #State('slider_red_cp5', 'max'),
     #State('slider_white_cp5', 'max'),
 )
-def params_to_simulate(status,red,white):
+def params_to_simulate_cp5(status,red,white):
     if status == "Closed":
         return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
@@ -800,7 +929,7 @@ def params_to_simulate(status,red,white):
     State('slider_white_cp5','value'),
     prevent_initial_call = True
 )
-def change_ratio(ratio,red_val,white_val):
+def change_ratio_cp5(ratio,red_val,white_val):
     to_add_white = ratio - carpark_cap['cp5'][0]
     new_max_white = ratio
     new_max_red = carpark_cap['cp5'][1] - to_add_white
@@ -815,7 +944,7 @@ def change_ratio(ratio,red_val,white_val):
     Output('cp_status_cp5','value'),
     Input('reset-modal-cp5','n_clicks'),
 )
-def reset_cp_params(clicks):
+def reset_cp_params_cp5(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'reset-modal-cp5' in changed_id:
         return carpark_cap['cp5'][0],carpark_cap['cp5'][1], carpark_cap['cp5'][0], "Open"
@@ -829,7 +958,7 @@ def reset_cp_params(clicks):
         Input('cp5b','n_clicks')
         
 )
-def toggle_refine_modal(n1,n2):
+def toggle_refine_modal_cp5b(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if "cp5b" in changed_id:
         return True
@@ -1024,135 +1153,6 @@ def reset_cp_params(clicks):
         return dash.no_update,dash.no_update, dash.no_update,dash.no_update
 
 
-'''
-CALLBACKS FOR Month and Event
-'''
-# Callback for select event interactions with select month
-# Can only select month when value of select event is No Event
-@callback(
-    Output(component_id = "month-picker", component_property='value'),
-    Output(component_id = "month-picker", component_property = 'placeholder'),
-    Output(component_id = "month-picker", component_property = 'disabled'),
-    Input(component_id='event-picker', component_property='value')
-)
-def disable_month(event):
-    if event == "No Event":
-        return dash.no_update,"Select Month...",False
-    else:
-        return None, "Cannot Select Month", True
-    
-# Callback to display graph of selected month
-@callback(
-    Output('refine-modal-block','children'),
-    Output(component_id = 'arrival-graph', component_property = 'figure'),
-    Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value')
-    
-)
-def update_graph(month,event):
-    if month is None and event == "No Event":
-        return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_rate_graph(default_arrivals,300,300)
-    elif month is not None and event == "No Event":
-        d = get_month_arrival_rate(month)
-        return refine_modal(month_dict[month], d),generate_arrival_rate_graph(d,300,300)
-    else:
-        d = get_event_arrival_rate(event)
-        return refine_modal(event, d),generate_arrival_rate_graph(d,300,300) 
-
-    
-# Callback to toggle refine modal
-@callback(
-        Output('refine-modal','is_open'),
-        Input('refine-button','n_clicks'),
-        Input("close-refine-modal",'n_clicks')
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "refine-button" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback to use refine modal to adjust graph arrival rates
-@callback(
-    Output('arrival-graph','figure', allow_duplicate=True),
-    Output('value_0','children'),
-    Output('value_1','children'),
-    Output('value_2','children'),
-    Output('value_3','children'),
-    Output('value_4','children'),
-    Output('value_5','children'),
-    Output('value_6','children'),
-    Output('value_7','children'),
-    Output('value_8','children'),
-    Output('value_9','children'),
-    Output('value_10','children'),
-    Output('value_11','children'),
-    Output('value_12','children'),
-    Output('value_13','children'),
-    Output('value_14','children'),
-    Output('value_15','children'),
-    Output('value_16','children'),
-    Output('value_17','children'),
-    Output('value_18','children'),
-    Output('value_19','children'),
-    Output('value_20','children'),
-    Output('value_21','children'),
-    Output('value_22','children'),
-    Output('value_23','children'),
-    Input('slider_0','value'),
-    Input('slider_1','value'),
-    Input('slider_2','value'),
-    Input('slider_3','value'),
-    Input('slider_4','value'),
-    Input('slider_5','value'),
-    Input('slider_6','value'),
-    Input('slider_7','value'),
-    Input('slider_8','value'),
-    Input('slider_9','value'),
-    Input('slider_10','value'),
-    Input('slider_11','value'),
-    Input('slider_12','value'),
-    Input('slider_13','value'),
-    Input('slider_14','value'),
-    Input('slider_15','value'),
-    Input('slider_16','value'),
-    Input('slider_17','value'),
-    Input('slider_18','value'),
-    Input('slider_19','value'),
-    Input('slider_20','value'),
-    Input('slider_21','value'),
-    Input('slider_22','value'),
-    Input('slider_23','value'),
-    prevent_initial_call=True
-)
-def update_graph_after_refine(*args):
-    d = dict(zip(range(24),args))
-    return generate_arrival_rate_graph(d,300,300), *args
-
-# Callback to reset refine modal
-@callback(
-    Output('row_slider','children'),
-    Output(component_id = 'arrival-graph', component_property = 'figure', allow_duplicate=True),
-    Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value'),
-    Input(component_id='refine-modal-reset', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-
-def reset_refine_modal(month,event, clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'refine-modal-reset' in changed_id:
-        if month is None and event == "No Event":
-            return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_rate_graph(default_arrivals,300,300)
-        elif month is not None and event == "No Event":
-            d = get_month_arrival_rate(month)
-            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
-        else:
-            d = get_event_arrival_rate(event)
-            return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
-    else:
-        return dash.no_update, dash.no_update
 
 # Callback for reset all: revert to original settings and carpark state
 @callback(
@@ -1856,16 +1856,15 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
 
         arrival_rates = args
         
-        #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
         init_time = time.time()
 
-        #outputs = simulate_des(arrival_rates,lots_d_input)
+
         global outputs
         outputs = {}
-        n = 3
+        n = 3 #adjust n for number of simulations, remove n after done
         for i in range(n):
-            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
+            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) 
             outputs = stats_mean(outputs, current)
             global fsc
             fsc.set('progress',(i+1)*100/n)
@@ -1883,6 +1882,7 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
         duration = (time.time() - init_time) / 60 # convert to minutes
         print(f"--- Total running time {duration:.2f} minutes ---")
 
+        print(outputs)
         
         #print("Arrival rates", arrival_rates)
         #print("CP capacity:", lots_d)
