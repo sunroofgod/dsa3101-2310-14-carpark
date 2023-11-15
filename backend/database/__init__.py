@@ -92,3 +92,5 @@ def setup_database(db: sqlalchemy.engine.Connection) -> None:
     create_all_tables(db)
     load_local_data(db)
 
+if __name__ == '__main__':
+    setup_database(db)

@@ -2,26 +2,34 @@ version: '3'
 
 services:
   mysql:
-    image: mysql:latest
-    environment:
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: root_password
-      DATABASE_NAME: NUS-carpark-data
     build:
       context: .
       dockerfile: mysql_dockerfile.txt
-    env_file:
-      - .env
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: NUS-carpark-data
+      MYSQL_USER: user
+      MYSQL_PASSWORD: root_password
+    volumes:
+      - type: bind
+        source: data/
+        target: /data/
     ports:
       - "3307:3306"
+    stdin_open: true
+    tty: true
+
   
-  app:
-    build: 
-      context: .
-      dockerfile: dash_dockerfile.txt
-    env_file:
-      - .env
-    depends_on:
-      - mysql
-    ports:
-      - "8050:8050"
+  # app:
+  #   build: 
+  #     context: .
+  #     dockerfile: dash_dockerfile.txt
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - mysql
+  #   ports:
+  #     - "8050:8050"
+  #   stdin_open: true
+  #   tty: true

@@ -1,13 +1,10 @@
-FROM python:3.10.6-slim-buster
+# Use the official MySQL image from Docker Hub
+FROM mysql:latest
 
-WORKDIR /app
+# Set the root password for MySQL
+ENV MYSQL_ROOT_PASSWORD=root_password
 
-COPY . /app
-
-RUN pip3 install --upgrade pip
-RUN pip3 install -r requirements.txt
-
-# Expose port which Dash will work on
-EXPOSE 8050 
-
-CMD ["python", "frontend/app.py"]
+# Create a database and user
+ENV MYSQL_DATABASE=NUS-carpark-data
+ENV MYSQL_USER=user
+ENV MYSQL_PASSWORD=root_password

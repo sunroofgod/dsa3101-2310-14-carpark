@@ -1,12 +1,22 @@
-FROM python:3.10.6-slim-buster
+# Use the official MySQL image from Docker Hub
+FROM mysql:latest
 
-WORKDIR /app
+# Set the root password for MySQL
+ENV MYSQL_ROOT_PASSWORD=root_password
 
-COPY . /app
+# Create a database and user
+ENV MYSQL_DATABASE=NUS-carpark-data
+ENV MYSQL_USER=user
+ENV MYSQL_PASSWORD=root_password
 
 RUN pip3 install --upgrade pip
+RUN mkdir /backend
+COPY /backend/database/ /backend/database/
+COPY /backend/data_preprocessing/ /backend/data_preprocessing/
+COPY requirements.txt requirements.txt
+COPY create_env.sh create_env.sh
+
 RUN pip3 install -r requirements.txt
 RUN chmod +x create_env.sh && ./create_env.sh
 
-CMD ["python", "backend/database/__init__.py"]
-
+# CMD ["python", "backend/database/__init__.py"]
