@@ -95,6 +95,6 @@ def setup_database(db: sqlalchemy.engine.Connection) -> None:
     return 200
 
 if __name__ == '__main__':
-    # time.sleep(60)
+    # time.sleep(30)
     db = connect_db()
     setup_database(db)
