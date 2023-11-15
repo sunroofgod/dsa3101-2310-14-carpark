@@ -23,9 +23,9 @@ def connect_db():
     return db
 
 ## connect to database
-db = connect_db()
+# db = connect_db()
 
-def get_table(table_name: str, db: sqlalchemy.engine.Connection=db):
+def get_table(table_name: str, db: sqlalchemy.engine.Connection):
     """
     Get the table from the database and return a Pandas DataFrame.
     

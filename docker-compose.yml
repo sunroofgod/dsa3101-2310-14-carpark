@@ -6,11 +6,6 @@ services:
       context: .
       dockerfile: mysql_dockerfile.txt
     container_name: db
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: NUS-carpark-data
-      MYSQL_USER: user
-      MYSQL_PASSWORD: root_password
     volumes:
       - type: bind
         source: data/

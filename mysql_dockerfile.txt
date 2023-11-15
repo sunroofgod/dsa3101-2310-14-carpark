@@ -19,4 +19,4 @@ COPY create_env.sh create_env.sh
 RUN pip3 install -r requirements.txt
 RUN chmod +x create_env.sh && ./create_env.sh
 
-# CMD ["python", "backend/database/__init__.py"]
+#RUN python3 backend/database/__init__.py
