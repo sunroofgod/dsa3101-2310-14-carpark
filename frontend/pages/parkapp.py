@@ -1198,8 +1198,6 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    #Input('slider_white_cp5b','value'),
-    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1232,7 +1230,6 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_21','value'),
     Input('slider_22','value'),
     Input('slider_23','value'),
-    #prevent_initial_call = True
 )
 
 def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
@@ -1243,10 +1240,8 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max,
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
-     
-
-     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-     if 'simulate-button' in changed_id:
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-button' in changed_id:
         # Change Header
         if event == "No Event" and month is None:
             if list(args) == list(default_arrivals.values()):
@@ -1345,14 +1340,206 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         
         return layout
 
-     else:
+    else:
          return dash.no_update
 
 
 
+# Callback to open the loading modal
+@callback(
+    Output(component_id = 'loading-modal',component_property='is_open'),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks')
+)
+def open_loading(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-modal-yes' in changed_id:
+        return True
+    else:
+        return False
+
+# Callback that updates progress-bar during the simulation based on which simulation number the simulation is currently on
+@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
+def update_progress(trig):
+    global fsc
+    value = fsc.get("progress")  # get progress
+    return value
+
+# Callback that sets the progress bar to zero when loading modal is closed
+@callback(
+    Output("progress-bar","value", allow_duplicate=True),
+    Input("loading-modal","is_open"),
+    prevent_initial_call=True
+)
+def reset_progress(is_open):
+    if not is_open:
+        fsc.set('progress',0)
+        return 0
+    else:
+        return dash.no_update
+
+# Callback to run simulation given user inputs, updating the necessary output values for each carpark and also statistics for the simulation run
+@callback(
+    Output('results-slider','disabled',allow_duplicate = True),
+    Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
+    Output(component_id = 'loading-modal',component_property='is_open',allow_duplicate=True),
+    Input('results-slider','value'),
+    Input('cp_status_cp3','value'),
+    Input('cp_status_cp3a','value'),
+    Input('cp_status_cp4','value'),
+    Input('cp_status_cp5','value'),
+    Input('cp_status_cp5b','value'),
+    Input('cp_status_cp6b','value'),
+    Input('cp_status_cp10','value'),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','value'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_red_cp3a','max'),
+    Input('slider_white_cp3a','value'),
+    Input('slider_white_cp3a','max'),
+    Input('slider_red_cp4','value'),
+    Input('slider_red_cp4','max'),
+    Input('slider_white_cp4','value'),
+    Input('slider_white_cp4','max'),
+    Input('slider_red_cp5','value'),
+    Input('slider_red_cp5','max'),
+    Input('slider_white_cp5','value'),
+    Input('slider_white_cp5','max'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_red_cp5b','max'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_red_cp6b','max'),
+    Input('slider_white_cp6b','value'),
+    Input('slider_white_cp6b','max'),
+    Input('slider_red_cp10','value'),
+    Input('slider_red_cp10','max'),
+    Input('slider_white_cp10','value'),
+    Input('slider_white_cp10','max'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call = True
+)
+def simulate_events(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
+    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
+    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
+    cp5b_red_v, cp5b_red_max, 
+    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
+    cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
+    *args):
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-modal-yes' in changed_id:
+        global lots_d
+        lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
+        'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),
+        'cp10':(cp10_white_v,cp10_red_v)
+        }
+
+        lots_d_input = lots_d.copy()
+        #del lots_d_input['cp10']
+
+        list_carparks = list(lots_d.keys())
+
+        status_d = {'cp3':cp3_status, 'cp3a':cp3a_status, 'cp4':cp4_status,'cp5':cp5_status,'cp5b':cp5b_status,'cp6b':cp6b_status, 'cp10':cp10_status}
+
+        keys_to_remove = []
+
+        for key, value in status_d.items():
+            if value == "Closed":
+                lots_d[key] = (0,0)
+
+        for key, value in lots_d.items():
+            if value == (0,0):
+                keys_to_remove.append(key)
+        
+        for key in keys_to_remove:
+            del lots_d_input[key]
+        
+        global non_empty_cps
+        non_empty_cps = list(lots_d_input.keys())
+
+        arrival_rates = args
+        
+
+        init_time = time.time()
+
+
+        global outputs
+        outputs = {}
+
+
+        n = 10 #adjust n for number of simulations
+        for i in range(n):
+            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) 
+            outputs = stats_mean(outputs, current)
+            global fsc
+            fsc.set('progress',(i+1)*100/n)
+
+        for key in list_carparks:
+            if key not in outputs.keys():
+                outputs[key] = [[0 for i in range(24)] for j in range(6)]
+
+        
+        ## Round off overall output
+        for cp, val_list in outputs.items():
+            for i in range(len(val_list)):
+                outputs[cp][i] = [int(val) for val in val_list[i]]
+        
+        duration = (time.time() - init_time) / 60 # convert to minutes
+        print(f"--- Total running time {duration:.2f} minutes ---")
+
+        print(outputs)
+        
+        #print("Arrival rates", arrival_rates)
+        #print("CP capacity:", lots_d)
+        #print("Model Inputs:",lots_d_input)
+        print("Statistics:",outputs)
+        print()
+
+        global results_dict
+        results_dict = {}
+        for key, value in outputs.items():
+            white_info = value[4]
+            red_info = value[5]
+            results_dict[key] = [white_info, red_info]
+        
+        time.sleep(1)
+        return False,generate_results_modal(outputs),False
+    
+    else:
+        return dash.no_update,dash.no_update,dash.no_update
+
+
+'''4.3 Outputs'''
 #  Callback to display simulation parameters on the left partition after simulation has been completed
 @callback(
-    #Output('results-slider','value',allow_duplicate=True),
     Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
     Input('cp_status_cp3','value'),
     Input('cp_status_cp3a','value'),
@@ -1531,196 +1718,9 @@ def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,
      else:
          return dash.no_update
 
-# Callback to open the loading modal
-@callback(
-    Output(component_id = 'loading-modal',component_property='is_open'),
-    Input(component_id='simulate-modal-yes', component_property='n_clicks')
-)
-def open_loading(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'simulate-modal-yes' in changed_id:
-        return True
-    else:
-        return False
-
-# Callback that updates progress-bar during the simulation based on which simulation number the simulation is currently on
-@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
-def update_progress(trig):
-    global fsc
-    value = fsc.get("progress")  # get progress
-    return value
-
-@callback(
-    Output("progress-bar","value", allow_duplicate=True),
-    Input("loading-modal","is_open"),
-    prevent_initial_call=True
-)
-def reset_progress(is_open):
-    if not is_open:
-        fsc.set('progress',0)
-        return 0
-    else:
-        return dash.no_update
-
-# Callback to run simulation given user inputs, updating the necessary output values for each carpark and also statistics for the simulation run
-@callback(
-    Output('results-slider','disabled',allow_duplicate = True),
-    Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
-    Output(component_id = 'loading-modal',component_property='is_open',allow_duplicate=True),
-    Input('results-slider','value'),
-    Input('cp_status_cp3','value'),
-    Input('cp_status_cp3a','value'),
-    Input('cp_status_cp4','value'),
-    Input('cp_status_cp5','value'),
-    Input('cp_status_cp5b','value'),
-    Input('cp_status_cp6b','value'),
-    Input('cp_status_cp10','value'),
-    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
-    Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value'),
-    Input('slider_red_cp3','value'),
-    Input('slider_red_cp3','max'),
-    Input('slider_white_cp3','value'),
-    Input('slider_white_cp3','max'),
-    Input('slider_red_cp3a','value'),
-    Input('slider_red_cp3a','max'),
-    Input('slider_white_cp3a','value'),
-    Input('slider_white_cp3a','max'),
-    Input('slider_red_cp4','value'),
-    Input('slider_red_cp4','max'),
-    Input('slider_white_cp4','value'),
-    Input('slider_white_cp4','max'),
-    Input('slider_red_cp5','value'),
-    Input('slider_red_cp5','max'),
-    Input('slider_white_cp5','value'),
-    Input('slider_white_cp5','max'),
-    Input('slider_red_cp5b','value'),
-    Input('slider_red_cp5b','max'),
-    Input('slider_red_cp6b','value'),
-    Input('slider_red_cp6b','max'),
-    Input('slider_white_cp6b','value'),
-    Input('slider_white_cp6b','max'),
-    Input('slider_red_cp10','value'),
-    Input('slider_red_cp10','max'),
-    Input('slider_white_cp10','value'),
-    Input('slider_white_cp10','max'),
-    Input('slider_0','value'),
-    Input('slider_1','value'),
-    Input('slider_2','value'),
-    Input('slider_3','value'),
-    Input('slider_4','value'),
-    Input('slider_5','value'),
-    Input('slider_6','value'),
-    Input('slider_7','value'),
-    Input('slider_8','value'),
-    Input('slider_9','value'),
-    Input('slider_10','value'),
-    Input('slider_11','value'),
-    Input('slider_12','value'),
-    Input('slider_13','value'),
-    Input('slider_14','value'),
-    Input('slider_15','value'),
-    Input('slider_16','value'),
-    Input('slider_17','value'),
-    Input('slider_18','value'),
-    Input('slider_19','value'),
-    Input('slider_20','value'),
-    Input('slider_21','value'),
-    Input('slider_22','value'),
-    Input('slider_23','value'),
-    prevent_initial_call = True
-)
-def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
-    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
-    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
-    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
-    cp5b_red_v, cp5b_red_max, 
-    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
-    cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
-    *args):
-
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'simulate-modal-yes' in changed_id:
-        global lots_d
-        lots_d = {'cp3':(cp3_white_v,cp3_red_v),'cp3a':(cp3a_white_v,cp3a_red_v),'cp4':(cp4_white_v,cp4_red_v),'cp5':(cp5_white_v,cp5_red_v), 
-        'cp5b':(0,cp5b_red_v),'cp6b':(cp6b_white_v,cp6b_red_v),
-        'cp10':(cp10_white_v,cp10_red_v)
-        }
-
-        lots_d_input = lots_d.copy()
-        #del lots_d_input['cp10']
-
-        list_carparks = list(lots_d.keys())
-
-        status_d = {'cp3':cp3_status, 'cp3a':cp3a_status, 'cp4':cp4_status,'cp5':cp5_status,'cp5b':cp5b_status,'cp6b':cp6b_status, 'cp10':cp10_status}
-
-        keys_to_remove = []
-
-        for key, value in status_d.items():
-            if value == "Closed":
-                lots_d[key] = (0,0)
-
-        for key, value in lots_d.items():
-            if value == (0,0):
-                keys_to_remove.append(key)
-        
-        for key in keys_to_remove:
-            del lots_d_input[key]
-        
-        global non_empty_cps
-        non_empty_cps = list(lots_d_input.keys())
-
-        arrival_rates = args
-        
-
-        init_time = time.time()
 
 
-        global outputs
-        outputs = {}
-        n = 3 #adjust n for number of simulations, remove n after done
-        for i in range(n):
-            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) 
-            outputs = stats_mean(outputs, current)
-            global fsc
-            fsc.set('progress',(i+1)*100/n)
 
-        for key in list_carparks:
-            if key not in outputs.keys():
-                outputs[key] = [[0 for i in range(24)] for j in range(6)]
-
-        
-        ## Round off overall output
-        for cp, val_list in outputs.items():
-            for i in range(len(val_list)):
-                outputs[cp][i] = [int(val) for val in val_list[i]]
-        
-        duration = (time.time() - init_time) / 60 # convert to minutes
-        print(f"--- Total running time {duration:.2f} minutes ---")
-
-        print(outputs)
-        
-        #print("Arrival rates", arrival_rates)
-        #print("CP capacity:", lots_d)
-        #print("Model Inputs:",lots_d_input)
-        print("Statistics:",outputs)
-        print()
-
-        global results_dict
-        results_dict = {}
-        for key, value in outputs.items():
-            white_info = value[4]
-            red_info = value[5]
-            results_dict[key] = [white_info, red_info]
-        
-        time.sleep(1)
-        return False,generate_results_modal(outputs),False
-    
-    else:
-        return dash.no_update,dash.no_update,dash.no_update
-
-
-'''4.3 Outputs'''
 # Callback to show user what time they are simulating under the adjustment slider for time
 @callback(
     Output(component_id = 'hour-slider-show', component_property = 'children'),
@@ -1763,7 +1763,7 @@ def show_hour(hour,disabled):
     Input('results-slider','value'),
     prevent_initial_call = True
 )
-def change_saturation(disabled,hour):
+def change_occupancies(disabled,hour):
     if disabled == False:
         outputs = results_dict
         cp3_outputs = outputs['cp3']
@@ -1949,14 +1949,13 @@ def change_saturation(disabled,hour):
         return dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update
 
 
-
 # Toggling results modal
 @callback(
     Output('results-modal','is_open'),
     Input('results-button','n_clicks'),
     Input('results-modal-close','n_clicks')
 )
-def open_simulation_modal(n1,n2):
+def open_results_modal(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
     if 'results-button' in changed_id:
         return True
