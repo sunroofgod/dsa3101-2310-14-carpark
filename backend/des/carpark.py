@@ -1,6 +1,6 @@
 import simpy
 from simpy import Resource
-from car import Car
+from .car import Car
 import numpy as np
 import params
 

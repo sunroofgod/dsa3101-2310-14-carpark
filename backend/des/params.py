@@ -6,17 +6,21 @@ import sys
 ## append backend path to sys to import database module
 path = os.getcwd()
 sys.path.append(os.path.join(path, "backend"))
-
-from database.mysql_connector import get_table
+from database.mysql_connector import get_table, connect_db
 
 ## get carpark visitor data
 # DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv") # "../../data/Cleaned/all_carparks_cleaned.csv"
 # cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
-cp_data = get_table("visitors")
+db = connect_db()
+cp_data = get_table(table_name="visitors", db=db)
 
 ## get carpark capacity data
-CAP_FPATH = os.path.join(os.getcwd(), "data", "CP Lots NUS.xlsx") # "../../data/CP Lots NUS.xlsx"
-capacity_data = pd.read_excel(CAP_FPATH)
+CAP_FPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "CP Lots NUS.xlsx") # "../../data/CP Lots NUS.xlsx"
+try:
+    capacity_data = pd.read_excel(CAP_FPATH)
+except:
+    capacity_data = pd.DataFrame()
+    raise NameError(f"{os.getcwd()}")
 
 def filter_cp(data : pd.DataFrame, cp : list):
     """
