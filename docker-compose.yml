@@ -21,21 +21,8 @@ services:
         target: /data/
     ports:
       - "3307:3306"
+      - "8050:8050"
     depends_on:
       - db
     stdin_open: true
     tty: true
-
-  
-  # app:
-  #   build: 
-  #     context: .
-  #     dockerfile: dash_dockerfile.txt
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - mysql
-  #   ports:
-  #     - "8050:8050"
-  #   stdin_open: true
-  #   tty: true

@@ -14,8 +14,9 @@ ENV MYSQL_USER=user
 ENV MYSQL_PASSWORD=root_password
 
 RUN mkdir /backend
-COPY /backend/database/ /backend/database/
-COPY /backend/data_preprocessing/ /backend/data_preprocessing/
+RUN mkdir /frontend
+COPY backend backend
+COPY frontend frontend
 COPY requirements.txt requirements.txt
 COPY init.sh init.sh
 
