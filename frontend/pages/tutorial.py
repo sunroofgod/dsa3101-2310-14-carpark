@@ -26,7 +26,7 @@ layout = html.Div([
                 poster="assets/tutorial_pic.png",
                 style={'max-width': '100%', 'height': '500px', 'width': '75%', 'display': 'block', 'margin': '0 auto'}
             ),
-            href="https://www.youtube.com/watch?v=GsLsBs4oW30",  # Add the actual YouTube video URL
+            href="https://youtu.be/7YL6yV4JriM",  # Add the actual YouTube video URL
             target="_blank",  # Open the link in a new tab
         )
     ], style={'border': '1px solid #003D7C', 'padding': '10px', 'border-radius': '5px'})
