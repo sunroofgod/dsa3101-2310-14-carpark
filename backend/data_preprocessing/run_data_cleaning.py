@@ -5,7 +5,7 @@ import numpy as np
 def load_and_clean_data(carpark_data : dict):
     """
     Function takes in a dictionary of file paths and returns an aggregated dataframe 
-    if __name__ == "__main__": individual carpark datasets and final dataframe will also be saved to a csv file
+    To save the cleaned datasets and final aggregated dataset as a csv file, run this file in this folder directory (backend/data_preprocessing)
 
     Args:
         carpark_data (dict): dictionary of carpark name and file path
@@ -43,7 +43,7 @@ def load_and_clean_data(carpark_data : dict):
 
 def clean_carpark_data(path : str):
     """
-    Function takes in path and exit_id (optional) and returns a cleaned dataframe
+    Function takes in path to raw data file and returns a cleaned dataframe
 
     Args:
         csv file path, assumes that csv
@@ -125,23 +125,9 @@ def generate_duration(df : pd.DataFrame):
     
     return df
 
-def generate_dow(df : pd.DataFrame):
-    """
-    Function adds parked_dow column specifying day of the week for enter_timing
-
-    Args:
-        df (pd.DataFrame): dataframe with column 'enter_dt'
-
-    Returns:
-        df (pd.DataFrame): dataframe with column 'parked_dow'
-    """
-    df['parked_dow'] = list(map(lambda dt: dt.strftime('%A'), df['enter_dt']))
-    
-    return df
-
-
 
 if __name__ == '__main__':
+    # Ensure to run this file from the backend/data_preprocessing folder directory
     # Check if the 'Data' folder exists, and create it if not.
     # Note that Data folder is untracked by git, hence data files can be added here
     data_folder = '../../data'

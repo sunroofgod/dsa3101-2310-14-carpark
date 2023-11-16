@@ -53,7 +53,7 @@ def create_all_tables(db: sqlalchemy.engine.Connection) -> None:
 
 def load_local_data(db: sqlalchemy.engine.Connection) -> None:
     """
-    Run data-preprocessing functions to obtain pd.Dataframe and upload into database
+    Run data_preprocessing functions to obtain pd.Dataframe and upload into database
 
     Args:
         db (sqlalchemy.engine.Connection): Connection object to the database.
