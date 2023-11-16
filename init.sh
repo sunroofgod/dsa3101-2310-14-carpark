@@ -9,4 +9,3 @@ echo ".env file created successfully."
 sleep 60
 python3 backend/database/__init__.py
 python3 frontend/app.py
-```
