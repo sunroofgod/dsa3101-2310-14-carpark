@@ -12,3 +12,4 @@ plotly.express
 dash_extensions==1.0.4
 cryptography
 openpyxl
+xlsxwriter
