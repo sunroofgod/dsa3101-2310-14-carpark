@@ -63,6 +63,18 @@ _Ensure that you have done/are doing all these installations based on your curre
    cd backend # if you were originally in the root directory of the cloned repo
    flask --app app run
    ```
+<!-- Running Our Application -->
+1. Clone the repo.
+
+   ```sh
+   git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
+   ```
+2. Proceed to root of cloned local repository and dockerize Application
+    ```sh
+   docker compose up -d
+   ```
+3. Wait for containers to be set up
+4. Proceed to our Application Site at [(https://localhost:8050/](https://localhost:8050/).
    
 <!-- BOTTOM BANNER -->
 This Full-stack project is built entirely (with love) in
@@ -78,3 +90,6 @@ This Full-stack project is built entirely (with love) in
 [Flask-url]: http://flask.palletsprojects.com
 [Python]: https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://www.python.org
+
+
+
