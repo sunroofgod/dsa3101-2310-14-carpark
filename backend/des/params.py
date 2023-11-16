@@ -1,20 +1,34 @@
 import pandas as pd
 import datetime
 import os
+import sys
 
+## append backend path to sys to import database module
 path = os.getcwd()
-CAP_FPATH = os.path.join(path, "data", "CP Lots NUS.xlsx")
-DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv")
+sys.path.append(os.path.join(path, "backend"))
 
-#from database.mysql_connector import get_table
-#CAP_FPATH = "../../data/CP Lots NUS.xlsx"
-#DATA_FPATH = "../../data/Cleaned/all_carparks_cleaned.csv"
+from database.mysql_connector import get_table, connect_db
 
+## get carpark visitor data
+# DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv") # "../../data/Cleaned/all_carparks_cleaned.csv"
+# cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
+cp_data = get_table("visitors", db=connect_db())
+
+## get carpark capacity data
+CAP_FPATH = os.path.join(os.getcwd(), "data", "CP Lots NUS.xlsx") # "../../data/CP Lots NUS.xlsx"
 capacity_data = pd.read_excel(CAP_FPATH)
-cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
-#cp_data = cp_data = get_table("visitors")
 
 def filter_cp(data : pd.DataFrame, cp : list):
+    """
+    Filter the dataset to only include the specified car parks.
+
+    Args:
+        data: Pandas DataFrame with 'carpark' column for car park name.
+        cp (list): List of car park names to include in the dataset.
+
+    Returns:
+        data: Filtered dataset.
+    """
     data = data.copy()
     data["carpark"] = data["carpark"].str.lower()
     data = data[data["carpark"].isin(cp)]
@@ -38,6 +52,7 @@ def get_day_arrival_rate(day : str, data=cp_data):
 
     Args:
         day (str): The date in YYYY-MM-DD format.
+        data: Pandas DataFrame with 'enter_dt' column for entry date-time.
 
     Returns:
         dict: A dictionary where key is hour (0-23) and values are the mean arrivals for each corresponding time interval.
@@ -64,7 +79,7 @@ def minutes_to_hours(minutes : int):
 
     Args:
         minutes (int): The number of minutes to convert to hours.
-
+    
     Returns:
         int: The equivalent number of hours.
     """
@@ -75,10 +90,12 @@ def get_carpark_capacity(cp : list, data=capacity_data):
     Get the car park capacity (number of white and red lots) for each car park.
 
     Args:
-        data: Pandas DataFrame with columns 'CP' (car park identifier), 'White' (number of white lots), and 'Red' (number of red lots).
+        cp (list): List of car park names to include in the dataset.
+        data: Pandas DataFrame with columns 'CP' (car park name), 'White' (number of white lots), and 'Red' (number of red lots).
 
     Returns:
-        dict: A dictionary where keys are car park names (in lowercase), and values are tuples containing the number of white and red lots.
+        dict: A dictionary where keys are car park names (in lowercase) and values are tuples containing the number of white and 
+                red lots for each corresponding car park.
     """
     d = {}
     data = data.copy()
@@ -97,11 +114,13 @@ def get_carpark_prob(cp : list, data=cp_data):
     Get the probability of car park utilization by user type for each car park.
 
     Args:
-        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'IU' (count of users).
+        cp (list): List of car park names to include in the dataset.
+        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'IU' (IU number).
 
     Returns:
-        dict: A nested dictionary with user types as the first level keys and car park names (in lowercase) as the second level keys.
-             The values are the probabilities of car park utilization by that user type for the corresponding car park.
+        dict: A dictionary where keys are user types (in lowercase), and values are dictionaries where 
+                keys are car park names (in lowercase) and 
+                values are the probability of each car park being utilized by the corresponding user type.
     """
     d = {}
     data = filter_cp(data.copy(), cp)
@@ -134,10 +153,12 @@ def get_parking_type_prop(cp : list, data=cp_data):
     Get the proportion of each parking type in the dataset.
 
     Args:
-        data: Pandas DataFrame with a 'type' column representing the parking type.
+        cp (list): List of car park names to include in the dataset.
+        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'IU' (IU number).
 
     Returns:
-        dict: A dictionary where keys are parking types, and values are the proportions of each type in the dataset.
+        dict: A dictionary where keys are user types (in lowercase), and 
+                values are the proportion of each parking type in the dataset.
     """
     data = filter_cp(data, cp)
     ## Calculate proportion of parking types
@@ -155,10 +176,12 @@ def get_arrival_rates(cp : list, data=cp_data):
     Calculate the mean arrival (lambda) of users for each month and hour.
 
     Args:
-        data: Pandas DataFrame with 'enter_dt' column for entry date-time.
+        cp (list): List of car park names to include in the dataset.
+        data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'enter_dt' (entry date-time).
 
     Returns:
-        dict: A dictionary where keys are tuples of (month, hour) and values are the mean arrivals for each corresponding time interval.
+        dict: A dictionary where keys are tuples of (month, hour) and 
+                values are the mean arrivals for each corresponding time interval.
     """
     data = filter_cp(data.copy(), cp)
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
@@ -178,10 +201,12 @@ def get_parking_duration_stats(cp : list, data=cp_data):
     Get parking duration statistics (median and standard deviation) for each car park and user type.
 
     Args:
+        cp (list): List of car park names to include in the dataset.
         data: Pandas DataFrame with columns 'carpark' (car park name), 'type' (user type), and 'parked_min' (parking duration in minutes).
 
     Returns:
-        dict: A dictionary where keys are tuples of (car park name, user type), and values are tuples containing the median and standard deviation of parking durations.
+        dict: A dictionary where keys are tuples of (car park, user type, hour) and 
+                values are tuples of (median, standard deviation) of parking duration for each corresponding time interval.
     """
     data = filter_cp(data.copy(), cp)
     data['enter_dt'] = pd.to_datetime(data['enter_dt'])
