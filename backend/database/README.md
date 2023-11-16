@@ -25,10 +25,10 @@ CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@localhos
 1. Install MySQLWorkbench [here](https://dev.mysql.com/downloads/workbench/).
 
 2. Setup a new MySQL Connection by clicking on the + icon.
-<img src="../.github/public/sql_workbench_setup_step1.png" width="500">
+<img src="../../.github/public/sql_workbench_setup_step1.png" width="500">
 
 3. Fill in all the compulsory fileds. In the case of our webapp, it is important to remember the fields `Username`, `Password` and `Default Schema` that we set. **ENSURE** that you have set the port to 3306, else it will not run.
-<img src="../.github/public/sql_workbench_setup_step2.png" width="700">
+<img src="../../.github/public/sql_workbench_setup_step2.png" width="700">
 
 4. Press ok. 
 
@@ -54,7 +54,7 @@ CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@localhos
    ```
 
 3. Make sure you have started running a MySQL Connection instance. You may do so by clicking on the MySQL Connection you have previously set up as seen here.
-<img src="../.github/public/sql_workbench_setup_step3.png" width="500">
+<img src="../../.github/public/sql_workbench_setup_step3.png" width="500">
 
 4. Run the file to initialise data in the local database
 ```sh
