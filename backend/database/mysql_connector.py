@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import text
 import sqlalchemy
 
@@ -10,20 +10,16 @@ def connect_db():
     Returns:
         sqlalchemy.engine.Connection: Connection object to the database.
     """
-    load_dotenv('.env')
+    load_dotenv(find_dotenv())
     DATABASE_NAME = os.environ['DATABASE_NAME']
     MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
     MYSQL_PASSWORD = os.environ['MYSQL_PASSWORD']
     CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@db:3306/{DATABASE_NAME}'
-    print(CONNECTION_STRING)
     engine = sqlalchemy.create_engine(
         CONNECTION_STRING
     )
     db = engine.connect()
     return db
-
-## connect to database
-# db = connect_db()
 
 def get_table(table_name: str, db: sqlalchemy.engine.Connection):
     """
