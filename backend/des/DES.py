@@ -1,8 +1,8 @@
 import numpy as np
 import simpy
 from simpy import Environment
-from carpark import CarPark
-from car import Car
+from .carpark import CarPark
+from .car import Car
 import time
 import params
 import sys
