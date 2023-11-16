@@ -17,12 +17,15 @@ This project is part of our graded coursework in the National University of Sing
    ```sh
    git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
    ```
-2. Proceed to root of cloned local repository and dockerize Application
+2. Create a folder in the root of the cloned repo 'data'
+3. Download data from [here](https://nusu.sharepoint.com/:u:/r/sites/Section_2310_1390/Shared%20Documents/General/Video%20Submissions/14-carpark/data.zip?csf=1&web=1&e=Z7FBX4)
+4. Extract contents of the downloaded zip into the 'data' folder
+5. Proceed to root of cloned local repository and dockerize Application
     ```sh
    docker compose up -d
    ```
-3. Wait for containers to be set up
-4. Proceed to our Application Site at [https://localhost:8050/](https://localhost:8050/).
+6. Wait for containers to be set up
+7. Proceed to our Application Site at [https://localhost:8050/](https://localhost:8050/).
 
 <!-- GETTING STARTED -->
 ## Getting Started
