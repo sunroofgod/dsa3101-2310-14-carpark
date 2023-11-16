@@ -4,7 +4,7 @@ import os, sys
 ## append backend path to sys to import database module
 path = os.getcwd()
 sys.path.append(os.path.join(path, "backend"))
-from .mysql_connector import connect_db
+from database.mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
 import time
 
