@@ -1,11 +1,21 @@
-from database import db, create_all_tables, drop_all_tables
+from database import create_all_tables, drop_all_tables
+from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import text
-import unittest
+import unittest, os, sqlalchemy
 
 class TestDatabaseSetUp(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.db = db 
+        load_dotenv(find_dotenv())
+        DATABASE_NAME = os.environ['DATABASE_NAME']
+        MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
+        MYSQL_PASSWORD = os.environ['MYSQL_PASSWORD']
+        CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@localhost:3306/{DATABASE_NAME}'
+        engine = sqlalchemy.create_engine(
+            CONNECTION_STRING
+        )
+        db = engine.connect()
+        self.db = db
 
     def test_creating_tables(self) -> None:
         create_all_tables(self.db)
