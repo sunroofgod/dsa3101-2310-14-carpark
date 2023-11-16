@@ -8,59 +8,104 @@ import time
 import io
 from dash_extensions.enrich import FileSystemCache, Trigger
 
+
 import os
 path = os.getcwd()
-
 import sys
 sys.path.append(os.path.join(path, "backend", "des"))
 
-from params import get_month_arrival_rate, get_day_arrival_rate
+# Importing Helper Functions from Backend
+from params import get_month_arrival_rate, get_day_arrival_rate, get_carpark_capacity
 from DES import run_nsim, stats_mean
 
-dash.register_page(__name__) #signifies homepage
+dash.register_page(__name__) 
 
-#sample_data = pd.read_csv('D:/Data Science and Analytics/DSA3101/dsa3101-2310-14-carpark/frontend/data/sample_data_frontend_2.csv') ### CHANGE TO UR LOCAL DIR
-
-# Variables
+'''
+Section 1: Global Variables
+'''
+'''1.1 Inputs'''
+# Campus Events and Corresponding Dates
 campus_events = ['No Event','Week 0 New AY', 'Well-Being Day', 'Commencement', 'Examinations', 'Staff WFH Day', 'Rag & Flag Day', 'SuperNova', 'Open Day', 'Public Holiday']
+events_date_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
+event_dates = dict(zip(campus_events,events_date_values)) #Key is event, value is date of event
+
+# Options for Select Month Dropdown
 months = [{'label':'January','value':1},{'label':'February','value':2},{'label':'March','value':3},{'label':'April','value':4},
           {'label':'May','value':5},{'label':'June','value':6},{'label':'July','value':7},{'label':'August','value':8},
           {'label':'September','value':9},{'label':'October','value':10},{'label':'November','value':11},{'label':'December','value':12}]
+
+# Recover alphabetical representation of Month from month number
 month_dict = {1: 'January', 2: 'Februrary', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 7: 'July', 
                       8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December' }
-default_button = "0"
+
+# Initial Arrival Rates (Clean State)
+# Format for all arrival rate dictionaries {int:int} where key is hour and value is arrival rate for hour
 default_arrivals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0,10:0,11:0,12:0,13:0,14:0,15:0,16:0,17:0,18:0,19:0,20:0,21:0,22:0,23:0}
-cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'}
-sample_results = {'cp3': [467, 44, 239, 75, 34, 16], 'cp3a': [309, 157, 229, 75, 45, 13], 'cp4': [331, 124, 167, 125, 39, 14], 'cp5': [422, 179, 58, 25, 35, 13], 'cp5b': [165, 60, 165, 126, 0, 16], 'cp6b': [422, 194, 245, 50, 38, 13], 'cp10': [335, 53, 229, 25, 39, 18]}
+
+# Available Carparks
+all_carparks = ['cp3','cp3a','cp4','cp5','cp5b','cp6b','cp10']
+
+# Initial Carpark Capacities
+carpark_cap = get_carpark_capacity(all_carparks)
+
+# Current setting of capark capacity, initialized to be default carpark capacities
+lots_d = get_carpark_capacity(all_carparks)
+
+# Settings for carpark button position
+# settings list: [button_top, button_left, text_top, text_left], CSS style settings in percentage
+button_settings = {
+    'cp3': ['16%', '27%', '12%', '27.7%'],
+    'cp3a': ['17%', '32%', '13%', '32.3%'],
+    'cp4': ['32%', '34%', '39%', '34.8%'],
+    'cp5': ['34%', '43%', '41%', '43.8%'],
+    'cp5b': ['25.5%', '42%', '21.5%', '42.3%'],
+    'cp6b': ['62%', '62%', '69%', '62.3%'],
+    'cp10': ['53%', '84%', '60%', '84.3%'],
+}
+
+
+# Full Name of Carparks
+cp_names = {'cp3':'UCC/YST Conservatory of Music', 'cp3a':'LKCNHM', 'cp4':'Raffles Hall/CFA', 'cp5':'University Sports Centre', 'cp5b':'NUS Staff Club', 'cp6b':'University Hall', 'cp10':'S17'} 
+
+'''1.2 Outputs'''
+# Initial Display for Carpark Occupancies
+default_button = "0"
+
+# Most Recent Simulation Result, Initialised as empty dict
+results = {}
+
+# Children for the results modal to store up to two recent student simulations, initialized as empty list
 results_body = []
-carpark_cap = {'cp3':(31,212), 'cp3a':(14,53),'cp4':(21,95),'cp5':(17,53),'cp5b':(32,0),'cp6b':(130,43),'cp10':(211,164)}
 
-count = 0
-
+"""1.3 Misc"""
+# Object to store progress bar Percentage
 fsc = FileSystemCache("cache_dir")
 fsc.set("progress", 0)
 
-# Sample Data for Months
-month_data_values = [dict(zip(range(0,24),[random.randint(1, 1000) for _ in range(24)])) for i in range(12)]
-month_data_keys = range(1,13)
-month_data = dict(zip(month_data_keys,month_data_values))
+'''1.4 CSS Styles"'''
+# Styling Options for Non-Carpark Buttons, buggy results when implmenting this through .css
+grey_buttons_left = style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' 
+,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'}
+grey_buttons_right = {'display':'inline-block','margin-bottom':'2%','display':'inline-block', 
+'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'} 
+grey_buttons_right_2 = {'display':'inline-block','margin-bottom':'2%','margin-right':'2%','display':'inline-block', 
+'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'} 
+black_button_right = {'margin-bottom':'2%','display':'inline-block', 'background-color':'#000000', 'color' : '#FFFFFF' ,
+'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}
 
-# Sample Data Events
-events_data_values = ['','2022-08-01','2022-10-21','2022-07-16','2022-11-21','2023-04-06','2022-08-06','2022-08-12','2023-03-04','2023-01-01']
-events_data = dict(zip(campus_events,events_data_values))
 
-#Helper function to generate arrival rates given month
-def generate_arrival_rate_month(x):
-    #keys = range(0,24)
-    #random_numbers = [random.randint(1, 1000) for _ in range(24)]
-    #d = dict(zip(keys,random_numbers))
-    #temp = sample_data[sample_data["month"] == x]
-    #d = temp.set_index("hour")["delta_nett"].to_dict()
-    return get_month_arrival_rate(x)
+'''
+Section 2: Frontend Helper Functions
+'''
 
-def generate_arrival_rate_event(x):
-    date = events_data[x]
-    d = get_day_arrival_rate(date)
+'''2.1 Inputs'''
+'''2.1.1 Arrival Rates'''
+# Helper function to generate arrival rates given month
+# Input event: string representing event e.g. "Open Day"
+# Output: dict, {int:int} , keys: integers 0-23 representing hour of day, values: arrivals for that hour
+def get_event_arrival_rate(event): 
+    date = event_dates[event]
+    d = get_day_arrival_rate(date) # Using backend helper function to obtain arrival rates for historical arrivals for events
     nd = {}
 
     for i in range(24):
@@ -71,47 +116,29 @@ def generate_arrival_rate_event(x):
 
     return nd
 
-# Helper function to run fake simulation
-def simulate_des(arrival_rates, lots_d):
-    d = {}
-    for key in lots_d.keys():
-        if key != 'cp5b':
-            d[key] = [random.randint(50, 500), random.randint(20, 250), random.randint(50, 250),random.randint(20, 125), random.randint(30,50), random.randint(10,20)]
-        else:
-            d[key] = [165, random.randint(20, 250), 165,random.randint(20, 150), 0, random.randint(10,20)]
-
-    return d
-
-
-#Helper function to generate plots from dictionary representation
-def generate_arrival_rate_graph(d,w,h): #w is width, h is height
-    df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
-    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates to Simulate</b>',
-                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=w, height=h)
-    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
-    fig.update_yaxes(rangemode='nonnegative')
-    return fig
-
-def generate_simulation_graph(d): #w is width, h is height
-    df = pd.DataFrame({'hour':d.keys(),'arrivals':d.values()})
-    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates</b>',
-                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width = 300 , height = 300)
-    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
-    fig.update_yaxes(rangemode='nonnegative')
-    return fig
-
+# Helper Function to create dash slider components
+# Inputs:
+# hour: integer representing hour, val: integer representing current arrival rate for that hour
+# Output: dash component containing dash vertical slider component to adjust arrival rate for that hour and html div to display the value of the slider
+# id for slider will be slider_hournumber e.g. 'slider_1' for slider adjusting arrival rates for 1 am.
+# id for html div that displays value is value_hournumber e.g. 'value_1'
 def vert_slider(hour, val):
     return dbc.Col([html.Div(html.Div(str(val), id = "value_" + str(hour)), style= {'font-size':'16px','text-align':'center', 'margin-right':'50%'}),
                     html.Div(dcc.Slider(id = "slider_" + str(hour),min = 0, max = 500, step = 1, value = val, vertical = True,marks = None), style={'padding':'0px','margin-left':'10%'}), 
                     html.Div(html.Div(str(hour)), style= {'text-align':'center', 'margin-right':'50%'})],style={'padding':'0px'})
 
 
-#Helper function for refine graph modal
-def refine_modal(base, d):
+# Helper function create refine graph modal
+# Inputs: 
+# base: string representing month/event being simulated
+# arrival_d: dictionary of arrival rates {int:int}, key is hour 0-23, value is arrival rate for that hour
+# Output: modal that would pop up when users click on the refine arrival rates button 
+# id for this component is 'refine-modal' 
+def refine_modal(base, arrival_d):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Current Base: "+ base), close_button= False),
         dbc.ModalBody([html.H4("Drag Sliders to Modify Number of Cars arriving in NUS at each hour"),
-                        dbc.Row([vert_slider(i, d[i]) for i in range(24)], id = 'row_slider', style={'padding-left':'2%'}),
+                        dbc.Row([vert_slider(i, arrival_d[i]) for i in range(24)], id = 'row_slider', style={'padding-left':'2%'}), # makes use of vert_slider function
                         html.B('Enter Hour')
                         ], style= {'text-align':'center', 'font-size':'19px'}),
                         
@@ -120,115 +147,179 @@ def refine_modal(base, d):
                     dbc.Button(
                         "Save and Exit", id="close-refine-modal", style = {'background-color':'#333333', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}
                     )])
-    ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl')
+    ], id = 'refine-modal', is_open= False, backdrop = False, centered = True, size = 'xl', style = {'zoom':'75%'})
 
-# Helper function for carpark modal
-def cp_modal(cp,a,b,c,d):
-    if cp != "cp5b":
-        return dbc.Modal([
-            dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
-            dbc.ModalBody([
-                html.Div([
-                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "black"}),
-                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}),
-                html.Div("Occupied White Lots: " + str(c) + '/' + str(d), style = {"color" : "black"})], id = 'occupied_'+cp),
-                html.Br(),
-                html.H4('Simulation Parameters:', style = {"color" : "black"}),
-                html.B('Carpark Status:', style = {"color" : "black"}),
-                html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
-                html.Div([
-                html.Div(html.B('Adjust Ratio of White:Red Lots:'),style= {'text-align':'center', 'color' : 'navy'}),
-                html.Div(dcc.Slider(id = "slider_ratio_"+cp,min = 0, max = b+d, step = 1, value = d, marks = None)),
-                html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
-                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-                html.Div(html.B('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
-                html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
-                html.Div(
-                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
-                    html.Br(),
-                    html.B("White Lot Capacity to Simulate: " + str(d) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "black"})]
+
+# Helper function to generate line plot from arrival rates dictionary
+# Inputs:
+# arrival_d: dictionary of arrival rates {int:int}, key is hour 0-23, value is arrival rate for that hour
+# width: integer representing width of plot
+# height: integer representing height of plot
+# Output: plotly time series line graph displaying arrival rates across time
+def generate_arrival_rate_graph(arrival_d,width,height): 
+    df = pd.DataFrame({'hour':arrival_d.keys(),'arrivals':arrival_d.values()})
+    fig = px.line(df, x = 'hour', y = 'arrivals', title = '<b>Arrival Rates</b>',
+                  labels = {'hour':'Hour of Day', 'arrivals': 'Number of Entries'},width=width, height=height)
+    fig.update_layout(margin = dict(l=50,r=20,b=20,t=40), font_family = "Open Sans", title_x = 0.5)
+    fig.update_yaxes(rangemode='nonnegative')
+    return fig
+
+'''2.1.2 Carpark Capacities'''
+# Function to generate carpark buttons for each carpark
+# Inputs:
+# cp: string of carpark e.g. 'cp3'
+# rate: string displaying occupancy rate
+# background_col: css option for background-color of button
+# Output:
+# html Div containing the button with the id equal to the cp input, and text label of carpark
+def cp_button(cp,rate,background_col):
+    settings_list = button_settings[cp]
+    children = html.Div([
+                html.Button(rate, id=cp, className = 'cp-button', style = {'top':settings_list[0], 'left':settings_list[1], 'background-color': background_col}),
+                html.Div(cp.upper(), style = {'position': 'absolute', 'top': settings_list[2], 'left': settings_list[3], 'font-weight': 'bold'})
+                ]
                 )
-                ])
+    return children
 
-            ], style= {'text-align':'center', 'font-size':'19px', "background-color": "white"}),
-            dbc.ModalFooter([
-                        dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
-                        dbc.Button(
-                            "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
-                        )]
-                        , style = {"background-color" : "#003d7c"})
-        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
-    
-    else:
-        return dbc.Modal([
-            dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
-            dbc.ModalBody([
-                html.Div([
-                html.B("Occupied Lots: " + str(a+c) + '/' + str(b+d), style = {"color" : "black"}),
-                html.Div("Occupied Red Lots: " + str(a) + '/' + str(b), style = {'color':'red'}),], id = 'occupied_'+cp),
-                html.Br(),
-                html.H4('Simulation Parameters:', style = {"color" : "black"}),
-                html.B('Carpark Status:', style = {"color" : "black"}),
-                html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
-                html.Div([
+
+# Helper function to initialize carpark modal, i.e. popups when each carpark button is clicked
+# Inputs:
+# cp: string representing carpark e.g. 'cp3'
+# Output:
+# dash modal for carpark with id modal-cp_num e.g. 'modal-cp3' 
+def cp_modal(cp):
+    white_cap = carpark_cap[cp][0] #Optain Default white lot capacity for carpark
+    red_cap = carpark_cap[cp][1] #Optain Default red lot capacity for carpark
+
+    # if else is to have different adjustment options for carpark 5b and other carparks.
+    # Carpark 5b only has red lots since it is a staff carpark, so that is the only capacity that can be adjusted
+    # Rest of the carparks can adjust white:red lot ratio, white lot capacity and red lot capacity
+    if cp != "cp5b":
+        display_child = [
+                html.B("Occupied Lots: 0/" + str(white_cap + red_cap), style = {"color" : "black"}),
+                html.Div("Occupied Red Lots: 0/" + str(red_cap), style = {'color':'red'}),
+                html.Div("Occupied White Lots: 0/" + str(white_cap), style = {"color" : "black"})]
+        adjustment_child = [
+                html.Div(html.B('Adjust Ratio of White:Red Lots:'),style= {'text-align':'center', 'color' : 'navy'}),
+                html.Div(dcc.Slider(id = "slider_ratio_"+cp,min = 0, max = white_cap+red_cap, step = 1, value = white_cap, marks = None)),
                 html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
-                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = b, step = 1, value = b, marks = None)),
-                #html.Div(html.Div('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
-                #html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = d, step = 1, value = d, marks = None)),
+                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = red_cap, step = 1, value = red_cap, marks = None)),
+                html.Div(html.B('Adjust White Lot Capacity:'),style= {'text-align':'center', 'color' : 'black'}),
+                html.Div(dcc.Slider(id = "slider_white_"+cp,min = 0, max = white_cap, step = 1, value = white_cap, marks = None)),
                 html.Div(
-                    [html.B("Red Lot Capacity to Simulate: " + str(b) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
+                    [html.B("Red Lot Capacity to Simulate: " + str(red_cap) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
+                    html.Br(),
+                    html.B("White Lot Capacity to Simulate: " + str(white_cap) + " (100% Capacity)",id = 'to_simulate_white_'+cp, style = {'font-size':'15px', "color" : "black"})]
+                )
+                ]
+    else:
+        display_child = [
+                html.B("Occupied Lots: 0/" + str(white_cap + red_cap), style = {"color" : "black"}),
+                html.Div("Occupied Red Lots: 0/" + str(red_cap), style = {'color':'red'})]
+        adjustment_child = [
+                html.Div(html.B('Adjust Red Lot Capacity:'),style= {'text-align':'center', 'color' : 'red'}),
+                html.Div(dcc.Slider(id = "slider_red_"+cp,min = 0, max = red_cap, step = 1, value = red_cap, marks = None)),
+                html.Div(
+                    [html.B("Red Lot Capacity to Simulate: " + str(red_cap) + " (100% Capacity)",id = 'to_simulate_red_'+cp, style = {'font-size':'15px', 'color':'red'}),
                     html.Br(),
                     ]
                 )
-                ])
-
+                ]
+    
+    modal = dbc.Modal([
+            dbc.ModalHeader(dbc.ModalTitle(cp.upper() + ": " + cp_names[cp], style = {"color" : "white"}), close_button= False, style = {"background-color": "#003d7c"}),
+            dbc.ModalBody([
+                html.Div(display_child, id = 'occupied_'+cp),
+                html.Br(),
+                html.H4('Simulation Parameters:', style = {"color" : "black"}),
+                html.B('Carpark Status:', style = {"color" : "black"}),
+                html.Div(dcc.Dropdown(options=['Open','Closed'], id = 'cp_status_'+cp, value = "Open", clearable = False), style={'margin-bottom':'3%'}),
+                html.Div(adjustment_child) # Different whether is carpark 5b or not
             ], style= {'text-align':'center', 'font-size':'19px', "background-color": "white"}),
             dbc.ModalFooter([
-                        dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+                        dbc.Button('Reset Parameters', id = 'reset-modal-'+cp,style = grey_buttons_right),
                         dbc.Button(
-                            "Save and Exit", id="close-modal", style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}
+                            "Save and Exit", id="close-modal", style = grey_buttons_right
                         )]
                         , style = {"background-color" : "#003d7c"})
-        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True)
+        ], id = 'modal-'+cp, is_open= False, backdrop = False, centered = True,style = {'zoom':'75%'})
+    return modal
 
 
-# Helper function for confirmation of simulation modal
+
+'''2.2 Simulate'''
+# Helper function for confirmation of simulation modal, i.e. when user clicks on the simulate button
+# Output:
+# dash modal showing the input parameters with id 'simulate-modal'
 def simulate_modal():
     return dbc.Modal([
-         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'navy 3px solid', 'font-family' : 'Open Sans', 'font-size':'20px','font-weight' : 'bold', 'background-color':'navy','color' : 'white'}),
+         dbc.ModalHeader(dbc.ModalTitle('Initializing Simulation:'), close_button= False, style={'border':'navy 3px solid', 'font-family' : 'Open Sans', 
+         'font-size':'20px','font-weight' : 'bold', 'background-color':'navy','color' : 'white'}),
          dbc.ModalBody(id = 'simulate-modal-contents', style = {'text-align':'center', 'font-size':'15px', 'border': ' black 3px solid'}),
          dbc.ModalFooter(children = [
             html.H5("Confirm Simulation?", style = {'color':'white'}),
             dbc.Button('Yes', id = 'simulate-modal-yes' ,style = {'background-color':'#06a11b', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
             dbc.Button('No', id = 'simulate-modal-no' ,style = {'background-color':'red', 'border-color':'#000000', 'border-width':'medium', 'font-size':'19px'}),
          ], style ={'border': 'navy 3px solid','background-color':'navy'})
-    ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True)
+    ], id = 'simulate-modal', is_open = False, backdrop = False, centered = True,style = {'zoom':'75%'})
 
-
-# Helper function to create results modal, input is results dict
+'''2.3 Output'''
+# Helper function to create results modal
+# Inputs:
+# results: dictionary
+# Format of dictionary {string: list of 4 lists}
+# keys are carpark strings e.g. 'cp3'
+# values are list of lists. 
+# [list of cummsum cars entered by hour, list of cummsum number of rejected cars by hour, list absolute occupancy of white lots, list absolute occupancy of red lots]
+# Each sublist consists of 24 values with index representing hour of that statistic
+# Function creates 4 plotly plots and displays them in a modal. 
+# 4 plots display statistics for total cars entered, total cars rejected, percentage cars rejected, maximum occupancy rate
+# Also saves the most recent set of plots to the global variable results_body, allowing for users to view the most recent 2 simulations in the results modal
+# Output of this function:
+# dash modal object that displays summary statistics, id of this modal is 'results-modal'
 def generate_results_modal(results):
     if results == {}:
+        # Case when app is just initialised and no simulations have been run
         body = dbc.ModalBody(html.H4('No Simulations have been run'), id = 'results-modal-contents', style = {'text-align':'center'})
     else:
         # Creating results data frame
         carparks = list(results.keys())
+
+        # for total cars entered
         white_entered = list([result[0][-1] for result in results.values()])
         red_entered = list([result[1][-1] for result in results.values()])
+
+        # for total cars rejected
         white_rej = list([result[2][-1] for result in results.values()])
         red_rej = list([result[3][-1] for result in results.values()])
-        df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej}).sort_values('carpark')
+
+        # for maximum occupancy
+        max_white = list([max(result[4]) for result in results.values()])
+        max_red = list([max(result[5]) for result in results.values()])
+        white_cap = list([lots[0] for lots in lots_d.values()])
+        red_cap = list([lots[1] for lots in lots_d.values()])
+        
+        # Arranging the dataframe in carpark order
+        df = pd.DataFrame({'carpark':carparks, 'white_entered':white_entered, 'red_entered':red_entered, 'white_rej':white_rej, 'red_rej':red_rej, 'max_white':max_white, 'max_red':max_red}).sort_values('carpark')
         df['order'] = [6,0,1,2,3,4,5]
         df.sort_values('order',inplace = True)
-        
-        print(df)
-
+                
+        # Obtaining total entered statistic for each carpark
         df['total_entered'] = df["red_entered"] + df["white_entered"]
+
+        # Obtaining rejection statistic for each carpark
         df['total_rej'] = df["red_rej"] + df["white_rej"]
         df['white_rej_percent'] = (df['white_rej'] / df['white_entered']).fillna(0) * 100
         df['red_rej_percent'] = (df['red_rej'] / df['red_entered']).fillna(0) * 100
         df['total_rej_percent'] = (df['total_rej'] / df['total_entered']).fillna(0) * 100
+        
+        # Obtaining max occupancy statistic for each carpark
+        df['white_cap'] = white_cap
+        df['red_cap'] = red_cap
+        df['max_white'] = round(df['max_white']/df['white_cap'] * 100)
+        df['max_red'] = round(df['max_red']/df['red_cap'] * 100)
 
-        # Enter Graph
+        # Total Enter Graph
         fig1 = px.bar(df, x = 'carpark', y = ['white_entered','red_entered','total_entered'],
         title = 'Total Cars Entered by Carpark', barmode = 'group', labels = {'value':'Number Entries','variable':'Entry Type'})
         fig1.update_traces(name='White', selector=dict(name='white_entered'))
@@ -238,7 +329,7 @@ def generate_results_modal(results):
         fig1.update_yaxes(rangemode='nonnegative')
         fig1.update_layout(xaxis_title="Carpark")
 
-        # Reject Graph
+        # Total Reject Graph
         fig2 = px.bar(df, x = 'carpark', y = ['white_rej','red_rej','total_rej'],
         title = 'Total Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Number Rejected','variable':'Entry Type'})
         fig2.update_traces(name='White', selector=dict(name='white_rej'))
@@ -248,6 +339,7 @@ def generate_results_modal(results):
         fig2.update_yaxes(rangemode='nonnegative')
         fig2.update_layout(xaxis_title="Carpark")
 
+        # Rejection Percentage Graph
         fig3 = px.bar(df, x = 'carpark', y = ['white_rej_percent','red_rej_percent','total_rej_percent'],
         title = 'Percent Cars Rejected by Carpark', barmode = 'group', labels = {'value':'Percent Rejected (%)','variable':'Entry Type'})
         fig3.update_traces(name='White', selector=dict(name='white_rej_percent'))
@@ -257,65 +349,80 @@ def generate_results_modal(results):
         fig3.update_yaxes(rangemode='nonnegative')
         fig3.update_layout(xaxis_title="Carpark")
 
-        
+        # Maximum Occupancy Rate Graph
+        fig4 = px.bar(df, x = 'carpark', y = ['max_white','max_red'],
+        title = 'Maximum Percentage Occupancy by Carpark', barmode = 'group', labels = {'value':'Percent Occupied (%)','variable':'Entry Type'})
+        fig4.update_traces(name='White', selector=dict(name='max_white'))
+        fig4.update_traces(name='Red', selector=dict(name='max_red'))
+        fig4.update_xaxes(tickvals=[0, 1, 2, 3,4,5,6], ticktext=['CP3', 'CP3A', 'CP4', 'CP5','CP5B','CP6B','CP10'])
+        fig4.update_yaxes(rangemode='nonnegative')
+        fig4.update_layout(xaxis_title="Carpark")
+
+        # Store most recent graphs globaly
         current_graphs = dbc.Col(
             [dbc.Row(dcc.Graph(figure = fig1)),
             dbc.Row(dcc.Graph(figure = fig2)),
-            dbc.Row(dcc.Graph(figure = fig3))],
+            dbc.Row(dcc.Graph(figure = fig3)),
+            dbc.Row(dcc.Graph(figure = fig4))],
             )
-        
         global results_body
         results_body.append(current_graphs)
 
+        # Ensuring that only the two most recent simulation graphs will be displayed
         if len(results_body) > 2:
             results_body.pop(0)
 
-        if len(results_body) == 1:
+        # Setting headers
+        if len(results_body) == 1: # Case when one simulation
             header = dbc.Row(dbc.Col(html.H4("Current Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'}))
-        else:
+        else: # Case when more than two simulations have been run
             header = dbc.Row([dbc.Col(html.H4("Previous Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'}),
             dbc.Col(html.H4("Current Simulation Statistics", style = {'text-decoration':'underline'}),style = {'text-align':'center'})])
 
         body = dbc.ModalBody(
             [
                 header,
-                dbc.Row(results_body) 
+                dbc.Row(results_body) # Different contents for body depending on how many simulations have been run
             ], style = {'border':'black 3px solid'}
         )
 
-        #body = dbc.ModalBody('No Simulations have been run', id = 'results-modal-contents', style = {'text-align':'center', 'font-size':'15px'})
-
-    return dbc.Modal([
+    modal = dbc.Modal([
          dbc.ModalHeader(dbc.ModalTitle('Simulation Results:'), close_button= False, style = {'border': 'navy 3px solid', 'background-color':'navy','color' : 'white'}),
          body,
          dbc.ModalFooter([
             dbc.Button('Download Current Statistics', id = 'results-download-button', disabled = True, style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
             dbc.Button('Close', id = 'results-modal-close' ,style = {'background-color':'#a9a9a9', 'border-color':'#000000', 'color' : '#000000', 'border-width':'medium', 'font-size':'19px','font-weight': 'bold'}),
          ], style = {'border': 'navy', 'background-color':'navy','color' : 'white', 'border':'navy 3px solid'})
-    ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl')
+    ], id = 'results-modal', is_open = False, backdrop = False, centered = True, size = 'xl', style = {'zoom':'75%'})
+
+    return modal
 
 
-
-# layout
+'''
+Section 3: Page Layout
+'''
 layout = dbc.Container([
     dbc.Row([
-        dbc.Col( # Left partition
+        # Left partition
+        dbc.Col( 
             html.Div([
                 html.H4("Currently Simulating:", style={'font-weight':'bold'}),
                 html.Div("None",id = "simulation-contents"),
                 html.Br(),
                 html.Div('Unavailable, run simulations first', id = 'hour-slider-show', style = {'font-size':'15px'}),
                 dcc.Slider(min = 0, max = 23, step = 1,  value = 23, id = 'results-slider', disabled = True, marks = None),
-                #html.Br(),
-                dbc.Button('View Simulation Results', id='results-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'15px', 'font-weight': 'bold'})
+                dbc.Button('View Simulation Results', id='results-button', style = grey_buttons_left)
             ]
             ),
             width={'size': 2, 'order': 1},
             style = {'text-align':'center','background-color':'#003d7c','padding-top':'1%','color':'#FFFFFF', 'align-items': 'center'}
             ),
-        dbc.Col( # Center partition
+        
+        # Center partition
+        dbc.Col( 
             html.Div([
-            html.Div(html.Img(src=dash.get_asset_url('nus_map.png'), style={'width': '100%', 'height': 'auto'}), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
+            html.Div(html.Img(src=dash.get_asset_url('nus_map.png'), style={'width': '100%', 'height': 'auto'}), 
+            style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}),
 
             html.Div([
                 html.Div([
@@ -329,614 +436,95 @@ layout = dbc.Container([
             ], style = {'border' : '2px solid black', 'padding-left':'5px', 'border-radius':'5px', 'margin':'3px', 'align-text':'center', 'background-color':'#f3f3f3',
                         'position':'absolute', 'top':'4%', 'left':'75%'}),
 
-            html.Div([
-                html.Button(default_button, id='cp3', className = 'cp-button', style = {'top':'16%', 'left':'27%'}),
-                html.Div('CP3', style = {'position': 'absolute', 'top': '12%', 'left': '27.7%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp3a', className = 'cp-button', style = {'top':'17%', 'left':'32%'}),
-                html.Div('CP3A', style = {'position': 'absolute', 'top': '13%', 'left': '32.3%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp4', className = 'cp-button', style = {'top':'32%', 'left':'34%'}),
-                html.Div('CP4', style = {'position': 'absolute', 'top': '39%', 'left': '34.8%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp5', className = 'cp-button',style = {'top':'34%', 'left':'43%'}),
-                html.Div('CP5', style = {'position': 'absolute', 'top': '41%', 'left': '43.8%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp5b', className = 'cp-button', style = {'top':'25.5%', 'left':'42%'}),
-                html.Div('CP5B', style = {'position': 'absolute', 'top': '21.5%', 'left': '42.3%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp6b', className = 'cp-button', style = {'top':'62%', 'left':'62%'}),
-                html.Div('CP6B', style = {'position': 'absolute', 'top': '69%', 'left': '62.3%', 'font-weight': 'bold'})
-                ]
-                ),
-
-            html.Div([
-                html.Button(default_button, id='cp10', className = 'cp-button', style = {'top':'53%', 'left':'84%'}),
-                html.Div('CP10', style = {'position': 'absolute', 'top': '60%', 'left': '84.3%', 'font-weight': 'bold'})
-                ]
-                ),
+            cp_button('cp3',"0",'green'),
+            cp_button('cp3a',"0",'green'),
+            cp_button('cp4',"0",'green'),
+            cp_button('cp5',"0",'green'),
+            cp_button('cp5b',"0",'green'),
+            cp_button('cp6b',"0",'green'),
+            cp_button('cp10',"0",'green'),
                 ],
                 style={'position': 'relative', 'font-size': '22.8px'}
             ),
             width={'size': 8, 'order': 2},
             style= {'padding': '0px'}
             ),
-        dbc.Col([ # Right partition
+
+        # Right partition
+        dbc.Col([ 
             html.Div([html.Div(html.B("Select Event")),
             html.Div(dcc.Dropdown(id = 'event-picker', options=campus_events, value = "No Event", clearable = False))]),
             html.Br(),
             html.Div([html.Div(html.B("Select Month")),
             html.Div(dcc.Dropdown(id = 'month-picker', options=months))]),
             html.Br(),
-            dbc.Button('Reset Events and Months', id='reset-events-button', style={'display':'inline-block', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Reset Events and Months', id='reset-events-button', style=grey_buttons_right),
             html.Br(),
             html.Br(),
-            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},figure = generate_arrival_rate_graph(default_arrivals,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
+            html.Div(dcc.Graph(id = "arrival-graph",config = {'staticPlot': True},
+            figure = generate_arrival_rate_graph(default_arrivals,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'width': '100%'}),
             html.Br(),
-            dbc.Button('Refine Arrival Rate', id='refine-button', style={'margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Refine Arrival Rate', id='refine-button', style = grey_buttons_right),
             html.Br(),
-            dbc.Button('Reset CP Params', id='reset-cp-button', style={'display':'inline-block','margin-bottom':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Reset CP Params', id='reset-cp-button', style = grey_buttons_right),
             html.Br(),            
-            dbc.Button('Reset All', id='reset-button', style={'margin-bottom':'2%','display':'inline-block','margin-right':'2%', 'background-color':'#a9a9a9', 'color' : '#000000' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
-            dbc.Button('Simulate', id='simulate-button', style={'margin-bottom':'2%','display':'inline-block', 'background-color':'#000000', 'color' : '#FFFFFF' ,'border-color':'#000000', 'border-width':'medium', 'font-size':'19px', 'font-weight': 'bold'}),
+            dbc.Button('Reset All', id='reset-button', style= grey_buttons_right_2),
+            dbc.Button('Simulate', id='simulate-button', style= black_button_right),
             html.Br(),
             ], 
             width={'size': 2, 'order': 3},
             style = {'text-align':'center','padding-top':'2%', 'background-color':'#ef7c00'})
             ]),
-            html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block'),
-            html.Div(cp_modal("cp3",0,31,0,212), id = 'cp3_modal'),
-            html.Div(cp_modal("cp3a",0,14,0,53), id = 'cp3a_modal'),
-            html.Div(cp_modal("cp4",0,21,0,95), id = 'cp4_modal'),
-            html.Div(cp_modal("cp5",0,17,0,53), id = 'cp5_modal'),
-            html.Div(cp_modal("cp5b",0,32,0,0), id = 'cp5b_modal'),
-            html.Div(cp_modal("cp6b",0,130,0,43), id = 'cp6b_modal'),
-            html.Div(cp_modal("cp10",0,211,0,164), id = 'cp10_modal'),
-            html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been reset!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],id="reset-cp-modal",is_open=False)),
-            html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been reset!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],id="reset-events-modal",is_open=False)),
-            html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been reset!"),dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],id="reset-all-modal",is_open=False)),
-            html.Div(simulate_modal()),
-            html.Div(generate_results_modal({}), id = 'results-div'),
-            html.Div(dcc.Download(id="download-results")),
-            html.Div(dbc.Modal([
-                dbc.ModalBody([
-                html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
-                                                                        'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), 
-                html.Br(),
-                html.Div([dbc.Progress(value = 0, id = 'progress-bar', color = 'success', label = '🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗'),dcc.Interval(id="interval", interval=500)]),
-                html.Br(),
-                html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
-                ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), #change this line after deciding color another day
-                ],id="loading-modal",is_open=False,backdrop = False,centered = True
-        ))
+        
+        ### Hidden Components
+
+        # Arrival Rate Modal
+        html.Div(refine_modal('No Event', default_arrivals), id = 'refine-modal-block'), 
+        
+        # Carpark Modals
+        html.Div(cp_modal("cp3"), id = 'cp3_modal'),
+        html.Div(cp_modal("cp3a"), id = 'cp3a_modal'),
+        html.Div(cp_modal("cp4"), id = 'cp4_modal'),
+        html.Div(cp_modal("cp5"), id = 'cp5_modal'),
+        html.Div(cp_modal("cp5b"), id = 'cp5b_modal'),
+        html.Div(cp_modal("cp6b"), id = 'cp6b_modal'),
+        html.Div(cp_modal("cp10"), id = 'cp10_modal'),
+
+        # Reset Modals
+        html.Div(dbc.Modal([dbc.ModalBody("All Carpark Parameters have been reset!"), 
+            dbc.ModalFooter(dbc.Button("Close", id="close-reset-cp-modal"))],
+            id="reset-cp-modal",is_open=False, style = {'zoom':'75%'})),
+        html.Div(dbc.Modal([dbc.ModalBody("All Events and Months have been reset!"),
+            dbc.ModalFooter(dbc.Button("Close", id="close-reset-events-modal"))],
+            id="reset-events-modal",is_open=False, style = {'zoom':'75%'})),
+        html.Div(dbc.Modal([dbc.ModalBody("All simulations and settings have been reset!"),
+            dbc.ModalFooter(dbc.Button("Close", id="close-reset-all-modal"))],
+            id="reset-all-modal",is_open=False, style = {'zoom':'75%'})),
+
+        html.Div(simulate_modal()), # Confirmation Modal
+        html.Div(generate_results_modal({}), id = 'results-div'), # Results Modal
+        html.Div(dcc.Download(id="download-results")), # Trigger Downloading of results
+
+        # Loading Modal for Simulation
+        html.Div(dbc.Modal([ 
+            dbc.ModalBody([
+            html.B("Simulation in Progress! Please wait...     ", style={'font-family' : 'Open Sans', 'font-size':'20px', 'color' : 'white', 
+                                                                    'display': 'flex', 'justify-content': 'center', 'align-items': 'center', 'height':'100%'}), 
+            html.Br(),
+            html.Div([dbc.Progress(value = 0, id = 'progress-bar', color = 'success', 
+            label = '🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗 🚗'),dcc.Interval(id="interval", interval=500)]),
+            html.Br(),
+            html.Div(dbc.Spinner(color="white", type="border"), style = {'float':'right'})
+            ] , style = {'border':'navy 3px solid', 'background-color' : 'navy'}), 
+            ],id="loading-modal",is_open=False,backdrop = False,centered = True, style = {'zoom':'75%'}))
 
     ], fluid=True,  style = {'font-family': 'Open Sans', 'font-size':'19px'})
 
 '''
-CALLBACKS FOR CARPARKS
+Section 4: Callbacks
 '''
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp3','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp3','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp3" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp3','disabled'),
-    Output('slider_white_cp3','disabled'),
-    Input('cp_status_cp3','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp3','children'),
-    Output('to_simulate_white_cp3','children'),
-    Input('cp_status_cp3','value'),
-    Input('slider_red_cp3','value'),
-    Input('slider_white_cp3','value'),
-    #State('slider_red_cp3', 'max'),
-    #State('slider_white_cp3', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp3'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp3'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp3','value',allow_duplicate = True),
-    Output('slider_white_cp3','value',allow_duplicate = True),
-    Output('slider_red_cp3','max'),
-    Output('slider_white_cp3','max'),
-    Input('slider_ratio_cp3','value'),
-    State('slider_red_cp3','value'),
-    State('slider_white_cp3','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp3'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp3'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp3','value'),
-    Output('slider_red_cp3','value'),
-    Output('slider_white_cp3','value'),
-    Output('cp_status_cp3','value'),
-    Input('reset-modal-cp3','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp3' in changed_id:
-        return carpark_cap['cp3'][1],carpark_cap['cp3'][0], carpark_cap['cp3'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp3a','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp3a','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp3a" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp3a','disabled'),
-    Output('slider_white_cp3a','disabled'),
-    Input('cp_status_cp3a','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp3a','children'),
-    Output('to_simulate_white_cp3a','children'),
-    Input('cp_status_cp3a','value'),
-    Input('slider_red_cp3a','value'),
-    Input('slider_white_cp3a','value'),
-    #State('slider_red_cp3a', 'max'),
-    #State('slider_white_cp3a', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp3a'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp3a'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp3a','value',allow_duplicate = True),
-    Output('slider_white_cp3a','value',allow_duplicate = True),
-    Output('slider_red_cp3a','max'),
-    Output('slider_white_cp3a','max'),
-    Input('slider_ratio_cp3a','value'),
-    State('slider_red_cp3a','value'),
-    State('slider_white_cp3a','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp3a'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp3a'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp3a','value'),
-    Output('slider_red_cp3a','value'),
-    Output('slider_white_cp3a','value'),
-    Output('cp_status_cp3a','value'),
-    Input('reset-modal-cp3a','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp3a' in changed_id:
-        return carpark_cap['cp3a'][1],carpark_cap['cp3a'][0], carpark_cap['cp3a'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp4','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp4','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp4" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp4','disabled'),
-    Output('slider_white_cp4','disabled'),
-    Input('cp_status_cp4','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp4','children'),
-    Output('to_simulate_white_cp4','children'),
-    Input('cp_status_cp4','value'),
-    Input('slider_red_cp4','value'),
-    Input('slider_white_cp4','value'),
-    #State('slider_red_cp4', 'max'),
-    #State('slider_white_cp4', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp4'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp4'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp4','value',allow_duplicate = True),
-    Output('slider_white_cp4','value',allow_duplicate = True),
-    Output('slider_red_cp4','max'),
-    Output('slider_white_cp4','max'),
-    Input('slider_ratio_cp4','value'),
-    State('slider_red_cp4','value'),
-    State('slider_white_cp4','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp4'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp4'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp4','value'),
-    Output('slider_red_cp4','value'),
-    Output('slider_white_cp4','value'),
-    Output('cp_status_cp4','value'),
-    Input('reset-modal-cp4','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp4' in changed_id:
-        return carpark_cap['cp4'][1],carpark_cap['cp4'][0], carpark_cap['cp4'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp5','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp5','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp5" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp5','disabled'),
-    Output('slider_white_cp5','disabled'),
-    Input('cp_status_cp5','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp5','children'),
-    Output('to_simulate_white_cp5','children'),
-    Input('cp_status_cp5','value'),
-    Input('slider_red_cp5','value'),
-    Input('slider_white_cp5','value'),
-    #State('slider_red_cp5', 'max'),
-    #State('slider_white_cp5', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp5'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp5'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp5','value',allow_duplicate = True),
-    Output('slider_white_cp5','value',allow_duplicate = True),
-    Output('slider_red_cp5','max'),
-    Output('slider_white_cp5','max'),
-    Input('slider_ratio_cp5','value'),
-    State('slider_red_cp5','value'),
-    State('slider_white_cp5','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp5'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp5'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp5','value'),
-    Output('slider_red_cp5','value'),
-    Output('slider_white_cp5','value'),
-    Output('cp_status_cp5','value'),
-    Input('reset-modal-cp5','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp5' in changed_id:
-        return carpark_cap['cp5'][1],carpark_cap['cp5'][0], carpark_cap['cp5'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp5b','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp5b','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp5b" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp5b','disabled'),
-    Input('cp_status_cp5b','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False
-    else:
-        return True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp5b','children'),
-    Input('cp_status_cp5b','value'),
-    Input('slider_red_cp5b','value'),
-)
-def params_to_simulate(status,red):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp5b'][0])) + "% Capacity)"]
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_red_cp5b','value'),
-    Output('cp_status_cp5b','value'),
-    Input('reset-modal-cp5b','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp5b' in changed_id:
-        return carpark_cap['cp5b'][0], "Open"
-    else:
-        return dash.no_update,dash.no_update
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp6b','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp6b','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp6b" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp6b','disabled'),
-    Output('slider_white_cp6b','disabled'),
-    Input('cp_status_cp6b','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp6b','children'),
-    Output('to_simulate_white_cp6b','children'),
-    Input('cp_status_cp6b','value'),
-    Input('slider_red_cp6b','value'),
-    Input('slider_white_cp6b','value'),
-    #State('slider_red_cp6b', 'max'),
-    #State('slider_white_cp6b', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp6b'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp6b'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp6b','value',allow_duplicate = True),
-    Output('slider_white_cp6b','value',allow_duplicate = True),
-    Output('slider_red_cp6b','max'),
-    Output('slider_white_cp6b','max'),
-    Input('slider_ratio_cp6b','value'),
-    State('slider_red_cp6b','value'),
-    State('slider_white_cp6b','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp6b'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp6b'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp6b','value'),
-    Output('slider_red_cp6b','value'),
-    Output('slider_white_cp6b','value'),
-    Output('cp_status_cp6b','value'),
-    Input('reset-modal-cp6b','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp6b' in changed_id:
-        return carpark_cap['cp6b'][1],carpark_cap['cp6b'][0], carpark_cap['cp6b'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-
-# Callback to toggle cp modal
-@callback(
-        Output('modal-cp10','is_open'),
-        Input("close-modal",'n_clicks'),
-        Input('cp10','n_clicks')
-        
-)
-def toggle_refine_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "cp10" in changed_id:
-        return True
-    else:
-        return False
-
-# Callback for carpark status - determines if users can adjust carpark params
-@callback(
-    Output('slider_red_cp10','disabled'),
-    Output('slider_white_cp10','disabled'),
-    Input('cp_status_cp10','value')
-)
-def show_cp_params(status):
-    if status == "Open":
-        return False, False
-    else:
-        return True,True 
-    
-# Callback for simulation numbers cp
-@callback(
-    Output('to_simulate_red_cp10','children'),
-    Output('to_simulate_white_cp10','children'),
-    Input('cp_status_cp10','value'),
-    Input('slider_red_cp10','value'),
-    Input('slider_white_cp10','value'),
-    #State('slider_red_cp10', 'max'),
-    #State('slider_white_cp10', 'max'),
-)
-def params_to_simulate(status,red,white):
-    if status == "Closed":
-        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
-    else:
-        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp10'][0])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp10'][1])) + "% Capacity)"]
-
-# Callback to Adjust Red/White Ratio
-@callback(
-    Output('slider_red_cp10','value',allow_duplicate = True),
-    Output('slider_white_cp10','value',allow_duplicate = True),
-    Output('slider_red_cp10','max'),
-    Output('slider_white_cp10','max'),
-    Input('slider_ratio_cp10','value'),
-    State('slider_red_cp10','value'),
-    State('slider_white_cp10','value'),
-    prevent_initial_call = True
-)
-def change_ratio(ratio,red_val,white_val):
-    to_add_white = ratio - carpark_cap['cp10'][1]
-    new_max_white = ratio
-    new_max_red = carpark_cap['cp10'][0] - to_add_white
-
-    return new_max_red,new_max_white,new_max_red, new_max_white
-
-# Callback to reset simulation numbers
-@callback(
-    Output('slider_ratio_cp10','value'),
-    Output('slider_red_cp10','value'),
-    Output('slider_white_cp10','value'),
-    Output('cp_status_cp10','value'),
-    Input('reset-modal-cp10','n_clicks'),
-)
-def reset_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-modal-cp3' in changed_id:
-        return carpark_cap['cp10'][1],carpark_cap['cp10'][0], carpark_cap['cp10'][1], "Open"
-    else:
-        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
-
-
-'''
-CALLBACKS FOR Month and Event
-'''
+'''4.1 Inputs'''
+'''4.1.1 Arrival Rates'''
 # Callback for select event interactions with select month
 # Can only select month when value of select event is No Event
 @callback(
@@ -950,23 +538,23 @@ def disable_month(event):
         return dash.no_update,"Select Month...",False
     else:
         return None, "Cannot Select Month", True
-    
-# Callback to display graph of selected month
+
+
+# Callback to display graph of arrival rates on right partition
 @callback(
     Output('refine-modal-block','children'),
     Output(component_id = 'arrival-graph', component_property = 'figure'),
     Input(component_id = 'month-picker', component_property = 'value'),
     Input(component_id = 'event-picker',component_property = 'value')
-    
 )
 def update_graph(month,event):
     if month is None and event == "No Event":
         return refine_modal("No Event (Custom Arrivals)", default_arrivals),generate_arrival_rate_graph(default_arrivals,300,300)
     elif month is not None and event == "No Event":
-        d = generate_arrival_rate_month(month)
+        d = get_month_arrival_rate(month)
         return refine_modal(month_dict[month], d),generate_arrival_rate_graph(d,300,300)
     else:
-        d = generate_arrival_rate_event(event)
+        d = get_event_arrival_rate(event)
         return refine_modal(event, d),generate_arrival_rate_graph(d,300,300) 
 
     
@@ -1040,7 +628,7 @@ def update_graph_after_refine(*args):
     d = dict(zip(range(24),args))
     return generate_arrival_rate_graph(d,300,300), *args
 
-# Callback to reset refine modal
+# Callback to reset refine modal to the base arrival rates of the user's event/month choice
 @callback(
     Output('row_slider','children'),
     Output(component_id = 'arrival-graph', component_property = 'figure', allow_duplicate=True),
@@ -1056,138 +644,515 @@ def reset_refine_modal(month,event, clicks):
         if month is None and event == "No Event":
             return [vert_slider(i, default_arrivals[i]) for i in range(24)],generate_arrival_rate_graph(default_arrivals,300,300)
         elif month is not None and event == "No Event":
-            d = generate_arrival_rate_month(month)
+            d = get_month_arrival_rate(month)
             return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
         else:
-            d = generate_arrival_rate_event(event)
+            d = get_event_arrival_rate(event)
             return [vert_slider(i, d[i]) for i in range(24)],generate_arrival_rate_graph(d,300,300)
     else:
         return dash.no_update, dash.no_update
 
-# Callback for reset all: revert to original settings and carpark state
+
+
+'''4.1.2 Carpark Parameters'''
+# Callback to toggle cp modal
 @callback(
-    Output(component_id = 'results-slider', component_property = 'disabled'),
-    Output(component_id = 'results-slider', component_property = 'value'),
-    Output(component_id = 'results-div', component_property = 'children'),
-    Output(component_id='cp3',component_property='style'),
-    Output(component_id='cp3a',component_property='style'),
-    Output(component_id='cp4',component_property='style'),
-    Output(component_id='cp5',component_property='style'),
-    Output(component_id='cp5b',component_property='style'),
-    Output(component_id='cp6b',component_property='style'),
-    Output(component_id='cp10',component_property='style'),
-    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
-    Output(component_id='cp3_modal',component_property='children'),
-    Output(component_id='cp3a_modal',component_property='children'),
-    Output(component_id='cp4_modal',component_property='children'),
-    Output(component_id='cp5_modal',component_property='children'),
-    Output(component_id='cp5b_modal',component_property='children'),
-    Output(component_id='cp6b_modal',component_property='children'),
-    Output(component_id='cp10_modal',component_property='children'),
-    Output(component_id='simulation-contents',component_property='children'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='cp3',component_property='children'),
-    Output(component_id='cp3a',component_property='children'),
-    Output(component_id='cp4',component_property='children'),
-    Output(component_id='cp5',component_property='children'),
-    Output(component_id='cp5b',component_property='children'),
-    Output(component_id='cp6b',component_property='children'),
-    Output(component_id='cp10',component_property='children'),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value'),
-    Input(component_id='reset-button', component_property='n_clicks'),
-    prevent_initial_call=True
+        Output('modal-cp3','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp3','n_clicks')
+        
 )
-def reset_state(clicks):
+def toggle_refine_modal_cp3(n1,n2):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-button' in changed_id:
-        results_body.clear()
-        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
+    if "cp3" in changed_id:
+        return True
     else:
-        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return False
 
-
-# Callback to close reset all modals:
+# Callback for carpark status - determines if users can adjust carpark params
 @callback(
-        Output('reset-all-modal','is_open',allow_duplicate = True),
-        Input("close-reset-all-modal",'n_clicks'),
-        prevent_initial_call=True
+    Output('slider_red_cp3','disabled'),
+    Output('slider_white_cp3','disabled'),
+    Input('cp_status_cp3','value')
 )
-def toggle_reset_all_modal(n1):
+def show_cp_params_cp3(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp3','children'),
+    Output('to_simulate_white_cp3','children'),
+    Input('cp_status_cp3','value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_white_cp3','value'),
+)
+def params_to_simulate_cp3(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp3'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp3'][0])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp3','value',allow_duplicate = True),
+    Output('slider_white_cp3','value',allow_duplicate = True),
+    Output('slider_red_cp3','max'),
+    Output('slider_white_cp3','max'),
+    Input('slider_ratio_cp3','value'),
+    State('slider_red_cp3','value'),
+    State('slider_white_cp3','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp3(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp3'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp3'][1] - to_add_white
+
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp3','value'),
+    Output('slider_red_cp3','value'),
+    Output('slider_white_cp3','value'),
+    Output('cp_status_cp3','value'),
+    Input('reset-modal-cp3','n_clicks'),
+)
+def reset_cp_params_cp3(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-all-modal" in changed_id:
+    if 'reset-modal-cp3' in changed_id:
+        return carpark_cap['cp3'][0],carpark_cap['cp3'][1], carpark_cap['cp3'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp3a','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp3a','n_clicks')
+        
+)
+def toggle_refine_modal_cp3a(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp3a" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp3a','disabled'),
+    Output('slider_white_cp3a','disabled'),
+    Input('cp_status_cp3a','value')
+)
+def show_cp_params_cp3a(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp3a','children'),
+    Output('to_simulate_white_cp3a','children'),
+    Input('cp_status_cp3a','value'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_white_cp3a','value'),
+)
+def params_to_simulate_cp3a(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp3a'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp3a'][0])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp3a','value',allow_duplicate = True),
+    Output('slider_white_cp3a','value',allow_duplicate = True),
+    Output('slider_red_cp3a','max'),
+    Output('slider_white_cp3a','max'),
+    Input('slider_ratio_cp3a','value'),
+    State('slider_red_cp3a','value'),
+    State('slider_white_cp3a','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp3a(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp3a'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp3a'][1] - to_add_white
+
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp3a','value'),
+    Output('slider_red_cp3a','value'),
+    Output('slider_white_cp3a','value'),
+    Output('cp_status_cp3a','value'),
+    Input('reset-modal-cp3a','n_clicks'),
+)
+def reset_cp_params_cp3a(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp3a' in changed_id:
+        return carpark_cap['cp3a'][0],carpark_cap['cp3a'][1], carpark_cap['cp3a'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp4','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp4','n_clicks')
+        
+)
+def toggle_refine_modal_cp4(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp4" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp4','disabled'),
+    Output('slider_white_cp4','disabled'),
+    Input('cp_status_cp4','value')
+)
+def show_cp_params_cp4(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp4','children'),
+    Output('to_simulate_white_cp4','children'),
+    Input('cp_status_cp4','value'),
+    Input('slider_red_cp4','value'),
+    Input('slider_white_cp4','value'),
+)
+def params_to_simulate_cp4(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp4'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp4'][0])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp4','value',allow_duplicate = True),
+    Output('slider_white_cp4','value',allow_duplicate = True),
+    Output('slider_red_cp4','max'),
+    Output('slider_white_cp4','max'),
+    Input('slider_ratio_cp4','value'),
+    State('slider_red_cp4','value'),
+    State('slider_white_cp4','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp4(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp4'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp4'][1] - to_add_white
+
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp4','value'),
+    Output('slider_red_cp4','value'),
+    Output('slider_white_cp4','value'),
+    Output('cp_status_cp4','value'),
+    Input('reset-modal-cp4','n_clicks'),
+)
+def reset_cp_params_cp4(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp4' in changed_id:
+        return carpark_cap['cp4'][0],carpark_cap['cp4'][1], carpark_cap['cp4'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp5','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp5','n_clicks')
+        
+)
+def toggle_refine_modal_cp5(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp5" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp5','disabled'),
+    Output('slider_white_cp5','disabled'),
+    Input('cp_status_cp5','value')
+)
+def show_cp_params_cp5(status):
+    if status == "Open":
+        return False, False
+    else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp5','children'),
+    Output('to_simulate_white_cp5','children'),
+    Input('cp_status_cp5','value'),
+    Input('slider_red_cp5','value'),
+    Input('slider_white_cp5','value'),
+    #State('slider_red_cp5', 'max'),
+    #State('slider_white_cp5', 'max'),
+)
+def params_to_simulate_cp5(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp5'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp5'][0])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp5','value',allow_duplicate = True),
+    Output('slider_white_cp5','value',allow_duplicate = True),
+    Output('slider_red_cp5','max'),
+    Output('slider_white_cp5','max'),
+    Input('slider_ratio_cp5','value'),
+    State('slider_red_cp5','value'),
+    State('slider_white_cp5','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp5(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp5'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp5'][1] - to_add_white
+
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp5','value'),
+    Output('slider_red_cp5','value'),
+    Output('slider_white_cp5','value'),
+    Output('cp_status_cp5','value'),
+    Input('reset-modal-cp5','n_clicks'),
+)
+def reset_cp_params_cp5(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp5' in changed_id:
+        return carpark_cap['cp5'][0],carpark_cap['cp5'][1], carpark_cap['cp5'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp5b','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp5b','n_clicks')
+        
+)
+def toggle_refine_modal_cp5b(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp5b" in changed_id:
+        return True
+    else:
+        return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp5b','disabled'),
+    Input('cp_status_cp5b','value')
+)
+def show_cp_params_cp5b(status):
+    if status == "Open":
         return False
     else:
-        return True
-
-
-# Callback for reset cp params: reset params for all callparks only
+        return True 
+    
+# Callback for simulation numbers cp
 @callback(
-    Output(component_id='reset-cp-modal', component_property='is_open'),
-    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
-    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
-    Input(component_id='reset-cp-button', component_property='n_clicks'),
-    prevent_initial_call=True
+    Output('to_simulate_red_cp5b','children'),
+    Input('cp_status_cp5b','value'),
+    Input('slider_red_cp5b','value'),
 )
-def reset_all_cp_params(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-cp-button' in changed_id:
-        return True,cp_modal("cp3",0,31,0,212),cp_modal("cp3a",0,14,0,53),cp_modal("cp4",0,21,0,95), cp_modal("cp5",0,17,0,53),cp_modal("cp5b",0,32,0,0),cp_modal("cp6b",0,130,0,43),cp_modal("cp10",0,211,0,164)
+def params_to_simulate_cp5b(status,red):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"]
     else:
-        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp5b'][1])) + "% Capacity)"]
 
-# Callback to close reset cp modals:
+# Callback to reset simulation numbers
 @callback(
-        Output('reset-cp-modal','is_open',allow_duplicate = True),
-        Input("close-reset-cp-modal",'n_clicks'),
-        prevent_initial_call=True
+    Output('slider_red_cp5b','value'),
+    Output('cp_status_cp5b','value'),
+    Input('reset-modal-cp5b','n_clicks'),
 )
-def toggle_reset_cp_params_modal(n1):
+def reset_cp_params_cp5b(clicks):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-cp-modal" in changed_id:
+    if 'reset-modal-cp5b' in changed_id:
+        return carpark_cap['cp5b'][1], "Open"
+    else:
+        return dash.no_update,dash.no_update
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp6b','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp6b','n_clicks')
+        
+)
+def toggle_refine_modal_cp6b(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp6b" in changed_id:
+        return True
+    else:
         return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp6b','disabled'),
+    Output('slider_white_cp6b','disabled'),
+    Input('cp_status_cp6b','value')
+)
+def show_cp_params_cp6b(status):
+    if status == "Open":
+        return False, False
     else:
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp6b','children'),
+    Output('to_simulate_white_cp6b','children'),
+    Input('cp_status_cp6b','value'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_white_cp6b','value'),
+    #State('slider_red_cp6b', 'max'),
+    #State('slider_white_cp6b', 'max'),
+)
+def params_to_simulate_cp6b(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp6b'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp6b'][0])) + "% Capacity)"]
+
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp6b','value',allow_duplicate = True),
+    Output('slider_white_cp6b','value',allow_duplicate = True),
+    Output('slider_red_cp6b','max'),
+    Output('slider_white_cp6b','max'),
+    Input('slider_ratio_cp6b','value'),
+    State('slider_red_cp6b','value'),
+    State('slider_white_cp6b','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp6b(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp6b'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp6b'][1] - to_add_white
+
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp6b','value'),
+    Output('slider_red_cp6b','value'),
+    Output('slider_white_cp6b','value'),
+    Output('cp_status_cp6b','value'),
+    Input('reset-modal-cp6b','n_clicks'),
+)
+def reset_cp_params_cp6b(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp6b' in changed_id:
+        return carpark_cap['cp6b'][0],carpark_cap['cp6b'][1], carpark_cap['cp6b'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+
+# Callback to toggle cp modal
+@callback(
+        Output('modal-cp10','is_open'),
+        Input("close-modal",'n_clicks'),
+        Input('cp10','n_clicks')
+        
+)
+def toggle_refine_modal_cp10(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "cp10" in changed_id:
         return True
-
-
-# Callback for reset events: reset event and month selection only
-@callback(
-    Output(component_id='reset-events-modal', component_property='is_open'),
-    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
-    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
-    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
-    Input(component_id='reset-events-button', component_property='n_clicks'),
-    prevent_initial_call=True
-)
-def reset_events(clicks):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'reset-events-button' in changed_id:
-        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
     else:
-        return False,dash.no_update,dash.no_update,dash.no_update
-
-# Callback to close reset events modals:
-@callback(
-        Output('reset-events-modal','is_open',allow_duplicate = True),
-        Input("close-reset-events-modal",'n_clicks'),
-        prevent_initial_call=True
-)
-def toggle_reset_events_modal(n1):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if "close-reset-events-modal" in changed_id:
         return False
+
+# Callback for carpark status - determines if users can adjust carpark params
+@callback(
+    Output('slider_red_cp10','disabled'),
+    Output('slider_white_cp10','disabled'),
+    Input('cp_status_cp10','value')
+)
+def show_cp_params_cp10(status):
+    if status == "Open":
+        return False, False
     else:
-        return True
+        return True,True 
+    
+# Callback for simulation numbers cp
+@callback(
+    Output('to_simulate_red_cp10','children'),
+    Output('to_simulate_white_cp10','children'),
+    Input('cp_status_cp10','value'),
+    Input('slider_red_cp10','value'),
+    Input('slider_white_cp10','value'),
+    #State('slider_red_cp10', 'max'),
+    #State('slider_white_cp10', 'max'),
+)
+def params_to_simulate_cp10(status,red,white):
+    if status == "Closed":
+        return ["Red Lot Capacity to Simulate: 0 (0% Capacity)"], ["White Lot Capacity to Simulate: 0 (0% Capacity)"]
+    else:
+        return ["Red Lot Capacity to Simulate: " + str(red) + " (" + str(round(red*100/carpark_cap['cp10'][1])) + "% Capacity)"], ["White Lot Capacity to Simulate: " + str(white) + " (" + str(round(white*100/carpark_cap['cp10'][0])) + "% Capacity)"]
 
+# Callback to Adjust Red/White Ratio
+@callback(
+    Output('slider_red_cp10','value',allow_duplicate = True),
+    Output('slider_white_cp10','value',allow_duplicate = True),
+    Output('slider_red_cp10','max'),
+    Output('slider_white_cp10','max'),
+    Input('slider_ratio_cp10','value'),
+    State('slider_red_cp10','value'),
+    State('slider_white_cp10','value'),
+    prevent_initial_call = True
+)
+def change_ratio_cp10(ratio,red_val,white_val):
+    to_add_white = ratio - carpark_cap['cp10'][0]
+    new_max_white = ratio
+    new_max_red = carpark_cap['cp10'][1] - to_add_white
 
-'''
-Simulation CALLBACKS
-'''
+    return new_max_red,new_max_white,new_max_red, new_max_white
+
+# Callback to reset simulation numbers
+@callback(
+    Output('slider_ratio_cp10','value'),
+    Output('slider_red_cp10','value'),
+    Output('slider_white_cp10','value'),
+    Output('cp_status_cp10','value'),
+    Input('reset-modal-cp10','n_clicks'),
+)
+def reset_cp_params_cp10(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-modal-cp3' in changed_id:
+        return carpark_cap['cp10'][0],carpark_cap['cp10'][1], carpark_cap['cp10'][0], "Open"
+    else:
+        return dash.no_update,dash.no_update, dash.no_update,dash.no_update
+
+'''4.2 Simulate'''
 # Toggle Simulation Confirmation Modal
 @callback(
     Output('simulate-modal','is_open'),
@@ -1202,9 +1167,9 @@ def open_simulation_modal(n1,n2,n3):
     else:
         return False
 
-# Callbacks for modal content
+# Callbacks for Simulation Modal Content, Display Arrival Rate Graph for simulation and also the carpark capacities to simulate in percentage
 @callback(
-    Output(component_id='simulate-modal-contents',component_property='children', allow_duplicate=True),
+    Output(component_id='simulate-modal-contents',component_property='children'),
     Input('cp_status_cp3','value'),
     Input('cp_status_cp3a','value'),
     Input('cp_status_cp4','value'),
@@ -1233,8 +1198,6 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_white_cp5','max'),
     Input('slider_red_cp5b','value'),
     Input('slider_red_cp5b','max'),
-    #Input('slider_white_cp5b','value'),
-    #Input('slider_white_cp5b','max'),
     Input('slider_red_cp6b','value'),
     Input('slider_red_cp6b','max'),
     Input('slider_white_cp6b','value'),
@@ -1267,7 +1230,6 @@ def open_simulation_modal(n1,n2,n3):
     Input('slider_21','value'),
     Input('slider_22','value'),
     Input('slider_23','value'),
-    prevent_initial_call = True
 )
 
 def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
@@ -1278,22 +1240,21 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
     cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max,
     cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
     *args):
-     
-
-     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-     if 'simulate-button' in changed_id:
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'simulate-button' in changed_id:
+        # Change Header
         if event == "No Event" and month is None:
             if list(args) == list(default_arrivals.values()):
                 first = html.B("Empty Simulation")
             else:
                 first = html.B("Custom")
         elif event == "No Event":
-            if list(args) == list(generate_arrival_rate_month(month).values()):
+            if list(args) == list(get_month_arrival_rate(month).values()):
                 first = html.B(month_dict[month])
             else:
                 first = html.B(month_dict[month] + ' - Custom')
         else:
-            if list(args) == list(generate_arrival_rate_event(event).values()):
+            if list(args) == list(get_event_arrival_rate(event).values()):
                 first = html.B(event)
             else:
                 first = html.B(event + ' - Custom')
@@ -1301,112 +1262,51 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         d = dict(zip(range(24),args))
         graph = html.Div(dcc.Graph(config = {'staticPlot': True},figure = generate_arrival_rate_graph(d,300,300)), style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'})
 
+
+        # Compute Capacities for Simulation
         cp3_red_string = "0"
         cp3_white_string = "0"
         if cp3_status == "Open":
-            cp3_red_string = str(round(cp3_red_v * 100 / carpark_cap['cp3'][0]))
-            cp3_white_string = str(round(cp3_white_v * 100 / carpark_cap['cp3'][1]))
-
-        # cp3 = html.Div([
-        #     html.Span('Carpark 3 Capacities:  ', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp3_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp3_white_string + '%'
-        # ])
+            cp3_red_string = str(round(cp3_red_v * 100 / carpark_cap['cp3'][1]))
+            cp3_white_string = str(round(cp3_white_v * 100 / carpark_cap['cp3'][0]))
 
         cp3a_red_string = "0"
         cp3a_white_string = "0"
         if cp3a_status == "Open":
-            cp3a_red_string = str(round(cp3a_red_v * 100 / carpark_cap['cp3a'][0]))
-            cp3a_white_string = str(round(cp3a_white_v * 100 / carpark_cap['cp3a'][1]))
-
-        # cp3a = html.Div([
-        #     html.Span('Carpark 3A Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp3a_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp3a_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
+            cp3a_red_string = str(round(cp3a_red_v * 100 / carpark_cap['cp3a'][1]))
+            cp3a_white_string = str(round(cp3a_white_v * 100 / carpark_cap['cp3a'][0]))
 
         cp4_red_string = "0"
         cp4_white_string = "0"
         if cp4_status == "Open":
-            cp4_red_string = str(round(cp4_red_v * 100 / carpark_cap['cp4'][0]))
-            cp4_white_string = str(round(cp4_white_v * 100 / carpark_cap['cp4'][1]))
-
-        # cp4 = html.Div([
-        #     html.Span('Carpark 4 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp4_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp4_white_string + '%'
-        # ])
+            cp4_red_string = str(round(cp4_red_v * 100 / carpark_cap['cp4'][1]))
+            cp4_white_string = str(round(cp4_white_v * 100 / carpark_cap['cp4'][0]))
 
         cp5_red_string = "0"
         cp5_white_string = "0"
         if cp5_status == "Open":
-            cp5_red_string = str(round(cp5_red_v * 100 / carpark_cap['cp5'][0]))
-            cp5_white_string = str(round(cp5_white_v * 100 / carpark_cap['cp5'][1]))
-
-
-        # cp5 = html.Div([
-        #     html.Span('Carpark 5 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp5_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp5_white_string + '%'
-        # ])
+            cp5_red_string = str(round(cp5_red_v * 100 / carpark_cap['cp5'][1]))
+            cp5_white_string = str(round(cp5_white_v * 100 / carpark_cap['cp5'][0]))
 
         cp5b_red_string = "0"
         if cp5b_status == "Open":
-            cp5b_red_string = str(round(cp5b_red_v * 100 / carpark_cap['cp5b'][0]))
+            cp5b_red_string = str(round(cp5b_red_v * 100 / carpark_cap['cp5b'][1]))
 
-
-        # cp5b = html.Div([ 
-        #     html.Span('Carpark 5B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp5b_red_string + '%',
-        #     #html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     #' - ' + '100%'          ##bug??
-        # ], style={'text-align':'center','position': 'relative','right': '10%'})
 
         cp6b_red_string = "0"
         cp6b_white_string = "0"
         if cp6b_status == "Open":
-            cp6b_red_string = str(round(cp6b_red_v * 100 / carpark_cap['cp6b'][0]))
-            cp6b_white_string = str(round(cp6b_white_v * 100 / carpark_cap['cp6b'][1]))
-
-
-        # cp6b = html.Div([
-        #     html.Span('Carpark 6B Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold'}),
-        #     ' - ' + cp6b_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp6b_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
+            cp6b_red_string = str(round(cp6b_red_v * 100 / carpark_cap['cp6b'][1]))
+            cp6b_white_string = str(round(cp6b_white_v * 100 / carpark_cap['cp6b'][0]))
 
         cp10_red_string = "0"
         cp10_white_string = "0"
         if cp10_status == "Open":
-            cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][0]))
-            cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][1]))
+            cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][1]))
+            cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][0]))
 
-        # cp10 = html.Div([
-        #     html.Span('Carpark 10 Capacities:', style={'background-color': '#003D7C', 'padding': '2px 4px', 'border-radius': '4px', 'color': 'white'}),
-        #     ' ',
-        #     html.Span('Red', style={'color': 'red', 'font-weight': 'bold', 'margin-right': '1%'}),
-        #     ' - ' + cp10_red_string + '%, ',
-        #     html.Span('White', style={'color': 'green', 'font-weight': 'bold'}),
-        #     ' - ' + cp10_white_string + '%'
-        # ], style={'text-align':'center','position': 'relative','left': '1%'})
         
+        # Creating dataframe for carpark capacities and dash table
         data = {
             'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
             'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
@@ -1418,8 +1318,6 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
             columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot Capacity', "id":'Red Lot Capacity'},{"name":'White Lot Capacity', "id":'White Lot Capacity'}],
             data=df.to_dict('records'),
             editable = False,
-            #sort_action = 'native',
-            #sort_mode="multi",
             style_header = {'background-color':'navy', 'color':'white', 'font-weght':'bold', 'font-size':'20px'},
             style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black'},
             style_data_conditional = [
@@ -1442,209 +1340,12 @@ def cp_simulation_modal(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status
         
         return layout
 
-     else:
-         return dash.no_update
-
-
-
-
-
-# Simulation Callbacks
-@callback(
-    #Output('results-slider','value',allow_duplicate=True),
-    Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
-    Input('cp_status_cp3','value'),
-    Input('cp_status_cp3a','value'),
-    Input('cp_status_cp4','value'),
-    Input('cp_status_cp5','value'),
-    Input('cp_status_cp5b','value'),
-    Input('cp_status_cp6b','value'),
-    Input('cp_status_cp10','value'),
-    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
-    Input(component_id = 'month-picker', component_property = 'value'),
-    Input(component_id = 'event-picker',component_property = 'value'),
-    Input('slider_red_cp3','value'),
-    Input('slider_red_cp3','max'),
-    Input('slider_white_cp3','value'),
-    Input('slider_white_cp3','max'),
-    Input('slider_red_cp3a','value'),
-    Input('slider_red_cp3a','max'),
-    Input('slider_white_cp3a','value'),
-    Input('slider_white_cp3a','max'),
-    Input('slider_red_cp4','value'),
-    Input('slider_red_cp4','max'),
-    Input('slider_white_cp4','value'),
-    Input('slider_white_cp4','max'),
-    Input('slider_red_cp5','value'),
-    Input('slider_red_cp5','max'),
-    Input('slider_white_cp5','value'),
-    Input('slider_white_cp5','max'),
-    Input('slider_red_cp5b','value'),
-    Input('slider_red_cp5b','max'),
-    #Input('slider_white_cp5b','value'),
-    #Input('slider_white_cp5b','max'),
-    Input('slider_red_cp6b','value'),
-    Input('slider_red_cp6b','max'),
-    Input('slider_white_cp6b','value'),
-    Input('slider_white_cp6b','max'),
-    Input('slider_red_cp10','value'),
-    Input('slider_red_cp10','max'),
-    Input('slider_white_cp10','value'),
-    Input('slider_white_cp10','max'),
-    Input('slider_0','value'),
-    Input('slider_1','value'),
-    Input('slider_2','value'),
-    Input('slider_3','value'),
-    Input('slider_4','value'),
-    Input('slider_5','value'),
-    Input('slider_6','value'),
-    Input('slider_7','value'),
-    Input('slider_8','value'),
-    Input('slider_9','value'),
-    Input('slider_10','value'),
-    Input('slider_11','value'),
-    Input('slider_12','value'),
-    Input('slider_13','value'),
-    Input('slider_14','value'),
-    Input('slider_15','value'),
-    Input('slider_16','value'),
-    Input('slider_17','value'),
-    Input('slider_18','value'),
-    Input('slider_19','value'),
-    Input('slider_20','value'),
-    Input('slider_21','value'),
-    Input('slider_22','value'),
-    Input('slider_23','value'),
-    prevent_initial_call = True
-)
-
-def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
-    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
-    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
-    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
-    cp5b_red_v, cp5b_red_max,
-    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
-    cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
-    *args):
-     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-     if 'simulate-modal-yes' in changed_id:
-        cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status
-        if event == "No Event" and month is None:
-            if list(args) == list(default_arrivals.values()):
-                first = html.B("Empty Simulation")
-            else:
-                first = html.B("Custom")
-        elif event == "No Event":
-            if list(args) == list(generate_arrival_rate_month(month).values()):
-                first = html.B(month_dict[month])
-            else:
-                first = html.B(month_dict[month] + ' - Custom')
-        else:
-            if list(args) == list(generate_arrival_rate_event(event).values()):
-                first = html.B(event)
-            else:
-                first = html.B(event + ' - Custom')
-        
-        d = dict(zip(range(24),args))
-        
-
-        graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_simulation_graph(d)),
-                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) 
-            
-        cp3_red_string = "0"
-        cp3_white_string = "0"
-        cp3a_red_string = "0"
-        cp3a_white_string = "0"
-        cp4_red_string = "0"
-        cp4_white_string = "0" 
-        cp5_red_string = "0"
-        cp5_white_string = "0"  
-        cp5b_red_string = "0"
-        cp6b_red_string = "0"
-        cp6b_white_string = "0" 
-        cp10_red_string = "0"
-        cp10_white_string = "0"
-
-        if cp3_status == "Open":
-            cp3_red_string = str(round(cp3_red_v * 100 / carpark_cap['cp3'][0])) 
-            cp3_white_string = str(round(cp3_white_v * 100 / carpark_cap['cp3'][1])) 
-
-        if cp3a_status == "Open":
-            cp3a_red_string = str(round(cp3a_red_v * 100 / carpark_cap['cp3a'][0])) 
-            cp3a_white_string = str(round(cp3a_white_v * 100 / carpark_cap['cp3a'][1])) 
-    
-        if cp4_status == "Open":
-            cp4_red_string = str(round(cp4_red_v * 100 / carpark_cap['cp4'][0])) 
-            cp4_white_string = str(round(cp4_white_v * 100 / carpark_cap['cp4'][1])) 
-
-        if cp5_status == "Open":
-            cp5_red_string = str(round(cp5_red_v * 100 / carpark_cap['cp5'][0])) 
-            cp5_white_string = str(round(cp5_white_v * 100 / carpark_cap['cp5'][1]))
-
-        if cp5b_status == "Open":
-            cp5b_red_string = str(round(cp5b_red_v * 100 /carpark_cap['cp5b'][0]))
-        
-        if cp6b_status == "Open":
-            cp6b_red_string = str(round(cp6b_red_v * 100 / carpark_cap['cp6b'][0]))
-            cp6b_white_string = str(round(cp6b_white_v * 100 / carpark_cap['cp6b'][1]))
-        
-        if cp10_status == "Open":
-            cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][0]))
-            cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][1]))
-
-        data = {
-            'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
-            'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
-            'White Lot Capacity' : [cp3_white_string + "%", cp3a_white_string + "%", cp4_white_string + "%", cp5_white_string + "%", "No White Lots", cp6b_white_string + "%", cp10_white_string + "%"]
-            }
-        
-        df = pd.DataFrame(data)
-
-        table = dash_table.DataTable(
-            columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot', "id":'Red Lot Capacity'},{"name":'White Lot', "id":'White Lot Capacity'}],
-            data=df.to_dict('records'),
-            editable = False,
-            #sort_action = 'native',
-            #sort_mode="multi",
-            style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black', 'color':'black', 'back-ground-color':'white', 'font-size':'14px'},
-            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'},
-            style_data_conditional=[
-                {
-                    'if': {'row_index': 4 , 'column_id': 'White Lot Capacity'},
-                    'color':'white',
-                    'backgroundColor': 'black',
-                    'fontWeight': 'bold'
-                }
-            ]
-        )
-
-        layout = html.Div(
-            children = [first,
-                html.Br(),
-                graph,
-                html.Br(),
-                table])
-        
-        return layout    
-
-     else:
-         return dash.no_update
-     
-@callback(
-    Output(component_id = 'hour-slider-show', component_property = 'children'),
-    Input(component_id = 'results-slider', component_property = 'value'),
-    Input(component_id = 'results-slider',component_property = 'disabled')
-)
-def show_hour(hour,disabled):
-    if disabled or hour is None:
-        return ["Unavailable, run simulation first"]
     else:
-        hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
-        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
-        return ["Displaying carpark occupancies at " + hour_dict[hour]]
+         return dash.no_update
 
 
 
+# Callback to open the loading modal
 @callback(
     Output(component_id = 'loading-modal',component_property='is_open'),
     Input(component_id='simulate-modal-yes', component_property='n_clicks')
@@ -1656,7 +1357,27 @@ def open_loading(clicks):
     else:
         return False
 
-# Callback to update contents of cp modals
+# Callback that updates progress-bar during the simulation based on which simulation number the simulation is currently on
+@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
+def update_progress(trig):
+    global fsc
+    value = fsc.get("progress")  # get progress
+    return value
+
+# Callback that sets the progress bar to zero when loading modal is closed
+@callback(
+    Output("progress-bar","value", allow_duplicate=True),
+    Input("loading-modal","is_open"),
+    prevent_initial_call=True
+)
+def reset_progress(is_open):
+    if not is_open:
+        fsc.set('progress',0)
+        return 0
+    else:
+        return dash.no_update
+
+# Callback to run simulation given user inputs, updating the necessary output values for each carpark and also statistics for the simulation run
 @callback(
     Output('results-slider','disabled',allow_duplicate = True),
     Output(component_id = 'results-div',component_property = 'children', allow_duplicate=True),
@@ -1724,7 +1445,7 @@ def open_loading(clicks):
     Input('slider_23','value'),
     prevent_initial_call = True
 )
-def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+def simulate_events(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
     cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
     cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
     cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
@@ -1766,16 +1487,17 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
 
         arrival_rates = args
         
-        #print(run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1))
 
         init_time = time.time()
 
-        #outputs = simulate_des(arrival_rates,lots_d_input)
+
         global outputs
         outputs = {}
-        n = 3
+
+
+        n = 10 #adjust n for number of simulations
         for i in range(n):
-            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) #adjust n for number of simulations, remove n after done
+            current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) 
             outputs = stats_mean(outputs, current)
             global fsc
             fsc.set('progress',(i+1)*100/n)
@@ -1793,6 +1515,7 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
         duration = (time.time() - init_time) / 60 # convert to minutes
         print(f"--- Total running time {duration:.2f} minutes ---")
 
+        print(outputs)
         
         #print("Arrival rates", arrival_rates)
         #print("CP capacity:", lots_d)
@@ -1813,24 +1536,207 @@ def cp_simulation_model(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_s
     else:
         return dash.no_update,dash.no_update,dash.no_update
 
-'''
-Results Modal
-'''
-#Toggling results modal
-# Toggle Simulation Confirmation Modal
-@callback(
-    Output('results-modal','is_open'),
-    Input('results-button','n_clicks'),
-    Input('results-modal-close','n_clicks')
-)
-def open_simulation_modal(n1,n2):
-    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-    if 'results-button' in changed_id:
-        return True
-    else:
-        return False
 
-# Callback to get carpark saturation for each hour
+'''4.3 Outputs'''
+#  Callback to display simulation parameters on the left partition after simulation has been completed
+@callback(
+    Output(component_id='simulation-contents',component_property='children', allow_duplicate=True),
+    Input('cp_status_cp3','value'),
+    Input('cp_status_cp3a','value'),
+    Input('cp_status_cp4','value'),
+    Input('cp_status_cp5','value'),
+    Input('cp_status_cp5b','value'),
+    Input('cp_status_cp6b','value'),
+    Input('cp_status_cp10','value'),
+    Input(component_id='simulate-modal-yes', component_property='n_clicks'),
+    Input(component_id = 'month-picker', component_property = 'value'),
+    Input(component_id = 'event-picker',component_property = 'value'),
+    Input('slider_red_cp3','value'),
+    Input('slider_red_cp3','max'),
+    Input('slider_white_cp3','value'),
+    Input('slider_white_cp3','max'),
+    Input('slider_red_cp3a','value'),
+    Input('slider_red_cp3a','max'),
+    Input('slider_white_cp3a','value'),
+    Input('slider_white_cp3a','max'),
+    Input('slider_red_cp4','value'),
+    Input('slider_red_cp4','max'),
+    Input('slider_white_cp4','value'),
+    Input('slider_white_cp4','max'),
+    Input('slider_red_cp5','value'),
+    Input('slider_red_cp5','max'),
+    Input('slider_white_cp5','value'),
+    Input('slider_white_cp5','max'),
+    Input('slider_red_cp5b','value'),
+    Input('slider_red_cp5b','max'),
+    Input('slider_red_cp6b','value'),
+    Input('slider_red_cp6b','max'),
+    Input('slider_white_cp6b','value'),
+    Input('slider_white_cp6b','max'),
+    Input('slider_red_cp10','value'),
+    Input('slider_red_cp10','max'),
+    Input('slider_white_cp10','value'),
+    Input('slider_white_cp10','max'),
+    Input('slider_0','value'),
+    Input('slider_1','value'),
+    Input('slider_2','value'),
+    Input('slider_3','value'),
+    Input('slider_4','value'),
+    Input('slider_5','value'),
+    Input('slider_6','value'),
+    Input('slider_7','value'),
+    Input('slider_8','value'),
+    Input('slider_9','value'),
+    Input('slider_10','value'),
+    Input('slider_11','value'),
+    Input('slider_12','value'),
+    Input('slider_13','value'),
+    Input('slider_14','value'),
+    Input('slider_15','value'),
+    Input('slider_16','value'),
+    Input('slider_17','value'),
+    Input('slider_18','value'),
+    Input('slider_19','value'),
+    Input('slider_20','value'),
+    Input('slider_21','value'),
+    Input('slider_22','value'),
+    Input('slider_23','value'),
+    prevent_initial_call = True
+)
+
+def cp_simulation_side(cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_status,cp6b_status,cp10_status,clicks, month, event, cp3_red_v, cp3_red_max, cp3_white_v, cp3_white_max,
+    cp3a_red_v, cp3a_red_max, cp3a_white_v, cp3a_white_max,
+    cp4_red_v, cp4_red_max, cp4_white_v, cp4_white_max,
+    cp5_red_v, cp5_red_max, cp5_white_v, cp5_white_max,
+    cp5b_red_v, cp5b_red_max,
+    cp6b_red_v, cp6b_red_max, cp6b_white_v, cp6b_white_max, 
+    cp10_red_v, cp10_red_max, cp10_white_v, cp10_white_max,
+    *args):
+     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+     if 'simulate-modal-yes' in changed_id:
+
+        # Header
+        if event == "No Event" and month is None:
+            if list(args) == list(default_arrivals.values()):
+                first = html.B("Empty Simulation")
+            else:
+                first = html.B("Custom")
+        elif event == "No Event":
+            if list(args) == list(get_month_arrival_rate(month).values()):
+                first = html.B(month_dict[month])
+            else:
+                first = html.B(month_dict[month] + ' - Custom')
+        else:
+            if list(args) == list(get_event_arrival_rate(event).values()):
+                first = html.B(event)
+            else:
+                first = html.B(event + ' - Custom')
+        
+        d = dict(zip(range(24),args))
+        
+        # Arrival Rate Graph
+        graph = html.Div(dcc.Graph(config = {'staticPlot': True}, figure = generate_arrival_rate_graph(d,300,300)),
+                        style={'display': 'flex', 'justify-content': 'center', 'align-items': 'center'}) 
+            
+        
+        # Computing capacities to display on table
+        cp3_red_string = "0"
+        cp3_white_string = "0"
+        cp3a_red_string = "0"
+        cp3a_white_string = "0"
+        cp4_red_string = "0"
+        cp4_white_string = "0" 
+        cp5_red_string = "0"
+        cp5_white_string = "0"  
+        cp5b_red_string = "0"
+        cp6b_red_string = "0"
+        cp6b_white_string = "0" 
+        cp10_red_string = "0"
+        cp10_white_string = "0"
+
+        if cp3_status == "Open":
+            cp3_red_string = str(round(cp3_red_v * 100 / carpark_cap['cp3'][1])) 
+            cp3_white_string = str(round(cp3_white_v * 100 / carpark_cap['cp3'][0])) 
+
+        if cp3a_status == "Open":
+            cp3a_red_string = str(round(cp3a_red_v * 100 / carpark_cap['cp3a'][1])) 
+            cp3a_white_string = str(round(cp3a_white_v * 100 / carpark_cap['cp3a'][0])) 
+    
+        if cp4_status == "Open":
+            cp4_red_string = str(round(cp4_red_v * 100 / carpark_cap['cp4'][1])) 
+            cp4_white_string = str(round(cp4_white_v * 100 / carpark_cap['cp4'][0])) 
+
+        if cp5_status == "Open":
+            cp5_red_string = str(round(cp5_red_v * 100 / carpark_cap['cp5'][1])) 
+            cp5_white_string = str(round(cp5_white_v * 100 / carpark_cap['cp5'][0]))
+
+        if cp5b_status == "Open":
+            cp5b_red_string = str(round(cp5b_red_v * 100 /carpark_cap['cp5b'][1]))
+        
+        if cp6b_status == "Open":
+            cp6b_red_string = str(round(cp6b_red_v * 100 / carpark_cap['cp6b'][1]))
+            cp6b_white_string = str(round(cp6b_white_v * 100 / carpark_cap['cp6b'][0]))
+        
+        if cp10_status == "Open":
+            cp10_red_string = str(round(cp10_red_v * 100 / carpark_cap['cp10'][1]))
+            cp10_white_string = str(round(cp10_white_v * 100 / carpark_cap['cp10'][0]))
+
+        # Creating dataframe and capacities table
+        data = {
+            'Carparks':['Carpark 3','Carpark 3A','Carpark 4','Carpark 5','Carpark 5B','Carpark 6B','Carpark 10'],
+            'Red Lot Capacity' : [cp3_red_string + "%", cp3a_red_string + "%", cp4_red_string + "%", cp5_red_string + "%", cp5b_red_string + "%", cp6b_red_string + "%", cp10_red_string + "%"], 
+            'White Lot Capacity' : [cp3_white_string + "%", cp3a_white_string + "%", cp4_white_string + "%", cp5_white_string + "%", "No White Lots", cp6b_white_string + "%", cp10_white_string + "%"]
+            }
+        
+        df = pd.DataFrame(data)
+
+        table = dash_table.DataTable(
+            columns = [{"name":'Carparks', "id":'Carparks'},{"name":'Red Lot', "id":'Red Lot Capacity'},{"name":'White Lot', "id":'White Lot Capacity'}],
+            data=df.to_dict('records'),
+            editable = False,
+            style_cell = {'textAlign': 'center', 'font-family':'Open Sans', 'border':'3px solid black', 'color':'black', 'back-ground-color':'white', 'font-size':'14px'},
+            style_header = {'background-color':'grey', 'color':'white', 'font-weght':'bold', 'font-size':'18px'},
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 4 , 'column_id': 'White Lot Capacity'},
+                    'color':'white',
+                    'backgroundColor': 'black',
+                    'fontWeight': 'bold'
+                }
+            ]
+        )
+
+        layout = html.Div(
+            children = [first,
+                html.Br(),
+                graph,
+                html.Br(),
+                table])
+        
+        return layout    
+
+     else:
+         return dash.no_update
+
+
+
+
+# Callback to show user what time they are simulating under the adjustment slider for time
+@callback(
+    Output(component_id = 'hour-slider-show', component_property = 'children'),
+    Input(component_id = 'results-slider', component_property = 'value'),
+    Input(component_id = 'results-slider',component_property = 'disabled')
+)
+def show_hour(hour,disabled):
+    if disabled or hour is None:
+        return ["Unavailable, run simulation first"]
+    else:
+        hour_dict = {0:'12 am', 1: '1 am', 2: '2 am', 3: '3 am', 4: '4 am', 5: '5 am', 6: '6 am', 7: '7 am', 8: '8 am', 9: '9 am', 10: '10 am', 11: '11 am', 12: '12 pm',
+        13: '1 pm', 14: '2 pm', 15: '3 pm', 16: '4 pm', 17: '5 pm', 18: '6 pm', 19: '7 pm', 20: '8 pm', 21: '9 pm', 22: '10 pm', 23: '11 pm'}
+        return ["Displaying carpark occupancies at " + hour_dict[hour]]
+
+
+# Callback to get carpark saturation for each hour when user adjusts the slider bars, occupancy levels will change for each carpark
 @callback(
     Output(component_id = 'cp3', component_property = 'style',allow_duplicate=True),
     Output(component_id = 'cp3', component_property = 'children',allow_duplicate=True),
@@ -1857,7 +1763,7 @@ def open_simulation_modal(n1,n2):
     Input('results-slider','value'),
     prevent_initial_call = True
 )
-def change_saturation(disabled,hour):
+def change_occupancies(disabled,hour):
     if disabled == False:
         outputs = results_dict
         cp3_outputs = outputs['cp3']
@@ -2042,6 +1948,21 @@ def change_saturation(disabled,hour):
     else:
         return dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update,dash.no_update, dash.no_update, dash.no_update
 
+
+# Toggling results modal
+@callback(
+    Output('results-modal','is_open'),
+    Input('results-button','n_clicks'),
+    Input('results-modal-close','n_clicks')
+)
+def open_results_modal(n1,n2):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'results-button' in changed_id:
+        return True
+    else:
+        return False
+
+# Disables the option to download results when no simulation has been run
 @callback(
     Output('results-download-button','disabled'),
     Input('results-slider','disabled')
@@ -2049,7 +1970,7 @@ def change_saturation(disabled,hour):
 def allow_downloads(disabled):
     return disabled
 
-
+# Prepares Excel containing simulation results when user clicks on the download button
 @callback(
     Output("download-results","data"),
     Input('results-download-button', 'n_clicks'),
@@ -2134,20 +2055,128 @@ def download_data(clicks):
     else:
         return None
 
-@callback(Output("progress-bar", "value"), Trigger("interval", "n_intervals"))
-def update_progress(trig):
-    global fsc
-    value = fsc.get("progress")  # get progress
-    return value
 
+
+'''4.4 Reset'''
+# Callback for reset all: revert to original settings and carpark state, all simulation results will be wiped, everything will be in clean state
 @callback(
-    Output("progress-bar","value", allow_duplicate=True),
-    Input("loading-modal","is_open"),
+    Output(component_id = 'results-slider', component_property = 'disabled'),
+    Output(component_id = 'results-slider', component_property = 'value'),
+    Output(component_id = 'results-div', component_property = 'children'),
+    Output(component_id='cp3',component_property='style'),
+    Output(component_id='cp3a',component_property='style'),
+    Output(component_id='cp4',component_property='style'),
+    Output(component_id='cp5',component_property='style'),
+    Output(component_id='cp5b',component_property='style'),
+    Output(component_id='cp6b',component_property='style'),
+    Output(component_id='cp10',component_property='style'),
+    Output(component_id = 'reset-all-modal', component_property = 'is_open'),
+    Output(component_id='cp3_modal',component_property='children'),
+    Output(component_id='cp3a_modal',component_property='children'),
+    Output(component_id='cp4_modal',component_property='children'),
+    Output(component_id='cp5_modal',component_property='children'),
+    Output(component_id='cp5b_modal',component_property='children'),
+    Output(component_id='cp6b_modal',component_property='children'),
+    Output(component_id='cp10_modal',component_property='children'),
+    Output(component_id='simulation-contents',component_property='children'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='cp3',component_property='children'),
+    Output(component_id='cp3a',component_property='children'),
+    Output(component_id='cp4',component_property='children'),
+    Output(component_id='cp5',component_property='children'),
+    Output(component_id='cp5b',component_property='children'),
+    Output(component_id='cp6b',component_property='children'),
+    Output(component_id='cp10',component_property='children'),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value'),
+    Input(component_id='reset-button', component_property='n_clicks'),
     prevent_initial_call=True
 )
-def reset_progress(is_open):
-    if not is_open:
-        fsc.set('progress',0)
-        return 0
+def reset_state(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-button' in changed_id:
+        results_body.clear()
+        return True, 23, generate_results_modal({}),{'top':'16%', 'left':'27%','background-color':'green'},{'top':'17%', 'left':'32%','background-color':'green'}, {'top':'32%', 'left':'34%','background-color':'green'},{'top':'34%', 'left':'43%','background-color':'green'},{'top':'25.5%', 'left':'42%','background-color':'green'},{'top':'62%', 'left':'62%','background-color':'green'},{'top':'53%', 'left':'84%','background-color':'green'},True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10"),'None',generate_arrival_rate_graph(default_arrivals,300,300),default_button,default_button,default_button,default_button,default_button,default_button,default_button,None,"No Event"
     else:
-        return dash.no_update
+        return dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,True,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
+
+# Callback to close reset all modals:
+@callback(
+        Output('reset-all-modal','is_open',allow_duplicate = True),
+        Input("close-reset-all-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_all_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-all-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset cp params: reset params for all callparks only
+@callback(
+    Output(component_id='reset-cp-modal', component_property='is_open'),
+    Output(component_id='cp3_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp3a_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp4_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp5b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp6b_modal',component_property='children',allow_duplicate=True),
+    Output(component_id='cp10_modal',component_property='children',allow_duplicate=True),
+    Input(component_id='reset-cp-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_all_cp_params(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-cp-button' in changed_id:
+        return True,cp_modal("cp3"),cp_modal("cp3a"),cp_modal("cp4"), cp_modal("cp5"),cp_modal("cp5b"),cp_modal("cp6b"),cp_modal("cp10")
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update,dash.no_update, dash.no_update
+
+# Callback to close reset cp modals:
+@callback(
+        Output('reset-cp-modal','is_open',allow_duplicate = True),
+        Input("close-reset-cp-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_cp_params_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-cp-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+# Callback for reset events: reset event and month selection only
+@callback(
+    Output(component_id='reset-events-modal', component_property='is_open'),
+    Output(component_id='arrival-graph', component_property='figure',allow_duplicate=True),
+    Output(component_id='month-picker',component_property='value', allow_duplicate=True),
+    Output(component_id='event-picker',component_property='value',allow_duplicate=True),
+    Input(component_id='reset-events-button', component_property='n_clicks'),
+    prevent_initial_call=True
+)
+def reset_events(clicks):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if 'reset-events-button' in changed_id:
+        return True,generate_arrival_rate_graph(default_arrivals,300,300),None,"No Event"
+    else:
+        return False,dash.no_update,dash.no_update,dash.no_update
+
+# Callback to close reset events modals:
+@callback(
+        Output('reset-events-modal','is_open',allow_duplicate = True),
+        Input("close-reset-events-modal",'n_clicks'),
+        prevent_initial_call=True
+)
+def toggle_reset_events_modal(n1):
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+    if "close-reset-events-modal" in changed_id:
+        return False
+    else:
+        return True
+
+
+
