@@ -95,8 +95,8 @@ def clean_carpark_data(path : str):
     import json
     if __name__ == '__main__':
         relative_path = '../../data' 
-    else: 
-        relative_path = '../data'
+    else: # assume running from root directory
+        relative_path = 'data'
     with open(relative_path + '/exit_id_mapping.json') as f:
         EXIT_ID_MAPPING = json.load(f)
 
