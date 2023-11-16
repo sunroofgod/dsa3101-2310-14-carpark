@@ -11,9 +11,21 @@ To address this issue, we aim to develop an interactive simulation model for UCI
 
 This project is part of our graded coursework in the National University of Singapore module DSA3101: Data Science in Practice.
 
+## Running Our Application
+1. Clone the repo.
+
+   ```sh
+   git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
+   ```
+2. Proceed to root of cloned local repository and dockerize Application
+    ```sh
+   docker compose up -d
+   ```
+3. Wait for containers to be set up
+4. Proceed to our Application Site at [https://localhost:8050/](https://localhost:8050/).
+
 <!-- GETTING STARTED -->
 ## Getting Started
-
 ### Prerequisites
 
 _Ensure that you have done/are doing all these installations based on your current operating system._
@@ -63,19 +75,7 @@ _Ensure that you have done/are doing all these installations based on your curre
    cd backend # if you were originally in the root directory of the cloned repo
    flask --app app run
    ```
-<!-- Running Our Application -->
-1. Clone the repo.
 
-   ```sh
-   git clone https://github.com/sunroofgod/dsa3101-2310-14-carpark.git
-   ```
-2. Proceed to root of cloned local repository and dockerize Application
-    ```sh
-   docker compose up -d
-   ```
-3. Wait for containers to be set up
-4. Proceed to our Application Site at [(https://localhost:8050/](https://localhost:8050/).
-   
 <!-- BOTTOM BANNER -->
 This Full-stack project is built entirely (with love) in
 
