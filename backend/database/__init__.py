@@ -1,10 +1,15 @@
 from sqlalchemy import text
 import sqlalchemy
+import os, sys
+## append backend path to sys to import database module
+path = os.getcwd()
+sys.path.append(os.path.join(path, "backend"))
 from database.mysql_connector import connect_db
 from data_preprocessing.run_data_cleaning import load_and_clean_data
+import time
 
 ## connect to database
-db = connect_db()
+# db = connect_db()
 
 def drop_all_tables(db: sqlalchemy.engine.Connection) -> None:
     """
@@ -87,4 +92,9 @@ def setup_database(db: sqlalchemy.engine.Connection) -> None:
     drop_all_tables(db)
     create_all_tables(db)
     load_local_data(db)
+    return 200
 
+if __name__ == '__main__':
+    # time.sleep(30)
+    db = connect_db()
+    setup_database(db)
