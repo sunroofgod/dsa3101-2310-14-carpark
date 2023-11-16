@@ -17,7 +17,6 @@ layout = html.Div([
     # Video Tutorial Space
     html.Div([
     html.H2("Tutorial Video", style={'color': '#003D7C', 'text-align': 'center'}),
-    # Include your tutorial video here with a preview image and poster
     html.Div([
         html.A(
             html.Iframe(
