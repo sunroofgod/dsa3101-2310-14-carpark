@@ -20,14 +20,10 @@ layout = html.Div([
     # Include your tutorial video here with a preview image and poster
     html.Div([
         html.A(
-            html.Video(
-                src="https://www.youtube.com/embed/GsLsBs4oW30",
-                controls=True,
-                poster="assets/tutorial_pic.png",
-                style={'max-width': '100%', 'height': '500px', 'width': '75%', 'display': 'block', 'margin': '0 auto'}
+            html.Iframe(
+                src="https://www.youtube.com/embed/7YL6yV4JriM",
+                style={'width': '100%', 'height':'1000px','display': 'block', 'margin': '0 auto'}
             ),
-            href="https://youtu.be/7YL6yV4JriM",  # Add the actual YouTube video URL
-            target="_blank",  # Open the link in a new tab
         )
     ], style={'border': '1px solid #003D7C', 'padding': '10px', 'border-radius': '5px'})
     ], style={'background-color': 'white', 'padding': '20px'}),
