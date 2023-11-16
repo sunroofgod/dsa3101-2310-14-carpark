@@ -15,7 +15,6 @@ def connect_db():
     MYSQL_USERNAME = os.environ['MYSQL_USERNAME']
     MYSQL_PASSWORD = os.environ['MYSQL_PASSWORD']
     CONNECTION_STRING = f'mysql+pymysql://{MYSQL_USERNAME}:{MYSQL_PASSWORD}@db:3306/{DATABASE_NAME}'
-    print(CONNECTION_STRING)
     engine = sqlalchemy.create_engine(
         CONNECTION_STRING
     )
