@@ -19,5 +19,7 @@ services:
         target: /data/
     ports:
       - "8050:8050"
+    depends_on:
+      - db
     stdin_open: true
     tty: true
