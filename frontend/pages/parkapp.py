@@ -1495,7 +1495,7 @@ def simulate_events(hour,cp3_status,cp3a_status,cp4_status,cp5_status,cp5b_statu
         outputs = {}
 
 
-        n = 10 #Set n = 100 for Docker Solution, n = 10 for testing and debugging
+        n = 100 #Set n = 100 for Docker Solution, n = 10 for testing and debugging
         for i in range(n):
             current = run_nsim(cap_dict = lots_d_input, lambdas = arrival_rates, n = 1) 
             outputs = stats_mean(outputs, current)
