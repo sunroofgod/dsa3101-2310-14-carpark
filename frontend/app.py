@@ -72,4 +72,7 @@ app.layout = html.Div(children=[
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port="8050", debug=True)
+    # Run below line if dockerizing
+    app.run(host='0.0.0.0', port="8050", debug=False)
+    # Run below line if testing and developing
+    #app.run(host='http://127.0.0.1/', port="8050", debug=True)

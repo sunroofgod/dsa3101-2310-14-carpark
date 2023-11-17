@@ -9,8 +9,12 @@ sys.path.append(os.path.join(path, "backend"))
 from database.mysql_connector import get_table, connect_db
 
 ## get carpark visitor data
-# DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv") # "../../data/Cleaned/all_carparks_cleaned.csv"
-# cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
+
+# Run both lines below when testing and debugging
+#DATA_FPATH = os.path.join(path, "data", "cleaned", "all_carparks_cleaned.csv") # "../../data/Cleaned/all_carparks_cleaned.csv"
+#cp_data = pd.read_csv(DATA_FPATH, low_memory=False)
+
+# Run both lines below if dockerizing
 db = connect_db()
 cp_data = get_table(table_name="visitors", db=db)
 
