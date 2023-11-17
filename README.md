@@ -30,7 +30,8 @@ This project is part of our graded coursework in the National University of Sing
 3. Proceed to our Application Site at [https://localhost:8050/](https://localhost:8050/).
 
 ## Running Our Application (Testing and Debugging)
-1. Checkout a new branch from master   
+1. Checkout a new branch from master
+   
     ```sh
    git checkout -b <branch-name>
    ```
@@ -44,11 +45,13 @@ This project is part of our graded coursework in the National University of Sing
 <img src=".github/public/line_change_3.png" width="500">
 
 5. Change working directory to root of repository  
-6. Install Required Packages   
+6. Install Required Packages
+
    ```sh
    pip install requirements.txt
    ```
-7. Run Application for testing and debugging with command   
+7. Run Application for testing and debugging with command
+   
     ```sh
    python frontend/app.py
    ```
